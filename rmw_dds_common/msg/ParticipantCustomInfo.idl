@@ -1,0 +1,12 @@
+#include "rmw_dds_common/msg/Gid.idl"
+#include "rmw_dds_common/msg/NodeCustomInfo.idl"
+
+module rmw_dds_common {
+  module msg {
+    struct ParticipantCustomInfo {
+        @key
+        rmw_dds_common::msg::Gid id;
+        sequence<rmw_dds_common::msg::NodeCustomInfo, 1024> type;
+    };
+  };
+};

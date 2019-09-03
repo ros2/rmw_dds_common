@@ -1,0 +1,15 @@
+#include "rmw_dds_common/msg/Gid.idl"
+
+module rmw_dds_common {
+  module msg {
+    typedef sequence<rmw_dds_common::msg::Gid, 1024> gid_sequence_t;
+    struct NodeCustomInfo {
+        @key
+        string<256> node_name;
+        gid_sequence_t clients;
+        gid_sequence_t publishers;
+        gid_sequence_t services;
+        gid_sequence_t subscriptions;
+    };
+  };
+};
