@@ -12,8 +12,11 @@
   <buildtool_depend>rosidl_cmake</buildtool_depend>
   <buildtool_depend>rmw_dds_common_generators</buildtool_depend>
 
+  <depend>rcutils</depend>
+  <depend>rcpputils</depend>
   <depend>rmw</depend>
 
+  <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 

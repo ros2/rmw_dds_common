@@ -12,10 +12,16 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
-find_package(rosidl_cmake REQUIRED)
+find_package(rcpputils REQUIRED)
+find_package(rcutils REQUIRED)
+find_package(rmw REQUIRED)
 find_package(rmw_dds_common_generators REQUIRED)
+find_package(rosidl_cmake REQUIRED)
 
 ament_export_dependencies(ament_cmake_core)
+ament_export_dependencies(rcpputils REQUIRED)
+ament_export_dependencies(rcutils REQUIRED)
+ament_export_dependencies(rmw REQUIRED)
 ament_export_dependencies(rosidl_cmake)
 
 rosidl_generate_interfaces(
@@ -28,8 +34,25 @@ rosidl_generate_interfaces(
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
+  find_package(ament_cmake_gtest REQUIRED)
   ament_lint_auto_find_test_dependencies()
+
+  ament_add_gtest(test_node_cache test/test_node_cache.cpp)
+  if(TARGET test_node_cache)
+    target_include_directories(test_node_cache PUBLIC include)
+    ament_target_dependencies(
+      test_node_cache
+      "rcutils"
+      "rcpputils"
+      "rmw"
+    )
+  endif()
 endif()
+
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
 
 ament_package(
 )
