@@ -32,6 +32,11 @@ rosidl_generate_interfaces(
   SKIP_GROUP_MEMBERSHIP_CHECK
 )
 
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_gtest REQUIRED)
@@ -39,20 +44,20 @@ if(BUILD_TESTING)
 
   ament_add_gtest(test_node_cache test/test_node_cache.cpp)
   if(TARGET test_node_cache)
-    target_include_directories(test_node_cache PUBLIC include)
+    target_include_directories(test_node_cache PUBLIC
+      include
+      ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c
+      ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp
+    )
     ament_target_dependencies(
       test_node_cache
       "rcutils"
       "rcpputils"
       "rmw"
+      "rosidl_generator_cpp"
     )
   endif()
 endif()
-
-install(
-  DIRECTORY include/
-  DESTINATION include
-)
 
 ament_package(
 )
