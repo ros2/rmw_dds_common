@@ -35,6 +35,7 @@ rosidl_generate_interfaces(
 add_library(${PROJECT_NAME}
   SHARED
   src/gid_utils.cpp
+  src/topic_cache.cpp
   src/node_cache.cpp)
 ament_target_dependencies(${PROJECT_NAME}
   "rcpputils"
@@ -66,6 +67,11 @@ if(BUILD_TESTING)
   ament_add_gtest(test_node_cache test/test_node_cache.cpp)
   if(TARGET test_node_cache)
     target_link_libraries(test_node_cache ${PROJECT_NAME})
+  endif()
+
+  ament_add_gtest(test_topic_cache test/test_topic_cache.cpp)
+  if(TARGET test_topic_cache)
+    target_link_libraries(test_topic_cache ${PROJECT_NAME})
   endif()
 endif()
 

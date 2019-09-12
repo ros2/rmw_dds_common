@@ -13,20 +13,25 @@
 // limitations under the License.
 
 #include <algorithm>
+#include <iterator>
+#include <ostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
+#include "rmw_dds_common/gid_utils.hpp"
 #include "rmw_dds_common/topic_cache.hpp"
 
 using rmw_dds_common::TopicCache;
+using rmw_dds_common::operator<<;
 
-const TopicToTypes &
+const TopicCache::TopicToTypes &
 TopicCache::get_topic_to_types() const
 {
   return topic_to_types_;
 }
 
-const ParticipantNodeMap &
+const TopicCache::ParticipantNodeMap &
 TopicCache::get_participant_to_nodes_to_topics() const
 {
   return participant_to_nodes_to_topics_;
@@ -55,7 +60,7 @@ TopicCache::add_topic(
 }
 
 bool
-remove_topic(
+TopicCache::remove_topic(
   const rmw_gid_t & gid,
   const std::string & node_name,
   const std::string & topic_name,
@@ -107,7 +112,7 @@ remove_topic(
 }
 
 void
-initialize_topic(const std::string & topic_name, TopicToTypes & topic_to_types)
+TopicCache::initialize_topic(const std::string & topic_name, TopicToTypes & topic_to_types)
 {
   if (topic_to_types.find(topic_name) == topic_to_types.end()) {
     topic_to_types[topic_name] = std::vector<std::string>();
@@ -115,7 +120,7 @@ initialize_topic(const std::string & topic_name, TopicToTypes & topic_to_types)
 }
 
 void
-initialize_node_topic_map(rmw_gid_t node_name, NodeTopicMap & map)
+TopicCache::initialize_node_topic_map(const std::string & node_name, NodeTopicMap & map)
 {
   if (map.find(node_name) == map.end()) {
     map[node_name] = TopicToTypes();
@@ -123,7 +128,7 @@ initialize_node_topic_map(rmw_gid_t node_name, NodeTopicMap & map)
 }
 
 void
-initialize_participant_node_map(rmw_gid_t gid, ParticipantNodeMap & map)
+TopicCache::initialize_participant_node_map(const rmw_gid_t & gid, ParticipantNodeMap & map)
 {
   if (map.find(gid) == map.end()) {
     map[gid] = NodeTopicMap();
@@ -131,7 +136,7 @@ initialize_participant_node_map(rmw_gid_t gid, ParticipantNodeMap & map)
 }
 
 std::ostream &
-operator<<(std::ostream & ostream, const TopicCache & topic_cache)
+rmw_dds_common::operator<<(std::ostream & ostream, const TopicCache & topic_cache)
 {
   ostream << "Participant Info: " << std::endl;
   for (const auto & gid_node_map_pair : topic_cache.get_participant_to_nodes_to_topics()) {

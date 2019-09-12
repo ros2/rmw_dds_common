@@ -27,6 +27,9 @@
 #include "rmw_dds_common/gid_utils.hpp"
 #include "rmw_dds_common/visibility_control.h"
 
+namespace rmw_dds_common
+{
+
 /**
  * Topic cache data structure. Manages relationships between participants and topics.
  */
@@ -120,7 +123,7 @@ private:
    * /param map
    */
   void
-  initialize_node_topic_map(rmw_gid_t node_name, NodeTopicMap & map);
+  initialize_node_topic_map(const std::string & node_name, NodeTopicMap & map);
 
   /**
    * Helper function to initialize the set inside a participant map.
@@ -129,11 +132,13 @@ private:
    * /param map
    */
   void
-  initialize_participant_node_map(rmw_gid_t gid, ParticipantNodeMap & map);
+  initialize_participant_node_map(const rmw_gid_t & gid, ParticipantNodeMap & map);
 };
 
 RMW_DDS_COMMON_PUBLIC
 std::ostream &
 operator<<(std::ostream & ostream, const TopicCache & topic_cache);
+
+}  // namespace rmw_dds_common
 
 #endif  // RMW_DDS_COMMON__TOPIC_CACHE_HPP_
