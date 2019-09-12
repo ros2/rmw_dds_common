@@ -127,15 +127,15 @@ fail:
 
 void
 NodeCache::update_node_names(
-  rmw_gid_t gid,
-  NodeInfoVector node_info_vector)
+  const rmw_gid_t & gid,
+  const NodeInfoVector & node_info_vector)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   gid_to_node_info_vector_[gid] = node_info_vector;
 }
 
 rmw_ret_t
-NodeCache::add_gid(rmw_gid_t gid)
+NodeCache::add_gid(const rmw_gid_t & gid)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   const auto & it = gid_to_node_info_vector_.find(gid);
@@ -151,9 +151,9 @@ NodeCache::add_gid(rmw_gid_t gid)
 
 rmw_ret_t
 NodeCache::add_node_name(
-  rmw_gid_t gid,
-  std::string node_name,
-  std::string node_namespace)
+  const rmw_gid_t & gid,
+  const std::string & node_name,
+  const std::string & node_namespace)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   const auto & it = gid_to_node_info_vector_.find(gid);
@@ -168,7 +168,7 @@ NodeCache::add_node_name(
 
 rmw_ret_t
 NodeCache::get_participant_state_message(
-  rmw_gid_t gid,
+  const rmw_gid_t & gid,
   rmw_dds_common::msg::ParticipantCustomInfo & participant_info) const
 {
   convert_gid_to_msg(&participant_info.id, &gid);
@@ -189,7 +189,7 @@ NodeCache::get_participant_state_message(
 }
 
 bool
-NodeCache::delete_node_names(rmw_gid_t gid)
+NodeCache::delete_node_names(const rmw_gid_t & gid)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   return gid_to_node_info_vector_.erase(gid) != 0;
