@@ -36,7 +36,9 @@ struct RMW_DDS_COMMON_PUBLIC_TYPE Compare_rmw_gid_t
  */
 RMW_DDS_COMMON_PUBLIC
 void
-convert_gid_to_msg(rmw_dds_common::msg::Gid * msg_gid, rmw_gid_t * gid);
+convert_gid_to_msg(
+  rmw_dds_common::msg::Gid * msg_gid,
+  const rmw_gid_t * gid);
 
 }  // namespace rmw_dds_common
 

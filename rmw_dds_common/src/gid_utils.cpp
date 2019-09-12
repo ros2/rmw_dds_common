@@ -35,7 +35,9 @@ Compare_rmw_gid_t::operator()(const rmw_gid_t & lhs, const rmw_gid_t & rhs) cons
 }
 
 void
-rmw_dds_common::convert_gid_to_msg(rmw_dds_common::msg::Gid * msg_gid, rmw_gid_t * gid)
+rmw_dds_common::convert_gid_to_msg(
+  rmw_dds_common::msg::Gid * msg_gid,
+  const rmw_gid_t * gid)
 {
   std::memcpy(&msg_gid->data, gid->data, RMW_GID_STORAGE_SIZE);
 }

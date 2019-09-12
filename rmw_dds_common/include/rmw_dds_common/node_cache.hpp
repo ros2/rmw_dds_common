@@ -77,8 +77,8 @@ public:
   RMW_DDS_COMMON_PUBLIC
   void
   update_node_names(
-    rmw_gid_t gid,
-    NodeInfoVector node_info_vector);
+    const rmw_gid_t & gid,
+    const NodeInfoVector & node_info_vector);
 
   /**
    * Add a new Participant gid.
@@ -88,7 +88,7 @@ public:
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  add_gid(rmw_gid_t gid);
+  add_gid(const rmw_gid_t & gid);
 
   /**
    * Add a new node name for a specific Participant gid.
@@ -99,9 +99,9 @@ public:
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   add_node_name(
-    rmw_gid_t gid,
-    std::string node_name,
-    std::string node_namespace);
+    const rmw_gid_t & gid,
+    const std::string & node_name,
+    const std::string & node_namespace);
 
   /**
    * Generate a message from existing participant data.
@@ -112,7 +112,7 @@ public:
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   get_participant_state_message(
-    rmw_gid_t gid,
+    const rmw_gid_t & gid,
     rmw_dds_common::msg::ParticipantCustomInfo & participant_info) const;
 
   /**
@@ -123,7 +123,7 @@ public:
    */
   RMW_DDS_COMMON_PUBLIC
   bool
-  delete_node_names(rmw_gid_t gid);
+  delete_node_names(const rmw_gid_t & gid);
 
 private:
   mutable std::mutex mutex_;
