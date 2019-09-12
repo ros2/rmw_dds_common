@@ -15,25 +15,19 @@
 #ifndef RMW_DDS_COMMON__NODE_CACHE_HPP_
 #define RMW_DDS_COMMON__NODE_CACHE_HPP_
 
-#include <limits>
 #include <map>
 #include <mutex>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "rcpputils/thread_safety_annotations.hpp"
 #include "rcutils/allocator.h"
-#include "rcutils/error_handling.h"
-#include "rcutils/logging_macros.h"
-#include "rcutils/strdup.h"
-#include "rcutils/types.h"
 #include "rcutils/types/string_array.h"
-#include "rmw/error_handling.h"
 #include "rmw/ret_types.h"
-#include "rmw/sanity_checks.h"
 #include "rmw/types.h"
 
+#include "rmw_dds_common/gid_utils.hpp"
+#include "rmw_dds_common/visibility_control.h"
 #include "rmw_dds_common/msg/gid.hpp"
 #include "rmw_dds_common/msg/node_custom_info.hpp"
 #include "rmw_dds_common/msg/participant_custom_info.hpp"
@@ -41,43 +35,26 @@
 namespace rmw_dds_common
 {
 
-/// Converts from implementation specific Guid to common representation
-rmw_ret_t
-convert_guid(rmw_dds_common::msg::Gid * msg_guid, GUID_t guid);
-
 /**
- * Class that subscribes to the topic where participants publish its node, and
- * updates a data structure.
+ * Topic cache data structure. Manages relationships between participants and nodes.
  */
 class NodeCache
 {
 public:
   using NodeInfoVector = std::vector<rmw_dds_common::msg::NodeCustomInfo>;
-  using GuidToNodeInfoVector = std::map<GUID_t, std::vector<rmw_dds_common::msg::NodeCustomInfo>>;
+  using GidToNodeInfoVector = std::map<
+    rmw_gid_t,
+    std::vector<rmw_dds_common::msg::NodeCustomInfo>,
+    Compare_rmw_gid_t>;
 
   /**
    * Get the number of nodes that have been discovered.
    * \return RMW_RET_OK, or
    * \return RMW_RET_ERROR
    */
+  RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  get_number_of_nodes(size_t & nodes_number) const
-  {
-    size_t previous_nodes_number = 0;
-    nodes_number = 0;
-    std::lock_guard<std::mutex> guard(mutex_);
-    for (const auto & elem : GUID_to_node_info_vector_) {
-      nodes_number += elem.second.size();
-      if (nodes_number < previous_nodes_number) {
-        RMW_SET_ERROR_MSG_WITH_FORMAT_STRING(
-          "Discovered more than %zu nodes",
-          std::numeric_limits<size_t>::max());
-        return RMW_RET_ERROR;
-      }
-      previous_nodes_number = nodes_number;
-    }
-    return RMW_RET_OK;
-  }
+  get_number_of_nodes(size_t & nodes_number) const;
 
   /**
    * Copy the names and namespaces of the discovered nodes.
@@ -87,145 +64,70 @@ public:
    * \return RMW_RET_BAD_ALLOC, or
    * \return RMW_RET_ERROR
    */
+  RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   get_node_names(
     rcutils_string_array_t * node_names,
     rcutils_string_array_t * node_namespaces,
-    rcutils_allocator_t * allocator) const
-  {
-    if (rmw_check_zero_rmw_string_array(node_names) != RMW_RET_OK) {
-      return RMW_RET_INVALID_ARGUMENT;
-    }
-    if (rmw_check_zero_rmw_string_array(node_namespaces) != RMW_RET_OK) {
-      return RMW_RET_INVALID_ARGUMENT;
-    }
-    RCUTILS_CHECK_ALLOCATOR_WITH_MSG(allocator, "get_node_names allocator is not valid",
-      return RMW_RET_INVALID_ARGUMENT);
-
-    size_t nodes_number;
-    if (RMW_RET_OK != get_number_of_nodes(nodes_number)) {
-      return RMW_RET_ERROR;
-    }
-    rcutils_ret_t rcutils_ret =
-      rcutils_string_array_init(node_names, nodes_number, allocator);
-    if (rcutils_ret != RCUTILS_RET_OK) {
-      RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
-      rcutils_reset_error();
-      goto fail;
-    }
-    rcutils_ret =
-      rcutils_string_array_init(node_namespaces, nodes_number, allocator);
-    if (rcutils_ret != RCUTILS_RET_OK) {
-      RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
-      rcutils_reset_error();
-      goto fail;
-    }
-    {
-      std::lock_guard<std::mutex> guard(mutex_);
-      size_t j = 0;
-      for (const auto & elem : GUID_to_node_info_vector_) {
-        const auto & nodes_info = elem.second;
-        for (const auto & node_info : nodes_info) {
-          node_names->data[j] = rcutils_strdup(node_info.node_name.c_str(), *allocator);
-          node_namespaces->data[j] = rcutils_strdup(
-            node_info.node_namespace.c_str(),
-            *allocator);
-          j++;
-        }
-      }
-    }
-    return RMW_RET_OK;
-
-fail:
-    rcutils_ret = rcutils_string_array_fini(node_names);
-    if (rcutils_ret != RCUTILS_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rmw_dds_common",
-        "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
-      rcutils_reset_error();
-    }
-    rcutils_ret = rcutils_string_array_fini(node_namespaces);
-    if (rcutils_ret != RCUTILS_RET_OK) {
-      RCUTILS_LOG_ERROR_NAMED(
-        "rmw_dds_common",
-        "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
-      rcutils_reset_error();
-    }
-    return RMW_RET_BAD_ALLOC;
-  }
+    rcutils_allocator_t * allocator) const;
 
   /**
-   * Updates the stored node names of a specific guid with new data.
+   * Updates the stored node names of a specific gid with new data.
    */
+  RMW_DDS_COMMON_PUBLIC
   void
   update_node_names(
-    GUID_t guid,
-    NodeInfoVector node_info_vector)
-  {
-    std::lock_guard<std::mutex> guard(mutex_);
-    GUID_to_node_info_vector_[guid] = node_info_vector;
-  }
+    rmw_gid_t gid,
+    NodeInfoVector node_info_vector);
 
   /**
-   * Add a new node name for a specific Participant guid.
+   * Add a new Participant gid.
+   *
+   * \return RMW_RET_ERROR if it was already added, or
+   * \return RMW_RET_OK.
    */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  add_gid(rmw_gid_t gid);
+
+  /**
+   * Add a new node name for a specific Participant gid.
+   *
+   * \return RMW_RET_ERROR if the participant gid doesn't exist, or
+   * \return RMW_RET_OK.
+   */
+  RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   add_node_name(
-    GUID_t guid,
+    rmw_gid_t gid,
     std::string node_name,
-    std::string node_namespace)
-  {
-    std::lock_guard<std::mutex> guard(mutex_);
-    const auto & it = GUID_to_node_info_vector_.find(guid);
-    if (it == GUID_to_node_info_vector_.end()) {
-      return RMW_RET_ERROR;
-    }
-    it->second.emplace_back();
-    it->second.back().node_name = node_name;
-    it->second.back().node_namespace = node_namespace;
-  }
+    std::string node_namespace);
 
   /**
-   * Add a new node name for a specific Participant guid.
+   * Generate a message from existing participant data.
+   *
+   * \return RMW_RET_ERROR if the participant gid doesn't exist, or
+   * \return RMW_RET_OK.
    */
+  RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   get_participant_state_message(
-    GUID_t guid,
-    rmw_dds_common::msg::ParticipantCustomInfo & participant_info) const
-  {
-    rmw_ret_t ret = convert_guid(&participant_info.id, guid);
-    if (RMW_RET_OK != ret) {
-      return ret;
-    }
-    const auto & it = GUID_to_node_info_vector_.find(guid);
-    if (it == GUID_to_node_info_vector_.end()) {
-      return RMW_RET_ERROR;
-    }
-    participant_info.nodes_info.reserve(it->second.size());
-    for (const auto & node_info : it->second) {
-      participant_info.nodes_info.emplace_back();
-      participant_info.nodes_info.back().node_name = node_info.node_name;
-      participant_info.nodes_info.back().node_name = node_info.node_namespace;
-    }
-    return RMW_RET_OK;
-  }
+    rmw_gid_t gid,
+    rmw_dds_common::msg::ParticipantCustomInfo & participant_info) const;
 
   /**
-   * Updates the stored node names of a specific guid with new data.
+   * Updates the stored node names of a specific gid with new data.
    *
    * \return `true` if existing data was deleted, or
-   * \return `false` if there were not stored data for the given guid.
+   * \return `false` if there were not stored data for the given gid.
    */
+  RMW_DDS_COMMON_PUBLIC
   bool
-  delete_node_names(GUID_t guid)
-  {
-    std::lock_guard<std::mutex> guard(mutex_);
-    return GUID_to_node_info_vector_.erase(guid) != 0;
-  }
+  delete_node_names(rmw_gid_t gid);
 
 private:
   mutable std::mutex mutex_;
-  GuidToNodeInfoVector GUID_to_node_info_vector_ RCPPUTILS_TSA_GUARDED_BY(mutex_);
+  GidToNodeInfoVector gid_to_node_info_vector_ RCPPUTILS_TSA_GUARDED_BY(mutex_);
 };
 
 }  // namespace rmw_dds_common

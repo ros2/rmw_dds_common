@@ -24,22 +24,10 @@
 #include "rmw/types.h"
 #include "rmw/ret_types.h"
 
-typedef std::string GUID_t;
+#include "rmw_dds_common/gid_utils.hpp"
 #include "rmw_dds_common/node_cache.hpp"
 
 using rmw_dds_common::NodeCache;
-
-rmw_ret_t
-convert_guid(rmw_dds_common::msg::Gid * msg_guid, GUID_t guid)
-{
-  std::memset(msg_guid->data.data(), 0, RMW_GID_STORAGE_SIZE);
-  if (guid.size() > RMW_GID_STORAGE_SIZE) {
-    return RMW_RET_ERROR;
-  }
-  // msg_guid->data.reserve(guid.size());
-  std::memcpy(msg_guid->data.data(), guid.c_str(), guid.size());
-  return RMW_RET_OK;
-}
 
 TEST(TestNodeCache, constructor_destructor)
 {
@@ -47,7 +35,7 @@ TEST(TestNodeCache, constructor_destructor)
 }
 
 using TestData =
-  std::vector<std::pair<GUID_t, NodeCache::NodeInfoVector>>;
+  std::vector<std::pair<rmw_gid_t, NodeCache::NodeInfoVector>>;
 
 void check_names(
   TestData test_data,
@@ -80,25 +68,50 @@ new_node_info(std::string ns, std::string name)
   return info;
 }
 
+rmw_gid_t
+generate_gid(std::string data)
+{
+  rmw_gid_t gid;
+  std::strncpy(reinterpret_cast<char *>(gid.data), data.c_str(), RMW_GID_STORAGE_SIZE);
+  return gid;
+}
+
+template<class T0, class ... Ts>
+auto
+make_vector(T0 && first, Ts && ... args)
+{
+  using first_type = std::decay_t<T0>;
+  return std::vector<first_type>{
+    std::forward<T0>(first),
+    std::forward<Ts>(args)...
+  };
+}
+
+TestData
+generate_test_data()
+{
+  TestData test_data;
+  rmw_gid_t gid1 = generate_gid("gid1");
+  rmw_gid_t gid2 = generate_gid("gid2");
+  test_data.emplace_back(
+    gid1,
+    make_vector(
+      new_node_info("ns1", "node1"),
+      new_node_info("ns1", "node2"),
+      new_node_info("ns2", "node1")));
+  test_data.emplace_back(
+    gid2,
+    make_vector(
+      new_node_info("ns1", "node3"),
+      new_node_info("ns2", "node2"),
+      new_node_info("ns3", "node1"),
+      new_node_info("ns4", "node1")));
+  return test_data;
+}
+
 TEST(TestNodeCache, common_usage)
 {
-  TestData test_data = {
-    {"guid1",
-      {
-        new_node_info("ns1", "node1"),
-        new_node_info("ns1", "node2"),
-        new_node_info("ns2", "node1"),
-      }
-    },
-    {"guid2",
-      {
-        new_node_info("ns1", "node3"),
-        new_node_info("ns2", "node2"),
-        new_node_info("ns3", "node1"),
-        new_node_info("ns4", "node1"),
-      }
-    },
-  };
+  TestData test_data = generate_test_data();
   NodeCache node_cache;
   for (const auto & elem : test_data) {
     node_cache.update_node_names(std::get<0>(elem), std::get<1>(elem));
@@ -116,7 +129,7 @@ TEST(TestNodeCache, common_usage)
   EXPECT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&node_names));
   EXPECT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&node_namespaces));
 
-  node_cache.delete_node_names("guid1");
+  node_cache.delete_node_names(test_data[0].first);
   EXPECT_EQ(RMW_RET_OK, node_cache.get_number_of_nodes(nodes_number));
   EXPECT_EQ(4u, nodes_number);
   node_names = rcutils_get_zero_initialized_string_array();
