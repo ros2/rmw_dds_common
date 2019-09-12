@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 
 #include "rmw/types.h"
 
@@ -32,6 +33,20 @@ Compare_rmw_gid_t::operator()(const rmw_gid_t & lhs, const rmw_gid_t & rhs) cons
     lhs.data + RMW_GID_STORAGE_SIZE,
     rhs.data,
     rhs.data + RMW_GID_STORAGE_SIZE);
+}
+
+// (ivanpauno)
+// This function could be implementation specific, though this common one should work well.
+std::ostream &
+rmw_dds_common::operator<<(std::ostream & ostream, const rmw_gid_t & gid)
+{
+  ostream << std::hex;
+  size_t i = 0;
+  for (; i < (RMW_GID_STORAGE_SIZE - 1); i++) {
+    ostream << static_cast<int>(gid.data[i]) << ".";
+  }
+  ostream << static_cast<int>(gid.data[i]);
+  return ostream << std::dec;
 }
 
 void
