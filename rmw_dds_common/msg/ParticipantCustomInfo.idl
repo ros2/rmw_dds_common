@@ -6,7 +6,7 @@ module rmw_dds_common {
     struct ParticipantCustomInfo {
         @key
         rmw_dds_common::msg::Gid id;
-        sequence<rmw_dds_common::msg::NodeCustomInfo, 1024> type;
+        sequence<rmw_dds_common::msg::NodeCustomInfo, 1024> nodes_info;
     };
   };
 };
