@@ -35,6 +35,11 @@ RMW_DDS_COMMON_PUBLIC
 std::ostream &
 operator<<(std::ostream & ostream, const rmw_gid_t & gid);
 
+/// operator== for rmw_gid_t
+RMW_DDS_COMMON_PUBLIC
+bool
+operator==(const rmw_gid_t & lhs, const rmw_gid_t & rhs);
+
 /// Converts from rmw_gid_t to rmw_dds_common::msg::Gid
 /**
  * For internal usage, both pointers are supposed to be valid.
