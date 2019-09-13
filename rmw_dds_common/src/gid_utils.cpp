@@ -49,6 +49,15 @@ rmw_dds_common::operator<<(std::ostream & ostream, const rmw_gid_t & gid)
   return ostream << std::dec;
 }
 
+bool
+rmw_dds_common::operator==(const rmw_gid_t & lhs, const rmw_gid_t & rhs)
+{
+  return std::memcmp(
+    reinterpret_cast<const void *>(lhs.data),
+    reinterpret_cast<const void *>(rhs.data),
+    RMW_GID_STORAGE_SIZE) == 0;
+}
+
 void
 rmw_dds_common::convert_gid_to_msg(
   rmw_dds_common::msg::Gid * msg_gid,
