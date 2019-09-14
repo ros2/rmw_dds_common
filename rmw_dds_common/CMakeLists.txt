@@ -36,7 +36,8 @@ add_library(${PROJECT_NAME}
   SHARED
   src/gid_utils.cpp
   src/topic_cache.cpp
-  src/node_cache.cpp)
+  src/node_cache.cpp
+  src/rmw_context_impl.cpp)
 ament_target_dependencies(${PROJECT_NAME}
   "rcpputils"
   "rcutils"
