@@ -26,6 +26,7 @@ extern "C"
 typedef struct rmw_context_impl_t
 {
   const rmw_gid_t * gid;
+  rmw_publisher_t * pub;
   void * topic_cache;
   void * node_cache;
   void * data;
@@ -38,15 +39,20 @@ typedef struct rmw_context_impl_t
  *
  * \param[in] gid Gid of the DDS participant, or similar unique identifier.
  *    Should be a valid pointer previously allocated.
+ * \param[in] state_publisher Already initialized publisher, that will be later used to
+ *   publish ParticipantCustomInfo messages.
  * \param[in] data Implementation specific detail.
+ *   For DDS based implementation it may be only a Participant.
+ * \param[inout] context Context where the implementation is inited.
  *   For DDS based implementation it may be only a Participant.
  * \return RMW_RET_BAD_ALLOC, or
  * \return RMW_RET_OK.
  */
 RMW_DDS_COMMON_PUBLIC
 rmw_ret_t
-rmw_init_context_impl(
+rmw_dds_common_context_impl_init(
   const rmw_gid_t * gid,
+  rmw_publisher_t * state_publisher,
   void * data,
   rmw_context_t * context);
 
@@ -62,7 +68,7 @@ rmw_init_context_impl(
  */
 RMW_DDS_COMMON_PUBLIC
 void
-rmw_context_impl_fini(rmw_context_t * context);
+rmw_dds_common_context_impl_fini(rmw_context_t * context);
 
 #ifdef __cplusplus
 }

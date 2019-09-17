@@ -27,8 +27,9 @@ using rmw_dds_common::NodeCache;
 using rmw_dds_common::TopicCache;
 
 rmw_ret_t
-rmw_context_impl_init(
+rmw_dds_common_context_impl_init(
   const rmw_gid_t * gid,
+  rmw_publisher_t * state_publisher,
   void * data,
   rmw_context_t * context)
 {
@@ -41,9 +42,11 @@ rmw_context_impl_init(
   RMW_TRY_PLACEMENT_NEW(node_cache, node_cache, goto fail, NodeCache, );
   RMW_TRY_PLACEMENT_NEW(topic_cache, topic_cache, goto fail, TopicCache, );
   context->impl->gid = gid;
+  node_cache->add_gid(*gid);
   context->impl->node_cache = node_cache;
   context->impl->topic_cache = topic_cache;
   context->impl->data = data;
+  context->impl->pub = state_publisher;
 
 fail:
   delete context->impl;
@@ -53,7 +56,7 @@ fail:
 }
 
 void
-rmw_context_impl_fini(rmw_context_t * context)
+rmw_dds_common_context_impl_fini(rmw_context_t * context)
 {
   delete reinterpret_cast<NodeCache *>(context->impl->node_cache);
   delete reinterpret_cast<TopicCache *>(context->impl->topic_cache);
@@ -61,5 +64,6 @@ rmw_context_impl_fini(rmw_context_t * context)
   context->impl->node_cache = nullptr;
   context->impl->topic_cache = nullptr;
   context->impl->data = nullptr;
+  context->impl->pub = nullptr;
 }
 }  // extern "C"
