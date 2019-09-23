@@ -40,32 +40,44 @@ TopicCache::get_participant_to_nodes_to_topics() const
 bool
 TopicCache::add_topic(
   const rmw_gid_t & gid,
+  const std::string & namespace_,
   const std::string & node_name,
   const std::string & topic_name,
   const std::string & type_name)
 {
+  auto pair = std::make_pair(
+    const_cast<std::string &>(namespace_),
+    const_cast<std::string &>(node_name));
   initialize_topic(topic_name, topic_to_types_);
   initialize_participant_node_map(gid, participant_to_nodes_to_topics_);
-  initialize_node_topic_map(node_name, participant_to_nodes_to_topics_[gid]);
-  initialize_topic(topic_name, participant_to_nodes_to_topics_[gid][node_name]);
+  initialize_node_topic_map(pair, participant_to_nodes_to_topics_[gid]);
+  initialize_topic(topic_name, participant_to_nodes_to_topics_[gid][pair]);
   std::stringstream gid_stream;
   gid_stream << gid;
   RCUTILS_LOG_DEBUG_NAMED(
     "rmw_fastrtps_shared_cpp",
-    "Adding topic '%s' with type '%s' for node '%s' of participant '%s'",
-    topic_name.c_str(), type_name.c_str(), node_name.c_str(), gid_stream.str().c_str());
+    "Adding topic '%s' with type '%s' for node ns='%s' name='%s' of participant '%s'",
+    topic_name.c_str(),
+    type_name.c_str(),
+    namespace_.c_str(),
+    node_name.c_str(),
+    gid_stream.str().c_str());
   topic_to_types_[topic_name].push_back(type_name);
-  participant_to_nodes_to_topics_[gid][node_name][topic_name].push_back(type_name);
+  participant_to_nodes_to_topics_[gid][pair][topic_name].push_back(type_name);
   return true;
 }
 
 bool
 TopicCache::remove_topic(
   const rmw_gid_t & gid,
+  const std::string & namespace_,
   const std::string & node_name,
   const std::string & topic_name,
   const std::string & type_name)
 {
+  auto pair = std::make_pair(
+    const_cast<std::string &>(namespace_),
+    const_cast<std::string &>(node_name));
   if (topic_to_types_.find(topic_name) == topic_to_types_.end()) {
     RCUTILS_LOG_DEBUG_NAMED(
       "rmw_fastrtps_shared_cpp",
@@ -83,7 +95,7 @@ TopicCache::remove_topic(
 
   const auto & gid_nodes_pair = participant_to_nodes_to_topics_.find(gid);
   if (gid_nodes_pair != participant_to_nodes_to_topics_.end()) {
-    const auto & node_topics_pair = gid_nodes_pair->second.find(node_name);
+    const auto & node_topics_pair = gid_nodes_pair->second.find(pair);
     if (node_topics_pair != gid_nodes_pair->second.end()) {
       const auto & topic_types_pair = node_topics_pair->second.find(topic_name);
       if (topic_types_pair != node_topics_pair->second.end()) {
@@ -95,7 +107,7 @@ TopicCache::remove_topic(
           node_topics_pair->second.erase(topic_name);
         }
         if (node_topics_pair->second.empty()) {
-          gid_nodes_pair->second.erase(node_name);
+          gid_nodes_pair->second.erase(pair);
         }
         if (gid_nodes_pair->second.empty()) {
           participant_to_nodes_to_topics_.erase(gid);
@@ -120,10 +132,10 @@ TopicCache::initialize_topic(const std::string & topic_name, TopicToTypes & topi
 }
 
 void
-TopicCache::initialize_node_topic_map(const std::string & node_name, NodeTopicMap & map)
+TopicCache::initialize_node_topic_map(const NamespaceNamePair & pair, NodeTopicMap & map)
 {
-  if (map.find(node_name) == map.end()) {
-    map[node_name] = TopicToTypes();
+  if (map.find(pair) == map.end()) {
+    map[pair] = TopicToTypes();
   }
 }
 
@@ -142,7 +154,10 @@ rmw_dds_common::operator<<(std::ostream & ostream, const TopicCache & topic_cach
   for (const auto & gid_node_map_pair : topic_cache.get_participant_to_nodes_to_topics()) {
     ostream << "  gid: " << gid_node_map_pair.first << std::endl;
     for (const auto & node_topic_map_pair : gid_node_map_pair.second) {
-      ostream << "    Node: " << node_topic_map_pair.first << std::endl;
+      ostream << "    Node:" << std::endl;
+      ostream << "      ns='" << node_topic_map_pair.first.first << "'" << std::endl;
+      ostream << "      name='" << node_topic_map_pair.first.second << "'" << std::endl;
+      ostream << "    Node:" << std::endl;
       ostream << "      Topics: " << std::endl;
       for (const auto & topic_types_pair : node_topic_map_pair.second) {
         ostream << "        " << topic_types_pair.first << ": ";

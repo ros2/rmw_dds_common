@@ -25,7 +25,7 @@ extern "C"
 
 typedef struct rmw_context_impl_t
 {
-  const rmw_gid_t * gid;
+  rmw_gid_t * gid;
   rmw_publisher_t * pub;
   void * topic_cache;
   void * node_cache;
@@ -51,7 +51,7 @@ typedef struct rmw_context_impl_t
 RMW_DDS_COMMON_PUBLIC
 rmw_ret_t
 rmw_dds_common_context_impl_init(
-  const rmw_gid_t * gid,
+  rmw_gid_t * gid,
   rmw_publisher_t * state_publisher,
   void * data,
   rmw_context_t * context);

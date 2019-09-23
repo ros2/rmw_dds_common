@@ -18,6 +18,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "rcpputils/thread_safety_annotations.hpp"
@@ -30,14 +31,34 @@
 namespace rmw_dds_common
 {
 
+class StringPairHash
+{
+public:
+  template<typename T>
+  inline void hash_combine(std::size_t & seed, const T & v) const
+  {
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+  }
+
+  inline size_t operator()(const std::pair<std::string, std::string> & s) const
+  {
+    size_t seed = 0;
+    hash_combine(seed, s.first);
+    hash_combine(seed, s.second);
+    return seed;
+  }
+};
+
 /**
  * Topic cache data structure. Manages relationships between participants and topics.
  */
 class TopicCache
 {
 public:
+  using NamespaceNamePair = std::pair<std::string, std::string>;
   using TopicToTypes = std::unordered_map<std::string, std::vector<std::string>>;
-  using NodeTopicMap = std::unordered_map<std::string, TopicToTypes>;
+  using NodeTopicMap = std::unordered_map<NamespaceNamePair, TopicToTypes, StringPairHash>;
   using ParticipantNodeMap = std::map<rmw_gid_t, NodeTopicMap, Compare_rmw_gid_t>;
 
   /**
@@ -62,6 +83,7 @@ public:
    * Add a topic based on discovery.
    *
    * /param gid
+   * /param namespace_
    * /param node_name
    * /param topic_name
    * /param type_name
@@ -71,6 +93,7 @@ public:
   bool
   add_topic(
     const rmw_gid_t & gid,
+    const std::string & namespace_,
     const std::string & node_name,
     const std::string & topic_name,
     const std::string & type_name);
@@ -79,6 +102,7 @@ public:
    * Remove a topic based on discovery.
    *
    * /param gid
+   * /param namespace_
    * /param node_name
    * /param topic_name
    * /param type_name
@@ -88,6 +112,7 @@ public:
   bool
   remove_topic(
     const rmw_gid_t & gid,
+    const std::string & namespace_,
     const std::string & node_name,
     const std::string & topic_name,
     const std::string & type_name);
@@ -119,11 +144,11 @@ private:
   /**
    * Helper function to initialize a NodeTopicMap.
    *
-   * /param node_name
+   * /param name_pair
    * /param map
    */
   void
-  initialize_node_topic_map(const std::string & node_name, NodeTopicMap & map);
+  initialize_node_topic_map(const NamespaceNamePair & name_pair, NodeTopicMap & map);
 
   /**
    * Helper function to initialize the set inside a participant map.
