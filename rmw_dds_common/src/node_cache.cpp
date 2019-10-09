@@ -15,6 +15,7 @@
 #include <limits>
 #include <map>
 #include <mutex>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -167,11 +168,33 @@ NodeCache::add_node_name(
 }
 
 rmw_ret_t
+NodeCache::delete_node_name(
+  const rmw_gid_t & gid,
+  const std::string & node_name,
+  const std::string & node_namespace)
+{
+  std::lock_guard<std::mutex> guard(mutex_);
+  auto it = gid_to_node_info_vector_.find(gid);
+  if (it == gid_to_node_info_vector_.end()) {
+    return RMW_RET_ERROR;
+  }
+  it->second.erase(
+    std::remove_if(
+      it->second.begin(),
+      it->second.end(),
+      [&node_namespace, &node_name] (const rmw_dds_common::msg::NodeCustomInfo & elem) {
+        return elem.node_namespace == node_namespace && elem.node_name == node_name;
+      }),
+    it->second.end());
+  return RMW_RET_OK;
+}
+
+rmw_ret_t
 NodeCache::get_participant_state_message(
   const rmw_gid_t & gid,
   rmw_dds_common::msg::ParticipantCustomInfo & participant_info) const
 {
-  convert_gid_to_msg(&participant_info.id, &gid);
+  convert_gid_to_msg(&gid, &participant_info.id);
   {
     std::lock_guard<std::mutex> guard(mutex_);
     const auto & it = gid_to_node_info_vector_.find(gid);
@@ -182,7 +205,7 @@ NodeCache::get_participant_state_message(
     for (const auto & node_info : it->second) {
       participant_info.nodes_info.emplace_back();
       participant_info.nodes_info.back().node_name = node_info.node_name;
-      participant_info.nodes_info.back().node_name = node_info.node_namespace;
+      participant_info.nodes_info.back().node_namespace = node_info.node_namespace;
     }
   }
   return RMW_RET_OK;
@@ -193,4 +216,19 @@ NodeCache::delete_node_names(const rmw_gid_t & gid)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   return gid_to_node_info_vector_.erase(gid) != 0;
+}
+
+std::ostream &
+rmw_dds_common::operator<<(std::ostream & ostream, const NodeCache & node_cache)
+{
+  std::ostringstream ss;
+  ss << "Node namespaces and names:" << std::endl;
+  for (const auto & elem : node_cache.gid_to_node_info_vector_) {
+    ss << "  gid: " << elem.first << std::endl;
+    for(const auto & node_info : elem.second) {
+      ss << "    namespace=[" << node_info.node_namespace << "] name=["
+        << node_info.node_name << "]" << std::endl;
+    }
+  }
+  return ostream << ss.str();
 }

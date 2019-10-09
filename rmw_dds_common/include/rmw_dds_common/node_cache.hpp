@@ -40,11 +40,14 @@ namespace rmw_dds_common
  */
 class NodeCache
 {
+  friend
+  std::ostream &
+  operator<<(std::ostream & ostream, const NodeCache & node_cache);
 public:
-  using NodeInfoVector = std::vector<rmw_dds_common::msg::NodeCustomInfo>;
+  using NodeInfoVector = decltype(std::declval<rmw_dds_common::msg::ParticipantCustomInfo>().nodes_info);
   using GidToNodeInfoVector = std::map<
     rmw_gid_t,
-    std::vector<rmw_dds_common::msg::NodeCustomInfo>,
+    NodeInfoVector,
     Compare_rmw_gid_t>;
 
   /**
@@ -104,6 +107,19 @@ public:
     const std::string & node_namespace);
 
   /**
+   * Delete a node name of a specific Participant gid.
+   *
+   * \return RMW_RET_ERROR if the participant gid or node name don't exist, or
+   * \return RMW_RET_OK.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  delete_node_name(
+    const rmw_gid_t & gid,
+    const std::string & node_name,
+    const std::string & node_namespace);
+
+  /**
    * Generate a message from existing participant data.
    *
    * \return RMW_RET_ERROR if the participant gid doesn't exist, or
@@ -116,7 +132,7 @@ public:
     rmw_dds_common::msg::ParticipantCustomInfo & participant_info) const;
 
   /**
-   * Updates the stored node names of a specific gid with new data.
+   * Delete the stored node names of a specific gid.
    *
    * \return `true` if existing data was deleted, or
    * \return `false` if there were not stored data for the given gid.
@@ -129,6 +145,9 @@ private:
   mutable std::mutex mutex_;
   GidToNodeInfoVector gid_to_node_info_vector_ RCPPUTILS_TSA_GUARDED_BY(mutex_);
 };
+
+std::ostream &
+operator<<(std::ostream & ostream, const NodeCache & node_cache);
 
 }  // namespace rmw_dds_common
 

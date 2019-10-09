@@ -52,16 +52,20 @@ TopicCache::add_topic(
   initialize_participant_node_map(gid, participant_to_nodes_to_topics_);
   initialize_node_topic_map(pair, participant_to_nodes_to_topics_[gid]);
   initialize_topic(topic_name, participant_to_nodes_to_topics_[gid][pair]);
-  std::stringstream gid_stream;
-  gid_stream << gid;
-  RCUTILS_LOG_DEBUG_NAMED(
-    "rmw_fastrtps_shared_cpp",
-    "Adding topic '%s' with type '%s' for node ns='%s' name='%s' of participant '%s'",
-    topic_name.c_str(),
-    type_name.c_str(),
-    namespace_.c_str(),
-    node_name.c_str(),
-    gid_stream.str().c_str());
+  if (rcutils_logging_logger_is_enabled_for("rmw_dds_common",
+    RCUTILS_LOG_SEVERITY_DEBUG))
+  {
+    std::stringstream gid_stream;
+    gid_stream << gid;
+    RCUTILS_LOG_DEBUG_NAMED(
+      "rmw_fastrtps_shared_cpp",
+      "Adding topic '%s' with type '%s' for node ns='%s' name='%s' of participant '%s'",
+      topic_name.c_str(),
+      type_name.c_str(),
+      namespace_.c_str(),
+      node_name.c_str(),
+      gid_stream.str().c_str());
+  }
   topic_to_types_[topic_name].push_back(type_name);
   participant_to_nodes_to_topics_[gid][pair][topic_name].push_back(type_name);
   return true;
@@ -150,29 +154,30 @@ TopicCache::initialize_participant_node_map(const rmw_gid_t & gid, ParticipantNo
 std::ostream &
 rmw_dds_common::operator<<(std::ostream & ostream, const TopicCache & topic_cache)
 {
-  ostream << "Participant Info: " << std::endl;
+  std::ostringstream ss;
+  ss << "Participant Info: " << std::endl;
   for (const auto & gid_node_map_pair : topic_cache.get_participant_to_nodes_to_topics()) {
-    ostream << "  gid: " << gid_node_map_pair.first << std::endl;
+    ss << "  gid: " << gid_node_map_pair.first << std::endl;
     for (const auto & node_topic_map_pair : gid_node_map_pair.second) {
-      ostream << "    Node:" << std::endl;
-      ostream << "      ns='" << node_topic_map_pair.first.first << "'" << std::endl;
-      ostream << "      name='" << node_topic_map_pair.first.second << "'" << std::endl;
-      ostream << "    Node:" << std::endl;
-      ostream << "      Topics: " << std::endl;
+      ss << "    Node:" << std::endl;
+      ss << "      ns='" << node_topic_map_pair.first.first << "'" << std::endl;
+      ss << "      name='" << node_topic_map_pair.first.second << "'" << std::endl;
+      ss << "    Node:" << std::endl;
+      ss << "      Topics: " << std::endl;
       for (const auto & topic_types_pair : node_topic_map_pair.second) {
-        ostream << "        " << topic_types_pair.first << ": ";
+        ss << "        " << topic_types_pair.first << ": ";
         std::copy(topic_types_pair.second.begin(), topic_types_pair.second.end(),
           std::ostream_iterator<std::string>(ostream, ","));
-        ostream << std::endl;
+        ss << std::endl;
       }
     }
   }
-  ostream << "Cumulative TopicToTypes: " << std::endl;
+  ss << "Cumulative TopicToTypes: " << std::endl;
   for (auto & elem : topic_cache.get_topic_to_types()) {
-    ostream << "  " << elem.first << ": ";
+    ss << "  " << elem.first << ": ";
     std::copy(elem.second.begin(), elem.second.end(), std::ostream_iterator<std::string>(ostream,
       ","));
-    ostream << std::endl;
+    ss << std::endl;
   }
-  return ostream;
+  return ss << ss.str();
 }

@@ -60,8 +60,16 @@ rmw_dds_common::operator==(const rmw_gid_t & lhs, const rmw_gid_t & rhs)
 
 void
 rmw_dds_common::convert_gid_to_msg(
-  rmw_dds_common::msg::Gid * msg_gid,
-  const rmw_gid_t * gid)
+  const rmw_gid_t * gid,
+  rmw_dds_common::msg::Gid * msg_gid)
 {
   std::memcpy(&msg_gid->data, gid->data, RMW_GID_STORAGE_SIZE);
+}
+
+void
+rmw_dds_common::convert_msg_to_gid(
+  const rmw_dds_common::msg::Gid * msg_gid,
+  rmw_gid_t * gid)
+{
+  std::memcpy(const_cast<uint8_t *>(gid->data), &msg_gid->data, RMW_GID_STORAGE_SIZE);
 }

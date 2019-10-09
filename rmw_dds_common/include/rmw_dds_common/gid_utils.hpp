@@ -47,8 +47,18 @@ operator==(const rmw_gid_t & lhs, const rmw_gid_t & rhs);
 RMW_DDS_COMMON_PUBLIC
 void
 convert_gid_to_msg(
-  rmw_dds_common::msg::Gid * msg_gid,
-  const rmw_gid_t * gid);
+  const rmw_gid_t * gid,
+  rmw_dds_common::msg::Gid * msg_gid);
+
+/// Converts from rmw_dds_common::msg::Gid to rmw_gid_t
+/**
+ * For internal usage, both pointers are supposed to be valid.
+ */
+RMW_DDS_COMMON_PUBLIC
+void
+convert_msg_to_gid(
+  const rmw_dds_common::msg::Gid * msg_gid,
+  rmw_gid_t * gid);
 
 }  // namespace rmw_dds_common
 

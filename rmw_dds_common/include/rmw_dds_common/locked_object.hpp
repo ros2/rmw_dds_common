@@ -17,6 +17,8 @@
 
 #include <mutex>
 
+#include "rcpputils/thread_safety_annotations.hpp"
+
 namespace rmw_dds_common
 {
 
