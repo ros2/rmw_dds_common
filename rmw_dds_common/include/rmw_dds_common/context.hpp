@@ -12,43 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef RMW_DDS_COMMON__LOCKED_OBJECT_HPP_
-#define RMW_DDS_COMMON__LOCKED_OBJECT_HPP_
+#ifndef RMW_DDS_COMMON__CONTEXT_HPP_
+#define RMW_DDS_COMMON__CONTEXT_HPP_
 
+#include <atomic>
 #include <mutex>
+#include <thread>
 
-#include "rcpputils/thread_safety_annotations.hpp"
+#include "rmw/types.h"
+
+#include "rmw_dds_common/node_cache.hpp"
+#include "rmw_dds_common/topic_cache.hpp"
+#include "rmw_dds_common/visibility_control.h"
 
 namespace rmw_dds_common
 {
 
-template<class T>
-class LockedObject
+struct Context
 {
-private:
-  mutable std::mutex mutex_;
-  T object_ RCPPUTILS_TSA_GUARDED_BY(mutex_);
-
-public:
-  /**
-  * @return a reference to this object to lock.
-  */
-  std::mutex & getMutex() const RCPPUTILS_TSA_RETURN_CAPABILITY(mutex_)
-  {
-    return mutex_;
-  }
-
-  T & operator()()
-  {
-    return object_;
-  }
-
-  const T & operator()() const
-  {
-    return object_;
-  }
+  rmw_gid_t gid;
+  rmw_publisher_t * pub;
+  rmw_subscription_t * sub;
+  TopicCache reader_topic_cache;
+  TopicCache writer_topic_cache;
+  NodeCache node_cache;
+  std::mutex node_update_mutex;
+  std::thread listener_thread;
+  std::atomic_bool thread_is_running;
 };
 
 }  // namespace rmw_dds_common
 
-#endif  // RMW_DDS_COMMON__LOCKED_OBJECT_HPP_
+#endif  // RMW_DDS_COMMON__CONTEXT_HPP_
