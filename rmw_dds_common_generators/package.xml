@@ -17,8 +17,6 @@
   <buildtool_export_depend>rosidl_generator_c</buildtool_export_depend>
   <buildtool_export_depend>rosidl_generator_cpp</buildtool_export_depend>
 
-  <!-- <buildtool_export_depend>rosidl_typesupport_c</buildtool_export_depend> -->
-  <!-- <buildtool_export_depend>rosidl_typesupport_cpp</buildtool_export_depend> -->
   <buildtool_export_depend>rosidl_typesupport_introspection_c</buildtool_export_depend>
   <buildtool_export_depend>rosidl_typesupport_introspection_cpp</buildtool_export_depend>
 
