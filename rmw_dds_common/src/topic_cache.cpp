@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iterator>
+#include <mutex>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -51,6 +52,7 @@ TopicCache::add_topic(
   const std::string & topic_name,
   const std::string & type_name)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   auto pair = std::make_pair(
     const_cast<std::string &>(namespace_),
     const_cast<std::string &>(node_name));
@@ -85,6 +87,7 @@ TopicCache::remove_topic(
   const std::string & topic_name,
   const std::string & type_name)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   auto pair = std::make_pair(
     const_cast<std::string &>(namespace_),
     const_cast<std::string &>(node_name));
@@ -136,6 +139,7 @@ TopicCache::remove_topic(
 rmw_ret_t
 TopicCache::get_count(std::string topic_name, std::string (* mangle_topic)(std::string), size_t * count)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   assert(nullptr != mangle_topic);
   assert(nullptr != count);
 
@@ -152,17 +156,18 @@ TopicCache::get_count(std::string topic_name, std::string (* mangle_topic)(std::
   return RMW_RET_OK;
 }
 
-using NamesAndTypes = std::vector<std::pair<std::string, std::reference_wrapper<std::vector<std::string>>>>;
+using NamesAndTypes =
+  std::vector<std::pair<std::string, std::reference_wrapper<const std::vector<std::string>>>>;
 
 static
 NamesAndTypes
 __get_names_and_types(
-  TopicCache::TopicToTypes & topic_to_types,
+  const TopicCache::TopicToTypes & topic_to_types,
   std::string (* demangle_topic)(const std::string &))
 {
   NamesAndTypes topics;
 
-  for (auto & item : topic_to_types) {
+  for (const auto & item : topic_to_types) {
     std::string demangled_topic_name = demangle_topic(item.first);
     if ("" != demangled_topic_name) {
       topics.emplace_back(std::move(demangled_topic_name), item.second);
@@ -174,7 +179,7 @@ __get_names_and_types(
 static
 NamesAndTypes
 __get_names_and_types_by_node(
-  TopicCache::ParticipantNodeMap & participant_to_node_map,
+  const TopicCache::ParticipantNodeMap & participant_to_node_map,
   const rmw_gid_t & gid,
   const std::string & node_name,
   const std::string & namespace_,
@@ -267,8 +272,10 @@ TopicCache::get_names_and_types_by_node(
   std::string (* demangle_topic)(const std::string &),
   std::string (* demangle_type)(const std::string &),
   rcutils_allocator_t * allocator,
-  rmw_names_and_types_t * topic_names_and_types)
+  rmw_names_and_types_t * topic_names_and_types) const
 {
+  std::lock_guard<std::mutex> guard(mutex_);
+
   assert(demangle_topic);
   assert(demangle_type);
   assert(allocator);
@@ -293,8 +300,10 @@ TopicCache::get_names_and_types(
   std::string (* demangle_topic)(const std::string &),
   std::string (* demangle_type)(const std::string &),
   rcutils_allocator_t * allocator,
-  rmw_names_and_types_t * topic_names_and_types)
+  rmw_names_and_types_t * topic_names_and_types) const
 {
+  std::lock_guard<std::mutex> guard(mutex_);
+
   assert(demangle_topic);
   assert(demangle_type);
   assert(allocator);
@@ -338,6 +347,8 @@ TopicCache::initialize_participant_node_map(const rmw_gid_t & gid, ParticipantNo
 std::ostream &
 rmw_dds_common::operator<<(std::ostream & ostream, const TopicCache & topic_cache)
 {
+  std::lock_guard<std::mutex> guard(topic_cache.mutex_);
+
   std::ostringstream ss;
   ss << "Participant Info: " << std::endl;
   for (const auto & gid_node_map_pair : topic_cache.get_participant_to_nodes_to_topics()) {

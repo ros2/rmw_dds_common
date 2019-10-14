@@ -16,6 +16,7 @@
 #define RMW_DDS_COMMON__TOPIC_CACHE_HPP_
 
 #include <map>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -56,6 +57,10 @@ public:
  */
 class TopicCache
 {
+  friend
+  std::ostream &
+  operator<<(std::ostream & ostream, const TopicCache & topic_cache);
+
 public:
   using NamespaceNamePair = std::pair<std::string, std::string>;
   using TopicToTypes = std::unordered_map<std::string, std::vector<std::string>>;
@@ -131,7 +136,7 @@ public:
     std::string (* demangle_topic)(const std::string &),
     std::string (* demangle_type)(const std::string &),
     rcutils_allocator_t * allocator,
-    rmw_names_and_types_t * topic_names_and_types);
+    rmw_names_and_types_t * topic_names_and_types) const;
 
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
@@ -139,7 +144,7 @@ public:
     std::string (* demangle_topic)(const std::string &),
     std::string (* demangle_type)(const std::string &),
     rcutils_allocator_t * allocator,
-    rmw_names_and_types_t * topic_names_and_types);
+    rmw_names_and_types_t * topic_names_and_types) const;
 
 private:
   /**
@@ -155,6 +160,8 @@ private:
    * Map from participant gid to node names to topic names to a vector of topic types.
    */
   ParticipantNodeMap participant_to_nodes_to_topics_;
+
+  mutable std::mutex mutex_;
 
   /**
    * Helper function to initialize a topic vector.
