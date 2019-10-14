@@ -43,8 +43,10 @@ class NodeCache
   friend
   std::ostream &
   operator<<(std::ostream & ostream, const NodeCache & node_cache);
+
 public:
-  using NodeInfoVector = decltype(std::declval<rmw_dds_common::msg::ParticipantCustomInfo>().nodes_info);
+  using NodeInfoVector =
+    decltype(std::declval<rmw_dds_common::msg::ParticipantCustomInfo>().nodes_info);
   using GidToNodeInfoVector = std::map<
     rmw_gid_t,
     NodeInfoVector,

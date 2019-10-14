@@ -13,17 +13,23 @@
 // limitations under the License.
 
 #include <algorithm>
+#include <cassert>
 #include <iterator>
 #include <ostream>
 #include <sstream>
 #include <string>
 #include <vector>
 
+#include "rcutils/strdup.h"
+#include "rmw/convert_rcutils_ret_to_rmw_ret.h"
+#include "rmw/error_handling.h"
 #include "rmw_dds_common/gid_utils.hpp"
 #include "rmw_dds_common/topic_cache.hpp"
 
 using rmw_dds_common::TopicCache;
 using rmw_dds_common::operator<<;
+
+const char log_tag[] = "rmw_dds_common";
 
 const TopicCache::TopicToTypes &
 TopicCache::get_topic_to_types() const
@@ -58,7 +64,7 @@ TopicCache::add_topic(
     std::stringstream gid_stream;
     gid_stream << gid;
     RCUTILS_LOG_DEBUG_NAMED(
-      "rmw_fastrtps_shared_cpp",
+      log_tag,
       "Adding topic '%s' with type '%s' for node ns='%s' name='%s' of participant '%s'",
       topic_name.c_str(),
       type_name.c_str(),
@@ -84,7 +90,7 @@ TopicCache::remove_topic(
     const_cast<std::string &>(node_name));
   if (topic_to_types_.find(topic_name) == topic_to_types_.end()) {
     RCUTILS_LOG_DEBUG_NAMED(
-      "rmw_fastrtps_shared_cpp",
+      log_tag,
       "unexpected removal on topic '%s' with type '%s'",
       topic_name.c_str(), type_name.c_str());
     return false;
@@ -120,11 +126,189 @@ TopicCache::remove_topic(
     }
   } else {
     RCUTILS_LOG_DEBUG_NAMED(
-      "rmw_fastrtps_shared_cpp",
+      log_tag,
       "Unable to remove topic, does not exist '%s' with type '%s'",
       topic_name.c_str(), type_name.c_str());
   }
   return true;
+}
+
+rmw_ret_t
+TopicCache::get_count(std::string topic_name, std::string (* mangle_topic)(std::string), size_t * count)
+{
+  assert(nullptr != mangle_topic);
+  assert(nullptr != count);
+
+  std::string fqdn = mangle_topic(topic_name);
+  if ("" == fqdn) {
+    return RMW_RET_ERROR;
+  }
+  const auto & it = topic_to_types_.find(fqdn);
+  if (it != topic_to_types_.end()) {
+    *count = it->second.size();
+  } else {
+    *count = 0;
+  }
+  return RMW_RET_OK;
+}
+
+using NamesAndTypes = std::vector<std::pair<std::string, std::reference_wrapper<std::vector<std::string>>>>;
+
+static
+NamesAndTypes
+__get_names_and_types(
+  TopicCache::TopicToTypes & topic_to_types,
+  std::string (* demangle_topic)(const std::string &))
+{
+  NamesAndTypes topics;
+
+  for (auto & item : topic_to_types) {
+    std::string demangled_topic_name = demangle_topic(item.first);
+    if ("" != demangled_topic_name) {
+      topics.emplace_back(std::move(demangled_topic_name), item.second);
+    }
+  }
+  return topics;
+}
+
+static
+NamesAndTypes
+__get_names_and_types_by_node(
+  TopicCache::ParticipantNodeMap & participant_to_node_map,
+  const rmw_gid_t & gid,
+  const std::string & node_name,
+  const std::string & namespace_,
+  std::string (* demangle_topic)(const std::string &))
+{
+  NamesAndTypes topics;
+
+  const auto & nodes_to_topics = participant_to_node_map.find(gid);
+  if (nodes_to_topics == participant_to_node_map.end()) {
+    return topics;
+  }
+  const auto & topic_to_types = nodes_to_topics->second.find(
+    std::make_pair(
+      const_cast<std::string &>(namespace_),
+      const_cast<std::string &>(node_name)));
+  if (topic_to_types == nodes_to_topics->second.end()) {
+    return topics;
+  }
+  __get_names_and_types(topic_to_types->second, demangle_topic);
+  return topics;
+}
+
+static
+rmw_ret_t
+__copy_data_to_results(
+  NamesAndTypes topics,
+  std::string (* demangle_type)(const std::string &),
+  rcutils_allocator_t * allocator,
+  rmw_names_and_types_t * topic_names_and_types)
+{
+  if (topics.empty()) {
+    return RMW_RET_OK;
+  }
+
+  rmw_ret_t rmw_ret = rmw_names_and_types_init(topic_names_and_types, topics.size(), allocator);
+  if (RMW_RET_OK != rmw_ret) {
+    return rmw_ret;
+  }
+
+  size_t index = 0;
+  for (const auto & item : topics) {
+    char * topic_name = rcutils_strdup(item.first.c_str(), *allocator);
+    if (!topic_name) {
+      RMW_SET_ERROR_MSG("failed to allocate memory for topic name");
+      rmw_ret = RMW_RET_BAD_ALLOC;
+      goto cleanup;
+    }
+    topic_names_and_types->names.data[index] = topic_name;
+
+    {
+      rcutils_ret_t rcutils_ret = rcutils_string_array_init(
+        &topic_names_and_types->types[index],
+        item.second.get().size(),
+        allocator);
+      if (rcutils_ret != RCUTILS_RET_OK) {
+        RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
+        rmw_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+        goto cleanup;
+      }
+    }
+    size_t type_index = 0;
+    for (const auto & type : item.second.get()) {
+      char * type_name = rcutils_strdup(demangle_type(type).c_str(), *allocator);
+      if (!type_name) {
+        RMW_SET_ERROR_MSG("failed to allocate memory for type name");
+        rmw_ret = RMW_RET_BAD_ALLOC;
+        goto cleanup;
+      }
+      topic_names_and_types->types[index].data[type_index] = type_name;
+      ++type_index;
+    }
+    ++index;
+  }
+  return RMW_RET_OK;
+cleanup:
+  if (RMW_RET_OK != rmw_names_and_types_fini(topic_names_and_types)) {
+    RCUTILS_LOG_ERROR_NAMED(
+      log_tag,
+      "error during report of error: %s", rmw_get_error_string().str);
+  }
+  return rmw_ret;
+}
+
+
+rmw_ret_t
+TopicCache::get_names_and_types_by_node(
+  const rmw_gid_t & gid,
+  const std::string & node_name,
+  const std::string & namespace_,
+  std::string (* demangle_topic)(const std::string &),
+  std::string (* demangle_type)(const std::string &),
+  rcutils_allocator_t * allocator,
+  rmw_names_and_types_t * topic_names_and_types)
+{
+  assert(demangle_topic);
+  assert(demangle_type);
+  assert(allocator);
+  assert(topic_names_and_types);
+
+  NamesAndTypes topics = __get_names_and_types_by_node(
+    this->participant_to_nodes_to_topics_,
+    gid,
+    node_name,
+    namespace_,
+    demangle_topic);
+
+  return __copy_data_to_results(
+    topics,
+    demangle_type,
+    allocator,
+    topic_names_and_types);
+}
+
+rmw_ret_t
+TopicCache::get_names_and_types(
+  std::string (* demangle_topic)(const std::string &),
+  std::string (* demangle_type)(const std::string &),
+  rcutils_allocator_t * allocator,
+  rmw_names_and_types_t * topic_names_and_types)
+{
+  assert(demangle_topic);
+  assert(demangle_type);
+  assert(allocator);
+  assert(topic_names_and_types);
+
+  NamesAndTypes topics = __get_names_and_types(
+    this->topic_to_types_,
+    demangle_topic);
+
+  return __copy_data_to_results(
+    topics,
+    demangle_type,
+    allocator,
+    topic_names_and_types);
 }
 
 void

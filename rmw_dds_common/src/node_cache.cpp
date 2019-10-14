@@ -182,7 +182,7 @@ NodeCache::delete_node_name(
     std::remove_if(
       it->second.begin(),
       it->second.end(),
-      [&node_namespace, &node_name] (const rmw_dds_common::msg::NodeCustomInfo & elem) {
+      [&node_namespace, &node_name](const rmw_dds_common::msg::NodeCustomInfo & elem) {
         return elem.node_namespace == node_namespace && elem.node_name == node_name;
       }),
     it->second.end());
@@ -225,9 +225,9 @@ rmw_dds_common::operator<<(std::ostream & ostream, const NodeCache & node_cache)
   ss << "Node namespaces and names:" << std::endl;
   for (const auto & elem : node_cache.gid_to_node_info_vector_) {
     ss << "  gid: " << elem.first << std::endl;
-    for(const auto & node_info : elem.second) {
-      ss << "    namespace=[" << node_info.node_namespace << "] name=["
-        << node_info.node_name << "]" << std::endl;
+    for (const auto & node_info : elem.second) {
+      ss << "    namespace=[" << node_info.node_namespace << "] name=[" <<
+        node_info.node_name << "]" << std::endl;
     }
   }
   return ostream << ss.str();

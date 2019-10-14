@@ -23,6 +23,7 @@
 
 #include "rcpputils/thread_safety_annotations.hpp"
 #include "rcutils/logging_macros.h"
+#include "rmw/names_and_types.h"
 #include "rmw/types.h"
 
 #include "rmw_dds_common/gid_utils.hpp"
@@ -116,6 +117,29 @@ public:
     const std::string & node_name,
     const std::string & topic_name,
     const std::string & type_name);
+
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  get_count(std::string topic_name, std::string (* mangle_topic)(std::string), size_t * count);
+
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  get_names_and_types_by_node(
+    const rmw_gid_t & gid,
+    const std::string & node_name,
+    const std::string & namespace_,
+    std::string (* demangle_topic)(const std::string &),
+    std::string (* demangle_type)(const std::string &),
+    rcutils_allocator_t * allocator,
+    rmw_names_and_types_t * topic_names_and_types);
+
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  get_names_and_types(
+    std::string (* demangle_topic)(const std::string &),
+    std::string (* demangle_type)(const std::string &),
+    rcutils_allocator_t * allocator,
+    rmw_names_and_types_t * topic_names_and_types);
 
 private:
   /**
