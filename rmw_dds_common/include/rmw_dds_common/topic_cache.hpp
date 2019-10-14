@@ -125,7 +125,10 @@ public:
 
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  get_count(std::string topic_name, std::string (* mangle_topic)(std::string), size_t * count);
+  get_count(
+    std::string topic_name,
+    std::string (* mangle_topic)(const std::string &),
+    size_t * count);
 
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t

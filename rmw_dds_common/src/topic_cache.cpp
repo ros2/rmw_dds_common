@@ -15,10 +15,12 @@
 #include <algorithm>
 #include <cassert>
 #include <iterator>
+#include <functional>
 #include <mutex>
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "rcutils/strdup.h"
@@ -53,7 +55,7 @@ TopicCache::add_topic(
   const std::string & type_name)
 {
   std::lock_guard<std::mutex> guard(mutex_);
-  auto pair = std::make_pair<const std::string &, const std::string &>(namespace_, node_name);
+  auto pair = std::make_pair(std::cref(namespace_), std::cref(node_name));
   initialize_topic(topic_name, topic_to_types_);
   initialize_participant_node_map(gid, participant_to_nodes_to_topics_);
   initialize_node_topic_map(pair, participant_to_nodes_to_topics_[gid]);
@@ -86,7 +88,7 @@ TopicCache::remove_topic(
   const std::string & type_name)
 {
   std::lock_guard<std::mutex> guard(mutex_);
-  auto pair = std::make_pair<const std::string &, const std::string &>(namespace_, node_name);
+  auto pair = std::make_pair(std::cref(namespace_), std::cref(node_name));
   if (topic_to_types_.find(topic_name) == topic_to_types_.end()) {
     RCUTILS_LOG_DEBUG_NAMED(
       log_tag,
@@ -133,7 +135,10 @@ TopicCache::remove_topic(
 }
 
 rmw_ret_t
-TopicCache::get_count(std::string topic_name, std::string (* mangle_topic)(std::string), size_t * count)
+TopicCache::get_count(
+  std::string topic_name,
+  std::string (* mangle_topic)(const std::string &),
+  size_t * count)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   assert(nullptr != mangle_topic);
@@ -188,7 +193,7 @@ __get_names_and_types_by_node(
     return topics;
   }
   const auto & topic_to_types = nodes_to_topics->second.find(
-    std::make_pair<const std::string &, const std::string &>(namespace_, node_name));
+    std::make_pair(std::cref(namespace_), std::cref(node_name)));
   if (topic_to_types == nodes_to_topics->second.end()) {
     return topics;
   }
