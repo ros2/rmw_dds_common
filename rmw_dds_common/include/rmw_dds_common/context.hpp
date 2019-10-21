@@ -39,6 +39,7 @@ struct Context
   std::mutex node_update_mutex;
   std::thread listener_thread;
   std::atomic_bool thread_is_running;
+  rmw_guard_condition_t * listener_thread_gc;
 };
 
 }  // namespace rmw_dds_common
