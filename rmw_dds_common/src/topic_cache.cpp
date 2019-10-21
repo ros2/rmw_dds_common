@@ -15,11 +15,12 @@
 #include <algorithm>
 #include <cassert>
 #include <iterator>
-#include <functional>
 #include <mutex>
 #include <ostream>
+#include <set>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -137,18 +138,12 @@ TopicCache::remove_topic(
 rmw_ret_t
 TopicCache::get_count(
   std::string topic_name,
-  std::string (* mangle_topic)(const std::string &),
-  size_t * count)
+  size_t * count) const
 {
   std::lock_guard<std::mutex> guard(mutex_);
-  assert(nullptr != mangle_topic);
   assert(nullptr != count);
 
-  std::string fqdn = mangle_topic(topic_name);
-  if ("" == fqdn) {
-    return RMW_RET_ERROR;
-  }
-  const auto & it = topic_to_types_.find(fqdn);
+  const auto & it = topic_to_types_.find(topic_name);
   if (it != topic_to_types_.end()) {
     *count = it->second.size();
   } else {
@@ -157,24 +152,23 @@ TopicCache::get_count(
   return RMW_RET_OK;
 }
 
-using NamesAndTypes =
-  std::vector<std::pair<std::string, std::reference_wrapper<const std::vector<std::string>>>>;
+using NamesAndTypes = std::unordered_map<std::string, std::set<std::string>>;
 
 static
-NamesAndTypes
+void
 __get_names_and_types(
   const TopicCache::TopicToTypes & topic_to_types,
-  std::string (* demangle_topic)(const std::string &))
+  std::string (* demangle_topic)(const std::string &),
+  NamesAndTypes & topics)
 {
-  NamesAndTypes topics;
-
   for (const auto & item : topic_to_types) {
     std::string demangled_topic_name = demangle_topic(item.first);
     if ("" != demangled_topic_name) {
-      topics.emplace_back(std::move(demangled_topic_name), item.second);
+      for (const auto & type : item.second) {
+        topics[demangled_topic_name].insert(type);
+      }
     }
   }
-  return topics;
 }
 
 static
@@ -197,7 +191,7 @@ __get_names_and_types_by_node(
   if (topic_to_types == nodes_to_topics->second.end()) {
     return topics;
   }
-  __get_names_and_types(topic_to_types->second, demangle_topic);
+  __get_names_and_types(topic_to_types->second, demangle_topic, topics);
   return topics;
 }
 
@@ -231,7 +225,7 @@ __copy_data_to_results(
     {
       rcutils_ret_t rcutils_ret = rcutils_string_array_init(
         &topic_names_and_types->types[index],
-        item.second.get().size(),
+        item.second.size(),
         allocator);
       if (rcutils_ret != RCUTILS_RET_OK) {
         RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
@@ -240,7 +234,7 @@ __copy_data_to_results(
       }
     }
     size_t type_index = 0;
-    for (const auto & type : item.second.get()) {
+    for (const auto & type : item.second) {
       char * type_name = rcutils_strdup(demangle_type(type).c_str(), *allocator);
       if (!type_name) {
         RMW_SET_ERROR_MSG("failed to allocate memory for type name");
@@ -295,22 +289,34 @@ TopicCache::get_names_and_types_by_node(
 }
 
 rmw_ret_t
-TopicCache::get_names_and_types(
+rmw_dds_common::get_names_and_types(
+  const TopicCache & reader_topic_cache,
+  const TopicCache & writer_topic_cache,
   std::string (* demangle_topic)(const std::string &),
   std::string (* demangle_type)(const std::string &),
   rcutils_allocator_t * allocator,
-  rmw_names_and_types_t * topic_names_and_types) const
+  rmw_names_and_types_t * topic_names_and_types)
 {
-  std::lock_guard<std::mutex> guard(mutex_);
-
   assert(demangle_topic);
   assert(demangle_type);
   assert(allocator);
   assert(topic_names_and_types);
 
-  NamesAndTypes topics = __get_names_and_types(
-    this->topic_to_types_,
-    demangle_topic);
+  NamesAndTypes topics;
+  {
+    std::lock_guard<std::mutex> guard(reader_topic_cache.mutex_);
+    __get_names_and_types(
+      reader_topic_cache.topic_to_types_,
+      demangle_topic,
+      topics);
+  }
+  {
+    std::lock_guard<std::mutex> guard(writer_topic_cache.mutex_);
+    __get_names_and_types(
+      writer_topic_cache.topic_to_types_,
+      demangle_topic,
+      topics);
+  }
 
   return __copy_data_to_results(
     topics,

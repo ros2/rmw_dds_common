@@ -61,6 +61,16 @@ class TopicCache
   std::ostream &
   operator<<(std::ostream & ostream, const TopicCache & topic_cache);
 
+  friend
+  rmw_ret_t
+  get_names_and_types(
+    const TopicCache & reader_topic_cache,
+    const TopicCache & writer_topic_cache,
+    std::string (* demangle_topic)(const std::string &),
+    std::string (* demangle_type)(const std::string &),
+    rcutils_allocator_t * allocator,
+    rmw_names_and_types_t * topic_names_and_types);
+
 public:
   using NamespaceNamePair = std::pair<std::string, std::string>;
   using TopicToTypes = std::unordered_map<std::string, std::vector<std::string>>;
@@ -127,8 +137,7 @@ public:
   rmw_ret_t
   get_count(
     std::string topic_name,
-    std::string (* mangle_topic)(const std::string &),
-    size_t * count);
+    size_t * count) const;
 
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
@@ -197,6 +206,16 @@ private:
 RMW_DDS_COMMON_PUBLIC
 std::ostream &
 operator<<(std::ostream & ostream, const TopicCache & topic_cache);
+
+RMW_DDS_COMMON_PUBLIC
+rmw_ret_t
+get_names_and_types(
+  const TopicCache & reader_topic_cache,
+  const TopicCache & writer_topic_cache,
+  std::string (* demangle_topic)(const std::string &),
+  std::string (* demangle_type)(const std::string &),
+  rcutils_allocator_t * allocator,
+  rmw_names_and_types_t * topic_names_and_types);
 
 }  // namespace rmw_dds_common
 
