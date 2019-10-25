@@ -27,15 +27,14 @@ ament_export_dependencies(rosidl_cmake)
 rosidl_generate_interfaces(
   ${PROJECT_NAME}_interfaces
   "msg/Gid.idl"
-  "msg/NodeCustomInfo.idl"
-  "msg/ParticipantCustomInfo.idl"
+  "msg/NodeEntitiesInfo.idl"
+  "msg/ParticipantEntitiesInfo.idl"
   SKIP_GROUP_MEMBERSHIP_CHECK
 )
 
 add_library(${PROJECT_NAME} SHARED
   src/gid_utils.cpp
-  src/node_cache.cpp
-  src/topic_cache.cpp)
+  src/graph_cache.cpp)
 ament_target_dependencies(${PROJECT_NAME}
   "rcpputils"
   "rcutils"
@@ -77,15 +76,15 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
-  ament_add_gtest(test_node_cache test/test_node_cache.cpp)
-  if(TARGET test_node_cache)
-    target_link_libraries(test_node_cache ${PROJECT_NAME})
-  endif()
+  # ament_add_gtest(test_node_cache test/test_node_cache.cpp)
+  # if(TARGET test_node_cache)
+  #   target_link_libraries(test_node_cache ${PROJECT_NAME})
+  # endif()
 
-  ament_add_gtest(test_topic_cache test/test_topic_cache.cpp)
-  if(TARGET test_topic_cache)
-    target_link_libraries(test_topic_cache ${PROJECT_NAME})
-  endif()
+  # ament_add_gtest(test_topic_cache test/test_topic_cache.cpp)
+  # if(TARGET test_topic_cache)
+  #   target_link_libraries(test_topic_cache ${PROJECT_NAME})
+  # endif()
 endif()
 
 ament_package()

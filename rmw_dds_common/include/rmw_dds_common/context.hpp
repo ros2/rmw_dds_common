@@ -21,8 +21,7 @@
 
 #include "rmw/types.h"
 
-#include "rmw_dds_common/node_cache.hpp"
-#include "rmw_dds_common/topic_cache.hpp"
+#include "rmw_dds_common/graph_cache.hpp"
 #include "rmw_dds_common/visibility_control.h"
 
 namespace rmw_dds_common
@@ -33,9 +32,7 @@ struct Context
   rmw_gid_t gid;
   rmw_publisher_t * pub;
   rmw_subscription_t * sub;
-  TopicCache reader_topic_cache;
-  TopicCache writer_topic_cache;
-  NodeCache node_cache;
+  GraphCache graph_cache;
   std::mutex node_update_mutex;
   std::thread listener_thread;
   std::atomic_bool thread_is_running;
