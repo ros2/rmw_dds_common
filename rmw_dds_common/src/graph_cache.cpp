@@ -120,16 +120,6 @@ GraphCache::update_participant_entities(rmw_dds_common::msg::ParticipantEntities
   return pair.second;
 }
 
-// GraphCache::NodeEntitiesInfoSeq
-// GraphCache::get_participant_info(rmw_gid_t gid)
-// {
-//   auto it = participants_.find(gid);
-//   if (participants_.end() != it) {
-//     return it->second;
-//   }
-//   return GraphCache::NodeEntitiesInfoSeq();
-// }
-
 bool
 GraphCache::remove_participant(const rmw_gid_t & participant_gid)
 {
@@ -231,10 +221,10 @@ GraphCache::associate_writer(
   const std::string & node_namespace)
 {
   auto add_writer_gid = [&](rmw_dds_common::msg::NodeEntitiesInfo & info)
-  {
-    info.writer_gid_seq.emplace_back();
-    convert_gid_to_msg(&writer_gid, &info.writer_gid_seq.back());
-  };
+    {
+      info.writer_gid_seq.emplace_back();
+      convert_gid_to_msg(&writer_gid, &info.writer_gid_seq.back());
+    };
 
   return __modify_node_info(
     participant_gid, node_name, node_namespace, add_writer_gid, participants_);
@@ -250,16 +240,16 @@ GraphCache::deassociate_writer(
   rmw_dds_common::msg::Gid writer_gid_msg;
   convert_gid_to_msg(&writer_gid, &writer_gid_msg);
   auto delete_writer_gid = [&](rmw_dds_common::msg::NodeEntitiesInfo & info)
-  {
-    info.writer_gid_seq.erase(
-      std::find_if(
-        info.writer_gid_seq.begin(),
-        info.writer_gid_seq.end(),
-        [&](const rmw_dds_common::msg::Gid & gid)
-        {
-          return gid == writer_gid_msg;
-        }));
-  };
+    {
+      info.writer_gid_seq.erase(
+        std::find_if(
+          info.writer_gid_seq.begin(),
+          info.writer_gid_seq.end(),
+          [&](const rmw_dds_common::msg::Gid & gid)
+          {
+            return gid == writer_gid_msg;
+          }));
+    };
 
   return __modify_node_info(
     participant_gid, node_name, node_namespace, delete_writer_gid, participants_);
@@ -273,10 +263,10 @@ GraphCache::associate_reader(
   const std::string & node_namespace)
 {
   auto add_reader_gid = [&](rmw_dds_common::msg::NodeEntitiesInfo & info)
-  {
-    info.reader_gid_seq.emplace_back();
-    convert_gid_to_msg(&reader_gid, &info.reader_gid_seq.back());
-  };
+    {
+      info.reader_gid_seq.emplace_back();
+      convert_gid_to_msg(&reader_gid, &info.reader_gid_seq.back());
+    };
 
   return __modify_node_info(
     participant_gid, node_name, node_namespace, add_reader_gid, participants_);
@@ -292,16 +282,16 @@ GraphCache::deassociate_reader(
   rmw_dds_common::msg::Gid reader_gid_msg;
   convert_gid_to_msg(&reader_gid, &reader_gid_msg);
   auto delete_reader_gid = [&](rmw_dds_common::msg::NodeEntitiesInfo & info)
-  {
-    info.reader_gid_seq.erase(
-      std::find_if(
-        info.reader_gid_seq.begin(),
-        info.reader_gid_seq.end(),
-        [&](const rmw_dds_common::msg::Gid & gid)
-        {
-          return gid == reader_gid_msg;
-        }));
-  };
+    {
+      info.reader_gid_seq.erase(
+        std::find_if(
+          info.reader_gid_seq.begin(),
+          info.reader_gid_seq.end(),
+          [&](const rmw_dds_common::msg::Gid & gid)
+          {
+            return gid == reader_gid_msg;
+          }));
+    };
 
   return __modify_node_info(
     participant_gid, node_name, node_namespace, delete_reader_gid, participants_);
