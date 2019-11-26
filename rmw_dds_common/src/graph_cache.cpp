@@ -660,35 +660,45 @@ fail:
 std::ostream &
 rmw_dds_common::operator<<(std::ostream & ostream, const GraphCache & graph_cache)
 {
-  (void)graph_cache;
-  // std::lock_guard<std::mutex> guard(topic_cache.mutex_);
-  return ostream;
+  std::lock_guard<std::mutex> guard(graph_cache.mutex_);
+  std::ostringstream ss;
 
-  // TODO(ivanpauno): Reimplement this
-  // std::ostringstream ss;
-  // ss << "Participant Info: " << std::endl;
-  // for (const auto & gid_node_map_pair : topic_cache.get_participant_to_nodes_to_topics()) {
-  //   ss << "  gid: " << gid_node_map_pair.first << std::endl;
-  //   for (const auto & node_topic_map_pair : gid_node_map_pair.second) {
-  //     ss << "    Node:" << std::endl;
-  //     ss << "      ns='" << node_topic_map_pair.first.first << "'" << std::endl;
-  //     ss << "      name='" << node_topic_map_pair.first.second << "'" << std::endl;
-  //     ss << "    Node:" << std::endl;
-  //     ss << "      Topics: " << std::endl;
-  //     for (const auto & topic_types_pair : node_topic_map_pair.second) {
-  //       ss << "        " << topic_types_pair.first << ": ";
-  //       std::copy(topic_types_pair.second.begin(), topic_types_pair.second.end(),
-  //         std::ostream_iterator<std::string>(ostream, ","));
-  //       ss << std::endl;
-  //     }
-  //   }
-  // }
-  // ss << "Cumulative TopicToTypes: " << std::endl;
-  // for (auto & elem : topic_cache.get_topic_to_types()) {
-  //   ss << "  " << elem.first << ": ";
-  //   std::copy(elem.second.begin(), elem.second.end(), std::ostream_iterator<std::string>(ostream,
-  //     ","));
-  //   ss << std::endl;
-  // }
-  // return ss << ss.str();
+  ss << "---------------------------------" << std::endl;
+  ss << "Graph cache:" << std::endl;
+  ss << "  Discovered data writers:" << std::endl;
+  for (const auto & data_writer_pair : graph_cache.data_writers_) {
+    ss << "    gid: '" << data_writer_pair.first << "', topic name: '" <<
+      data_writer_pair.second.topic_name << "', topic_type: '" <<
+      data_writer_pair.second.topic_type << "'" << std::endl;
+  }
+  ss << "  Discovered data readers:" << std::endl;
+  for (const auto & data_reader_pair : graph_cache.data_readers_) {
+    ss << "    gid: '" << data_reader_pair.first << "', topic name: '" <<
+      data_reader_pair.second.topic_name << "', topic_type: '" <<
+      data_reader_pair.second.topic_type << "'" << std::endl;
+  }
+  ss << "  Discovered participants:" << std::endl;
+  for (const auto & item : graph_cache.participants_) {
+    ss << "    gid: '" << item.first << std::endl;
+    ss << "    nodes:" << std::endl;
+    for (const auto & node_info : item.second) {
+      ss << "      namespace: '" << node_info.node_namespace << "' name: '" <<
+        node_info.node_name << "'" << std::endl;
+      ss << "      associated data readers gids:" << std::endl;
+      for (const auto & data_reader_gid : node_info.reader_gid_seq) {
+        rmw_gid_t rmw_gid;
+        convert_msg_to_gid(&data_reader_gid, &rmw_gid);
+        ss << "        " << rmw_gid << std::endl;
+      }
+      ss << "      associated data writers gids:" << std::endl;
+      for (const auto & data_writer_gid : node_info.writer_gid_seq) {
+        rmw_gid_t rmw_gid;
+        convert_msg_to_gid(&data_writer_gid, &rmw_gid);
+        ss << "        " << rmw_gid << std::endl;
+      }
+    }
+  }
+  ss << "---------------------------------" << std::endl;
+
+  return ostream << ss.str();
 }
