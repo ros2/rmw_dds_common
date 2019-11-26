@@ -74,13 +74,11 @@ GraphCache::add_entity(
   bool is_reader)
 {
   if (is_reader) {
-    // fprintf(stderr, "added reader %s\n", topic_name.c_str());
     return this->add_reader(
       gid,
       topic_name,
       type_name);
   }
-  // fprintf(stderr, "added writer %s\n", topic_name.c_str());
   return this->add_writer(
     gid,
     topic_name,
@@ -108,16 +106,12 @@ GraphCache::remove_entity(const rmw_gid_t & gid, bool is_reader)
   return this->remove_writer(gid);
 }
 
-bool
-GraphCache::update_participant_entities(rmw_dds_common::msg::ParticipantEntitiesInfo & msg)
+void
+GraphCache::update_participant_entities(const rmw_dds_common::msg::ParticipantEntitiesInfo & msg)
 {
   rmw_gid_t gid;
   rmw_dds_common::convert_msg_to_gid(&msg.gid, &gid);
-  auto pair = participants_.emplace(
-    std::piecewise_construct,
-    std::forward_as_tuple(gid),
-    std::forward_as_tuple(msg.node_entities_info_seq));
-  return pair.second;
+  participants_[gid] = msg.node_entities_info_seq;
 }
 
 bool
@@ -231,7 +225,7 @@ GraphCache::associate_writer(
 }
 
 rmw_dds_common::msg::ParticipantEntitiesInfo
-GraphCache::deassociate_writer(
+GraphCache::dissociate_writer(
   const rmw_gid_t & writer_gid,
   const rmw_gid_t & participant_gid,
   const std::string & node_name,
@@ -273,7 +267,7 @@ GraphCache::associate_reader(
 }
 
 rmw_dds_common::msg::ParticipantEntitiesInfo
-GraphCache::deassociate_reader(
+GraphCache::dissociate_reader(
   const rmw_gid_t & reader_gid,
   const rmw_gid_t & participant_gid,
   const std::string & node_name,
@@ -343,6 +337,7 @@ __get_names_and_types(
   std::string (* demangle_topic)(const std::string &),
   NamesAndTypes & topics)
 {
+  assert(nullptr != demangle_topic);
   for (const auto & item : entities) {
     std::string demangled_topic_name = demangle_topic(item.second.topic_name);
     if ("" != demangled_topic_name) {
@@ -353,12 +348,14 @@ __get_names_and_types(
 
 static
 rmw_ret_t
-__copy_data_to_results(
+__populate_rmw_names_and_types(
   NamesAndTypes topics,
   std::string (* demangle_type)(const std::string &),
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types)
 {
+  assert(nullptr != demangle_type);
+
   if (topics.empty()) {
     return RMW_RET_OK;
   }
@@ -437,7 +434,7 @@ GraphCache::get_names_and_types(
       topics);
   }
 
-  return __copy_data_to_results(
+  return __populate_rmw_names_and_types(
     topics,
     demangle_type,
     allocator,
@@ -521,7 +518,7 @@ __get_names_and_types_by_node(
     get_entities_gids(*node_info_ptr),
     demangle_topic);
 
-  return __copy_data_to_results(
+  return __populate_rmw_names_and_types(
     topics,
     demangle_type,
     allocator,

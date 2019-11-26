@@ -75,16 +75,6 @@ if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_gtest REQUIRED)
   ament_lint_auto_find_test_dependencies()
-
-  # ament_add_gtest(test_node_cache test/test_node_cache.cpp)
-  # if(TARGET test_node_cache)
-  #   target_link_libraries(test_node_cache ${PROJECT_NAME})
-  # endif()
-
-  # ament_add_gtest(test_topic_cache test/test_topic_cache.cpp)
-  # if(TARGET test_topic_cache)
-  #   target_link_libraries(test_topic_cache ${PROJECT_NAME})
-  # endif()
 endif()
 
 ament_package()

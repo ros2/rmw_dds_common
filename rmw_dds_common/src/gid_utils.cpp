@@ -63,6 +63,8 @@ rmw_dds_common::convert_gid_to_msg(
   const rmw_gid_t * gid,
   rmw_dds_common::msg::Gid * msg_gid)
 {
+  assert(nullptr != gid);
+  assert(nullptr != msg_gid);
   std::memcpy(&msg_gid->data, gid->data, RMW_GID_STORAGE_SIZE);
 }
 
@@ -71,5 +73,7 @@ rmw_dds_common::convert_msg_to_gid(
   const rmw_dds_common::msg::Gid * msg_gid,
   rmw_gid_t * gid)
 {
+  assert(nullptr != msg_gid);
+  assert(nullptr != gid);
   std::memcpy(const_cast<uint8_t *>(gid->data), &msg_gid->data, RMW_GID_STORAGE_SIZE);
 }

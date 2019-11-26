@@ -134,11 +134,11 @@ public:
   /**
    * Update participant info, based on received ParticipantEntitiesInfo message.
    *
-   * /param msg the received participant entities info message
+   * /param msg will be filled with the received participant entities info message
    */
   RMW_DDS_COMMON_PUBLIC
-  bool
-  update_participant_entities(rmw_dds_common::msg::ParticipantEntitiesInfo & msg);
+  void
+  update_participant_entities(const rmw_dds_common::msg::ParticipantEntitiesInfo & msg);
 
   // Methods used to update the information of the local participant.
 
@@ -194,7 +194,7 @@ public:
     const std::string & node_namespace);
 
   /**
-   * Deassociate a writer with a node, and get a message to be sent.
+   * Dissociate a writer with a node, and get a message to be sent.
    *
    * /param writer_gid GUID of the data writer.
    * /param participant_gid participant GUID.
@@ -204,7 +204,7 @@ public:
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
-  deassociate_writer(
+  dissociate_writer(
     const rmw_gid_t & writer_gid,
     const rmw_gid_t & participant_gid,
     const std::string & node_name,
@@ -228,7 +228,7 @@ public:
     const std::string & node_namespace);
 
   /**
-   * Deassociate a reader with a node, and get a message to be sent.
+   * Dissociate a reader with a node, and get a message to be sent.
    *
    * /param reader_gid GUID of the data reader.
    * /param participant_gid participant GUID.
@@ -238,7 +238,7 @@ public:
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
-  deassociate_reader(
+  dissociate_reader(
     const rmw_gid_t & reader_gid,
     const rmw_gid_t & participant_gid,
     const std::string & node_name,
