@@ -88,12 +88,14 @@ GraphCache::add_entity(
 bool
 GraphCache::remove_writer(const rmw_gid_t & gid)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   return data_writers_.erase(gid) > 0;
 }
 
 bool
 GraphCache::remove_reader(const rmw_gid_t & gid)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   return data_readers_.erase(gid) > 0;
 }
 
@@ -109,6 +111,7 @@ GraphCache::remove_entity(const rmw_gid_t & gid, bool is_reader)
 void
 GraphCache::update_participant_entities(const rmw_dds_common::msg::ParticipantEntitiesInfo & msg)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   rmw_gid_t gid;
   rmw_dds_common::convert_msg_to_gid(&msg.gid, &gid);
   participants_[gid] = msg.node_entities_info_seq;
@@ -117,6 +120,7 @@ GraphCache::update_participant_entities(const rmw_dds_common::msg::ParticipantEn
 bool
 GraphCache::remove_participant(const rmw_gid_t & participant_gid)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   return participants_.erase(participant_gid) > 0;
 }
 
@@ -135,6 +139,7 @@ __create_participant_info_message(
 void
 GraphCache::add_participant(const rmw_gid_t & participant_gid)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   participants_.emplace(
     std::piecewise_construct,
     std::forward_as_tuple(participant_gid),
@@ -147,6 +152,7 @@ GraphCache::add_node(
   const std::string & node_name,
   const std::string & node_namespace)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   auto it = participants_.find(participant_gid);
   assert(it != participants_.end());
 
@@ -166,6 +172,7 @@ GraphCache::remove_node(
   const std::string & node_name,
   const std::string & node_namespace)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   auto it = participants_.find(participant_gid);
   assert(it != participants_.end());
 
@@ -214,6 +221,7 @@ GraphCache::associate_writer(
   const std::string & node_name,
   const std::string & node_namespace)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   auto add_writer_gid = [&](rmw_dds_common::msg::NodeEntitiesInfo & info)
     {
       info.writer_gid_seq.emplace_back();
@@ -231,6 +239,7 @@ GraphCache::dissociate_writer(
   const std::string & node_name,
   const std::string & node_namespace)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   rmw_dds_common::msg::Gid writer_gid_msg;
   convert_gid_to_msg(&writer_gid, &writer_gid_msg);
   auto delete_writer_gid = [&](rmw_dds_common::msg::NodeEntitiesInfo & info)
@@ -256,6 +265,7 @@ GraphCache::associate_reader(
   const std::string & node_name,
   const std::string & node_namespace)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   auto add_reader_gid = [&](rmw_dds_common::msg::NodeEntitiesInfo & info)
     {
       info.reader_gid_seq.emplace_back();
@@ -273,6 +283,7 @@ GraphCache::dissociate_reader(
   const std::string & node_name,
   const std::string & node_namespace)
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   rmw_dds_common::msg::Gid reader_gid_msg;
   convert_gid_to_msg(&reader_gid, &reader_gid_msg);
   auto delete_reader_gid = [&](rmw_dds_common::msg::NodeEntitiesInfo & info)
@@ -328,7 +339,7 @@ GraphCache::get_reader_count(
   return __get_count(data_readers_, topic_name, count);
 }
 
-using NamesAndTypes = std::unordered_map<std::string, std::set<std::string>>;
+using NamesAndTypes = std::map<std::string, std::set<std::string>>;
 
 static
 void
@@ -583,14 +594,22 @@ GraphCache::get_reader_names_and_types_by_node(
     topic_names_and_types);
 }
 
+static
 size_t
-GraphCache::get_number_of_nodes() const
+__get_number_of_nodes(const GraphCache::ParticipantToNodesMap & participants_map)
 {
   size_t nodes_number = 0;
-  for (const auto & elem : participants_) {
+  for (const auto & elem : participants_map) {
     nodes_number += elem.second.size();
   }
   return nodes_number;
+}
+
+size_t
+GraphCache::get_number_of_nodes() const
+{
+  std::lock_guard<std::mutex> guard(mutex_);
+  return __get_number_of_nodes(participants_);
 }
 
 rmw_ret_t
@@ -599,6 +618,7 @@ GraphCache::get_node_names(
   rcutils_string_array_t * node_namespaces,
   rcutils_allocator_t * allocator) const
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   if (rmw_check_zero_rmw_string_array(node_names) != RMW_RET_OK) {
     return RMW_RET_INVALID_ARGUMENT;
   }
@@ -608,7 +628,7 @@ GraphCache::get_node_names(
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(allocator, "get_node_names allocator is not valid",
     return RMW_RET_INVALID_ARGUMENT);
 
-  size_t nodes_number = this->get_number_of_nodes();
+  size_t nodes_number = __get_number_of_nodes(participants_);
   rcutils_ret_t rcutils_ret =
     rcutils_string_array_init(node_names, nodes_number, allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
@@ -624,7 +644,6 @@ GraphCache::get_node_names(
     goto fail;
   }
   {
-    std::lock_guard<std::mutex> guard(mutex_);
     size_t j = 0;
     for (const auto & elem : participants_) {
       const auto & nodes_info = elem.second;
