@@ -20,7 +20,7 @@
 #include <set>
 #include <sstream>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <utility>
 #include <vector>
 
@@ -346,13 +346,15 @@ void
 __get_names_and_types(
   const GraphCache::EntityGidToInfo & entities,
   std::string (* demangle_topic)(const std::string &),
+  std::string (* demangle_type)(const std::string &),
   NamesAndTypes & topics)
 {
   assert(nullptr != demangle_topic);
+  assert(nullptr != demangle_type);
   for (const auto & item : entities) {
     std::string demangled_topic_name = demangle_topic(item.second.topic_name);
     if ("" != demangled_topic_name) {
-      topics[demangled_topic_name].insert(item.second.topic_type);
+      topics[demangled_topic_name].insert(demangle_type(item.second.topic_type));
     }
   }
 }
@@ -361,12 +363,9 @@ static
 rmw_ret_t
 __populate_rmw_names_and_types(
   NamesAndTypes topics,
-  std::string (* demangle_type)(const std::string &),
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types)
 {
-  assert(nullptr != demangle_type);
-
   if (topics.empty()) {
     return RMW_RET_OK;
   }
@@ -399,7 +398,7 @@ __populate_rmw_names_and_types(
     }
     size_t type_index = 0;
     for (const auto & type : item.second) {
-      char * type_name = rcutils_strdup(demangle_type(type).c_str(), *allocator);
+      char * type_name = rcutils_strdup(type.c_str(), *allocator);
       if (!type_name) {
         RMW_SET_ERROR_MSG("failed to allocate memory for type name");
         rmw_ret = RMW_RET_BAD_ALLOC;
@@ -438,16 +437,17 @@ GraphCache::get_names_and_types(
     __get_names_and_types(
       data_readers_,
       demangle_topic,
+      demangle_type,
       topics);
     __get_names_and_types(
       data_writers_,
       demangle_topic,
+      demangle_type,
       topics);
   }
 
   return __populate_rmw_names_and_types(
     topics,
-    demangle_type,
     allocator,
     topic_names_and_types);
 }
@@ -477,7 +477,8 @@ NamesAndTypes
 __get_names_and_types_from_gids(
   const GraphCache::EntityGidToInfo & entities_map,
   const GraphCache::GidSeq & gids,
-  std::string (* demangle_topic)(const std::string &))
+  std::string (* demangle_topic)(const std::string &),
+  std::string (* demangle_type)(const std::string &))
 {
   NamesAndTypes topics;
 
@@ -492,7 +493,7 @@ __get_names_and_types_from_gids(
     if ("" == demangled_topic_name) {
       continue;
     }
-    topics[demangled_topic_name].insert(it->second.topic_type);
+    topics[demangled_topic_name].insert(demangle_type(it->second.topic_type));
   }
   return topics;
 }
@@ -527,11 +528,11 @@ __get_names_and_types_by_node(
   NamesAndTypes topics = __get_names_and_types_from_gids(
     entities_map,
     get_entities_gids(*node_info_ptr),
-    demangle_topic);
+    demangle_topic,
+    demangle_type);
 
   return __populate_rmw_names_and_types(
     topics,
-    demangle_type,
     allocator,
     topic_names_and_types);
 }
