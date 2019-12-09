@@ -20,10 +20,10 @@
   <buildtool_export_depend>rosidl_typesupport_introspection_c</buildtool_export_depend>
   <buildtool_export_depend>rosidl_typesupport_introspection_cpp</buildtool_export_depend>
 
-  <group_depend>rosidl_typesupport_cpp_packages</group_depend>
-
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
+
+  <group_depend>rosidl_typesupport_cpp_packages</group_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
