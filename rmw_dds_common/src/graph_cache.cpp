@@ -114,7 +114,11 @@ GraphCache::update_participant_entities(const rmw_dds_common::msg::ParticipantEn
   std::lock_guard<std::mutex> guard(mutex_);
   rmw_gid_t gid;
   rmw_dds_common::convert_msg_to_gid(&msg.gid, &gid);
-  participants_[gid] = msg.node_entities_info_seq;
+  if (0u != msg.node_entities_info_seq.size()) {
+    participants_[gid] = msg.node_entities_info_seq;
+  } else {
+    participants_.erase(gid);
+  }
 }
 
 bool
