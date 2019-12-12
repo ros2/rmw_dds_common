@@ -51,7 +51,11 @@ class GraphCache
   operator<<(std::ostream & ostream, const GraphCache & topic_cache);
 
 public:
-  // Methods used to update the Graph Cache based on DDS discovery.
+  /**
+   * \defgroup dds_discovery_api
+   * Methods used to update the Graph Cache based on DDS discovery.
+   * @{
+   */
 
   /**
    * Add a data writer based on discovery.
@@ -115,8 +119,13 @@ public:
   bool
   remove_entity(const rmw_gid_t & gid, bool is_reader);
 
-  // Method used to update the Graph Cache based on DDS discovery,
-  // and also in local Participants destruction.
+  /**
+   * @}
+   * \defgroup common_api
+   * Methods used to update the Graph Cache either based on DDS discovery or
+   * in local entities changes.
+   * @{
+   */
 
   /**
    * Remove a participant based on discovery.
@@ -128,7 +137,13 @@ public:
   bool
   remove_participant(const rmw_gid_t & participant_gid);
 
-  // Method used to update the Graph Cache based on received ParticipantEntitiesInfo messages.
+  /**
+   * @}
+   * \defgroup ros_discovery_api
+   * Methods used to update the Graph Cache based on ROS 2 specific messages received from
+   * remote participants.
+   * @{
+   */
 
   /**
    * Update participant info, based on received ParticipantEntitiesInfo message.
@@ -139,7 +154,12 @@ public:
   void
   update_participant_entities(const rmw_dds_common::msg::ParticipantEntitiesInfo & msg);
 
-  // Methods used to update the information of the local participant.
+  /**
+   * @}
+   * \defgroup local_api
+   * Methods used to update the Graph Cache, based on local construction and destruction of objects.
+   * @{
+   */
 
   RMW_DDS_COMMON_PUBLIC
   void
@@ -243,14 +263,39 @@ public:
     const std::string & node_name,
     const std::string & node_namespace);
 
-  // Topic introspection functions
+  /**
+   * @}
+   * \defgroup introspection_api
+   * Methods used to introspect the GraphCache.
+   * @{
+   */
 
+  /**
+   * Get the number of publishers of a topic.
+   * 
+   * \param[in] topic_name Name of the topic.
+   * \param[out] count The result will be populated there.
+   *
+   * \return RMW_RET_INVALID_ARGUMENT, or
+   * \return RMW_RET_ERROR, or
+   * \return RMW_RET_OK.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   get_writer_count(
     const std::string & topic_name,
     size_t * count) const;
 
+  /**
+   * Get the number of subscriptions of a topic.
+   *
+   * \param[in] topic_name Name of the topic.
+   * \param[out] count The result will be populated there.
+   *
+   * \return RMW_RET_INVALID_ARGUMENT, or
+   * \return RMW_RET_ERROR, or
+   * \return RMW_RET_OK.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   get_reader_count(
@@ -259,7 +304,23 @@ public:
 
   using DemangleFunctionT = std::string (*)(const std::string &);
 
-  /// Get all topic names and types
+  /**
+   * Get all the topic names and types.
+   *
+   * \param[in] demangle_topic Function that indicates how a dds topic name is demangled
+   *   into a ros topic name.
+   * \param[in] demangle_type Function that indicates how a dds type name is demangled
+   *   into a ros type name.
+   * \param[in] allocator.
+   * \param[inout] topic_names_and_types A zero initialized names and types object, that
+   *   will be populated with the result.
+   *
+   * \return RMW_RET_NODE_NAME_NON_EXISTENT if the node doesn't exist, or
+   * \return RMW_RET_INVALID_ARGUMENT if an argument is invalid, or
+   * \return RMW_RET_BAD_ALLOC if an allocation failed, or
+   * \return RMW_RET_ERROR if an unexpected error happened, or
+   * \return RMW_RET_OK.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   get_names_and_types(
@@ -268,6 +329,25 @@ public:
     rcutils_allocator_t * allocator,
     rmw_names_and_types_t * topic_names_and_types) const;
 
+  /**
+   * Get the topic names and types that a node is publishing.
+   *
+   * \param[in] node_name Name of the node.
+   * \param[in] node_namespace Namespace of the node.
+   * \param[in] demangle_topic Function that indicates how a dds topic name is demangled
+   *   into a ros topic name.
+   * \param[in] demangle_type Function that indicates how a dds type name is demangled
+   *   into a ros type name.
+   * \param[in] allocator.
+   * \param[inout] topic_names_and_types A zero initialized names and types object, that
+   *   will be populated with the result.
+   *
+   * \return RMW_RET_NODE_NAME_NON_EXISTENT if the node doesn't exist, or
+   * \return RMW_RET_INVALID_ARGUMENT if an argument is invalid, or
+   * \return RMW_RET_BAD_ALLOC if an allocation failed, or
+   * \return RMW_RET_ERROR if an unexpected error happened, or
+   * \return RMW_RET_OK.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   get_writer_names_and_types_by_node(
@@ -278,6 +358,25 @@ public:
     rcutils_allocator_t * allocator,
     rmw_names_and_types_t * topic_names_and_types) const;
 
+  /**
+   * Get the topic names and types that a node is subscribing.
+   *
+   * \param[in] node_name Name of the node.
+   * \param[in] node_namespace Namespace of the node.
+   * \param[in] demangle_topic Function that indicates how a dds topic name is demangled
+   *   into a ros topic name.
+   * \param[in] demangle_type Function that indicates how a dds type name is demangled
+   *   into a ros type name.
+   * \param[in] allocator.
+   * \param[inout] topic_names_and_types A zero initialized names and types object, that
+   *   will be populated with the result.
+   *
+   * \return RMW_RET_NODE_NAME_NON_EXISTENT if the node doesn't exist, or
+   * \return RMW_RET_INVALID_ARGUMENT if an argument is invalid, or
+   * \return RMW_RET_BAD_ALLOC if an allocation failed, or
+   * \return RMW_RET_ERROR if an unexpected error happened, or
+   * \return RMW_RET_OK.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   get_reader_names_and_types_by_node(
@@ -288,12 +387,11 @@ public:
     rcutils_allocator_t * allocator,
     rmw_names_and_types_t * topic_names_and_types) const;
 
-  // Node introspection functions
-
   /**
    * Get the number of nodes that have been discovered.
+   *
    * \return RMW_RET_OK, or
-   * \return RMW_RET_ERROR
+   * \return RMW_RET_ERROR.
    */
   RMW_DDS_COMMON_PUBLIC
   size_t
@@ -302,10 +400,15 @@ public:
   /**
    * Copy the names and namespaces of the discovered nodes.
    *
+   * \param[inout] node_names A zero initialized string array, where the node names will be copied.
+   * \param[inout] node_namespaces A zero initialized string array, where the node namespaces
+   *   will be copied. Each item in this array corresponds to an item in the same position of
+   *   node_names array.
+   * \param[in] allocator.
    * \return RMW_RET_OK, or
    * \return RMW_RET_INVALID_ARGUMENT, or
    * \return RMW_RET_BAD_ALLOC, or
-   * \return RMW_RET_ERROR
+   * \return RMW_RET_ERROR.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
@@ -313,6 +416,10 @@ public:
     rcutils_string_array_t * node_names,
     rcutils_string_array_t * node_namespaces,
     rcutils_allocator_t * allocator) const;
+
+  /**
+   * @}
+   */
 
   using NodeEntitiesInfoSeq =
     decltype(std::declval<rmw_dds_common::msg::ParticipantEntitiesInfo>().node_entities_info_seq);
@@ -337,6 +444,8 @@ operator<<(std::ostream & ostream, const GraphCache & topic_cache);
 class StringPairHash
 {
 public:
+  // Based on boost::hash_combine. See
+  // https://www.boost.org/doc/libs/1_55_0/doc/html/hash/reference.html#boost.hash_combine.
   template<typename T>
   inline void hash_combine(std::size_t & seed, const T & v) const
   {

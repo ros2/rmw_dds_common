@@ -313,7 +313,7 @@ __get_count(
   std::string topic_name,
   size_t * count)
 {
-  assert(nullptr != count);
+  assert(count);
 
   *count = std::count_if(
     entities.begin(),
@@ -330,6 +330,9 @@ GraphCache::get_writer_count(
   const std::string & topic_name,
   size_t * count) const
 {
+  if (!count) {
+    return RMW_RET_INVALID_ARGUMENT;
+  }
   std::lock_guard<std::mutex> guard(mutex_);
   return __get_count(data_writers_, topic_name, count);
 }
@@ -340,17 +343,21 @@ GraphCache::get_reader_count(
   size_t * count) const
 {
   std::lock_guard<std::mutex> guard(mutex_);
+  if (!count) {
+    return RMW_RET_INVALID_ARGUMENT;
+  }
   return __get_count(data_readers_, topic_name, count);
 }
 
 using NamesAndTypes = std::map<std::string, std::set<std::string>>;
+using DemangleFunctionT = GraphCache::DemangleFunctionT;
 
 static
 void
 __get_names_and_types(
   const GraphCache::EntityGidToInfo & entities,
-  std::string (* demangle_topic)(const std::string &),
-  std::string (* demangle_type)(const std::string &),
+  DemangleFunctionT demangle_topic,
+  DemangleFunctionT demangle_type,
   NamesAndTypes & topics)
 {
   assert(nullptr != demangle_topic);
@@ -425,15 +432,18 @@ cleanup:
 
 rmw_ret_t
 GraphCache::get_names_and_types(
-  std::string (* demangle_topic)(const std::string &),
-  std::string (* demangle_type)(const std::string &),
+  DemangleFunctionT demangle_topic,
+  DemangleFunctionT demangle_type,
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types) const
 {
   assert(demangle_topic);
   assert(demangle_type);
-  assert(allocator);
-  assert(topic_names_and_types);
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(allocator, "get_node_names allocator is not valid",
+    return RMW_RET_INVALID_ARGUMENT);
+  if (RMW_RET_OK != rmw_names_and_types_check_zero(topic_names_and_types)) {
+    return RMW_RET_INVALID_ARGUMENT;
+  }
 
   NamesAndTypes topics;
   {
@@ -481,8 +491,8 @@ NamesAndTypes
 __get_names_and_types_from_gids(
   const GraphCache::EntityGidToInfo & entities_map,
   const GraphCache::GidSeq & gids,
-  std::string (* demangle_topic)(const std::string &),
-  std::string (* demangle_type)(const std::string &))
+  DemangleFunctionT demangle_topic,
+  DemangleFunctionT demangle_type)
 {
   NamesAndTypes topics;
 
@@ -509,16 +519,19 @@ __get_names_and_types_by_node(
   const GraphCache::EntityGidToInfo & entities_map,
   const std::string & node_name,
   const std::string & namespace_,
-  std::string (* demangle_topic)(const std::string &),
-  std::string (* demangle_type)(const std::string &),
+  DemangleFunctionT demangle_topic,
+  DemangleFunctionT demangle_type,
   GraphCache::GidSeq (* get_entities_gids)(const rmw_dds_common::msg::NodeEntitiesInfo &),
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types)
 {
   assert(demangle_topic);
   assert(demangle_type);
-  assert(allocator);
-  assert(topic_names_and_types);
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(allocator, "get_node_names allocator is not valid",
+    return RMW_RET_INVALID_ARGUMENT);
+  if (RMW_RET_OK != rmw_names_and_types_check_zero(topic_names_and_types)) {
+    return RMW_RET_INVALID_ARGUMENT;
+  }
 
   auto node_info_ptr = __find_node(
     participants_map,
@@ -552,8 +565,8 @@ rmw_ret_t
 GraphCache::get_writer_names_and_types_by_node(
   const std::string & node_name,
   const std::string & namespace_,
-  std::string (* demangle_topic)(const std::string &),
-  std::string (* demangle_type)(const std::string &),
+  DemangleFunctionT demangle_topic,
+  DemangleFunctionT demangle_type,
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types) const
 {
@@ -581,8 +594,8 @@ rmw_ret_t
 GraphCache::get_reader_names_and_types_by_node(
   const std::string & node_name,
   const std::string & namespace_,
-  std::string (* demangle_topic)(const std::string &),
-  std::string (* demangle_type)(const std::string &),
+  DemangleFunctionT demangle_topic,
+  DemangleFunctionT demangle_type,
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types) const
 {
