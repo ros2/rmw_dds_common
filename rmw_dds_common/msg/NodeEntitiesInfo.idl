@@ -7,8 +7,8 @@ module rmw_dds_common {
         string<256> node_namespace;
         @key
         string<256> node_name;
-        sequence<rmw_dds_common::msg::Gid, 1024> writer_gid_seq;
         sequence<rmw_dds_common::msg::Gid, 1024> reader_gid_seq;
+        sequence<rmw_dds_common::msg::Gid, 1024> writer_gid_seq;
     };
   };
 };

@@ -73,8 +73,13 @@ install(
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_cmake_gmock REQUIRED)
   ament_lint_auto_find_test_dependencies()
+
+  ament_add_gmock(test_graph_cache test/test_graph_cache.cpp)
+  if(TARGET test_graph_cache)
+    target_link_libraries(test_graph_cache ${PROJECT_NAME})
+  endif()
 endif()
 
 ament_package()

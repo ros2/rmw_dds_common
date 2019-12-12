@@ -22,7 +22,6 @@
 #include <utility>
 #include <vector>
 
-#include "rcpputils/thread_safety_annotations.hpp"
 #include "rcutils/logging_macros.h"
 #include "rmw/names_and_types.h"
 #include "rmw/types.h"
@@ -258,12 +257,14 @@ public:
     const std::string & topic_name,
     size_t * count) const;
 
+  using DemangleFunctionT = std::string (*)(const std::string &);
+
   /// Get all topic names and types
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   get_names_and_types(
-    std::string (* demangle_topic)(const std::string &),
-    std::string (* demangle_type)(const std::string &),
+    DemangleFunctionT demangle_topic,
+    DemangleFunctionT demangle_type,
     rcutils_allocator_t * allocator,
     rmw_names_and_types_t * topic_names_and_types) const;
 
@@ -272,8 +273,8 @@ public:
   get_writer_names_and_types_by_node(
     const std::string & node_name,
     const std::string & namespace_,
-    std::string (* demangle_topic)(const std::string &),
-    std::string (* demangle_type)(const std::string &),
+    DemangleFunctionT demangle_topic,
+    DemangleFunctionT demangle_type,
     rcutils_allocator_t * allocator,
     rmw_names_and_types_t * topic_names_and_types) const;
 
@@ -282,8 +283,8 @@ public:
   get_reader_names_and_types_by_node(
     const std::string & node_name,
     const std::string & namespace_,
-    std::string (* demangle_topic)(const std::string &),
-    std::string (* demangle_type)(const std::string &),
+    DemangleFunctionT demangle_topic,
+    DemangleFunctionT demangle_type,
     rcutils_allocator_t * allocator,
     rmw_names_and_types_t * topic_names_and_types) const;
 
