@@ -272,7 +272,7 @@ public:
 
   /**
    * Get the number of publishers of a topic.
-   * 
+   *
    * \param[in] topic_name Name of the topic.
    * \param[out] count The result will be populated there.
    *
