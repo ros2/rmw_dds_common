@@ -114,7 +114,6 @@ void check_results_by_node(
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
   {
-    std::cout << "checking readers" << std::endl;
     rmw_names_and_types_t names_and_types = rmw_get_zero_initialized_names_and_types();
     graph_cache.get_reader_names_and_types_by_node(
       node_name,
@@ -127,7 +126,6 @@ void check_results_by_node(
   }
 
   {
-    std::cout << "checking writers" << std::endl;
     rmw_names_and_types_t names_and_types = rmw_get_zero_initialized_names_and_types();
     graph_cache.get_writer_names_and_types_by_node(
       node_name,

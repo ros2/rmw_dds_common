@@ -36,7 +36,7 @@
 using rmw_dds_common::GraphCache;
 using rmw_dds_common::operator<<;
 
-const char log_tag[] = "rmw_dds_common";
+static const char log_tag[] = "rmw_dds_common";
 
 bool
 GraphCache::add_writer(
@@ -248,14 +248,16 @@ GraphCache::dissociate_writer(
   convert_gid_to_msg(&writer_gid, &writer_gid_msg);
   auto delete_writer_gid = [&](rmw_dds_common::msg::NodeEntitiesInfo & info)
     {
-      info.writer_gid_seq.erase(
-        std::find_if(
-          info.writer_gid_seq.begin(),
-          info.writer_gid_seq.end(),
-          [&](const rmw_dds_common::msg::Gid & gid)
-          {
-            return gid == writer_gid_msg;
-          }));
+      auto it = std::find_if(
+        info.writer_gid_seq.begin(),
+        info.writer_gid_seq.end(),
+        [&](const rmw_dds_common::msg::Gid & gid)
+        {
+          return gid == writer_gid_msg;
+        });
+      if (it != info.writer_gid_seq.end()) {
+        info.writer_gid_seq.erase(it);
+      }
     };
 
   return __modify_node_info(
@@ -292,14 +294,16 @@ GraphCache::dissociate_reader(
   convert_gid_to_msg(&reader_gid, &reader_gid_msg);
   auto delete_reader_gid = [&](rmw_dds_common::msg::NodeEntitiesInfo & info)
     {
-      info.reader_gid_seq.erase(
-        std::find_if(
-          info.reader_gid_seq.begin(),
-          info.reader_gid_seq.end(),
-          [&](const rmw_dds_common::msg::Gid & gid)
-          {
-            return gid == reader_gid_msg;
-          }));
+      auto it = std::find_if(
+        info.reader_gid_seq.begin(),
+        info.reader_gid_seq.end(),
+        [&](const rmw_dds_common::msg::Gid & gid)
+        {
+          return gid == reader_gid_msg;
+        });
+      if (it != info.reader_gid_seq.end()) {
+        info.reader_gid_seq.erase(it);
+      }
     };
 
   return __modify_node_info(
@@ -401,7 +405,7 @@ __populate_rmw_names_and_types(
         &topic_names_and_types->types[index],
         item.second.size(),
         allocator);
-      if (rcutils_ret != RCUTILS_RET_OK) {
+      if (RCUTILS_RET_OK != rcutils_ret) {
         RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
         rmw_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
         goto cleanup;
@@ -521,7 +525,7 @@ __get_names_and_types_by_node(
   const std::string & namespace_,
   DemangleFunctionT demangle_topic,
   DemangleFunctionT demangle_type,
-  GraphCache::GidSeq (* get_entities_gids)(const rmw_dds_common::msg::NodeEntitiesInfo &),
+  const GraphCache::GidSeq & (*get_entities_gids)(const rmw_dds_common::msg::NodeEntitiesInfo &),
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types)
 {
@@ -555,7 +559,7 @@ __get_names_and_types_by_node(
 }
 
 static
-GraphCache::GidSeq
+const GraphCache::GidSeq &
 __get_writers_gids(const rmw_dds_common::msg::NodeEntitiesInfo & node_info)
 {
   return node_info.writer_gid_seq;
@@ -584,7 +588,7 @@ GraphCache::get_writer_names_and_types_by_node(
 }
 
 static
-GraphCache::GidSeq
+const GraphCache::GidSeq &
 __get_readers_gids(const rmw_dds_common::msg::NodeEntitiesInfo & node_info)
 {
   return node_info.reader_gid_seq;
@@ -667,9 +671,14 @@ GraphCache::get_node_names(
       const auto & nodes_info = elem.second;
       for (const auto & node_info : nodes_info) {
         node_names->data[j] = rcutils_strdup(node_info.node_name.c_str(), *allocator);
+        if (!node_names->data[j]) {
+          goto fail;
+        }
         node_namespaces->data[j] = rcutils_strdup(
-          node_info.node_namespace.c_str(),
-          *allocator);
+          node_info.node_namespace.c_str(), *allocator);
+        if (!node_namespaces->data[j]) {
+          goto fail;
+        }
         j++;
       }
     }
