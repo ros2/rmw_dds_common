@@ -36,7 +36,6 @@ namespace rmw_dds_common
 {
 
 // Forward-declarations of things at the end of the file
-class StringPairHash;
 struct EntityInfo;
 
 /**
@@ -423,7 +422,6 @@ public:
 
   using NodeEntitiesInfoSeq =
     decltype(std::declval<rmw_dds_common::msg::ParticipantEntitiesInfo>().node_entities_info_seq);
-  using NamespaceNamePair = std::pair<std::string, std::string>;
   using EntityGidToInfo = std::map<rmw_gid_t, EntityInfo, Compare_rmw_gid_t>;
   using ParticipantToNodesMap = std::map<rmw_gid_t, NodeEntitiesInfoSeq, Compare_rmw_gid_t>;
   using GidSeq =
@@ -440,27 +438,6 @@ private:
 RMW_DDS_COMMON_PUBLIC
 std::ostream &
 operator<<(std::ostream & ostream, const GraphCache & topic_cache);
-
-class StringPairHash
-{
-public:
-  // Based on boost::hash_combine. See
-  // https://www.boost.org/doc/libs/1_55_0/doc/html/hash/reference.html#boost.hash_combine.
-  template<typename T>
-  inline void hash_combine(std::size_t & seed, const T & v) const
-  {
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-  }
-
-  inline size_t operator()(const std::pair<std::string, std::string> & s) const
-  {
-    size_t seed = 0;
-    hash_combine(seed, s.first);
-    hash_combine(seed, s.second);
-    return seed;
-  }
-};
 
 struct EntityInfo
 {

@@ -25,8 +25,18 @@
 
 using rmw_dds_common::GraphCache;
 
-// namespace, name
-using NamesAndNamespaces = std::vector<std::pair<std::string, std::string>>;
+struct NameAndNamespace
+{
+  std::string namespace_;
+  std::string name;
+};
+
+MATCHER_P2(IsNameAndNamespace, namespace_, name, "")
+{
+  return (arg.namespace_ == namespace_) && (arg.name == name);
+}
+
+using NamesAndNamespaces = std::vector<NameAndNamespace>;
 
 void
 check_names_and_namespace(
@@ -39,13 +49,18 @@ check_names_and_namespace(
   for (size_t i = 0; i < expected.size(); i++) {
     ASSERT_THAT(
       expected,
-      testing::Contains(testing::Pair(namespaces.data[i], names.data[i])));
+      testing::Contains(IsNameAndNamespace(namespaces.data[i], names.data[i])));
   }
 }
 
+struct NameAndTypes
+{
+  std::string name;
+  std::vector<std::string> types;
+};
+
 // topic_name, vector of type names
-using NamesAndTypes =
-  std::vector<std::pair<std::string, std::vector<std::string>>>;
+using NamesAndTypes = std::vector<NameAndTypes>;
 
 void check_names_and_types(
   const rmw_names_and_types_t & names_and_types,
@@ -55,8 +70,8 @@ void check_names_and_types(
 
   for (size_t i = 0; i < expected.size(); i++) {
     const auto & item = expected[i];
-    EXPECT_EQ(std::get<0>(item), names_and_types.names.data[i]);
-    const auto & expected_types = std::get<1>(item);
+    EXPECT_EQ(item.name, names_and_types.names.data[i]);
+    const auto & expected_types = item.types;
     const auto & types = names_and_types.types[i];
     ASSERT_EQ(expected_types.size(), types.size);
     for (size_t j = 0; j < expected_types.size(); j++) {
@@ -185,8 +200,15 @@ gid_from_string(const std::string & str)
   return gid;
 }
 
-// gid, topic name, type name
-using EntitiesInfo = std::vector<std::tuple<std::string, std::string, std::string, bool>>;
+struct EntityInfo
+{
+  std::string gid;
+  std::string name;
+  std::string type;
+  bool is_reader;
+};
+
+using EntitiesInfo = std::vector<EntityInfo>;
 
 void
 add_entities(
@@ -195,10 +217,10 @@ add_entities(
 {
   for (const auto & elem : entities_info) {
     EXPECT_TRUE(graph_cache.add_entity(
-        gid_from_string(std::get<0>(elem)),
-        std::get<1>(elem),
-        std::get<2>(elem),
-        std::get<3>(elem)));
+        gid_from_string(elem.gid),
+        elem.name,
+        elem.type,
+        elem.is_reader));
   }
 }
 
@@ -209,8 +231,8 @@ remove_entities(
 {
   for (const auto & elem : entities_info) {
     EXPECT_TRUE(graph_cache.remove_entity(
-        gid_from_string(std::get<0>(elem)),
-        std::get<3>(elem)));
+        gid_from_string(elem.gid),
+        elem.is_reader));
   }
 }
 
@@ -367,20 +389,27 @@ gid_msg_from_string(const std::string & str)
   return gid;
 }
 
+struct NodeInfo
+{
+  std::string gid;
+  std::string namespace_;
+  std::string name;
+};
+
 // gid, namespace, name
-using NodeInfo = std::vector<std::tuple<std::string, std::string, std::string>>;
+using NodeInfoVec = std::vector<NodeInfo>;
 
 rmw_dds_common::msg::ParticipantEntitiesInfo
 add_nodes(
   GraphCache & graph_cache,
-  const NodeInfo & node_info)
+  const NodeInfoVec & node_info)
 {
   rmw_dds_common::msg::ParticipantEntitiesInfo msg;
   for (const auto & elem : node_info) {
     msg = graph_cache.add_node(
-      gid_from_string(std::get<0>(elem)),
-      std::get<2>(elem),
-      std::get<1>(elem));
+      gid_from_string(elem.gid),
+      elem.name,
+      elem.namespace_);
   }
   return msg;
 }
@@ -388,46 +417,52 @@ add_nodes(
 rmw_dds_common::msg::ParticipantEntitiesInfo
 remove_nodes(
   GraphCache & graph_cache,
-  const NodeInfo & node_info)
+  const NodeInfoVec & node_info)
 {
   rmw_dds_common::msg::ParticipantEntitiesInfo msg;
   for (const auto & elem : node_info) {
     msg = graph_cache.remove_node(
-      gid_from_string(std::get<0>(elem)),
-      std::get<2>(elem),
-      std::get<1>(elem));
+      gid_from_string(elem.gid),
+      elem.name,
+      elem.namespace_);
   }
   return msg;
 }
 
-using ParticipantEntitiesInfo = std::pair<
-  std::string,                                // gid
-  std::vector<std::tuple<                     // nodes info
-    std::string,                                // namespace
-    std::string,                                // name
-    std::vector<std::string>,                   // readers gids
-    std::vector<std::string>>>>;                // writers gids
+struct NodeEntitiesInfo
+{
+  std::string namespace_;
+  std::string name;
+  std::vector<std::string> reader_gids;
+  std::vector<std::string> writer_gids;
+};
+
+struct ParticipantEntitiesInfo
+{
+  std::string gid;
+  std::vector<NodeEntitiesInfo> node_entities_info_seq;
+};
 
 void
 check_participant_entities_msg(
   const rmw_dds_common::msg::ParticipantEntitiesInfo & msg,
   const ParticipantEntitiesInfo & expected)
 {
-  EXPECT_EQ(msg.gid, gid_msg_from_string(expected.first));
-  ASSERT_EQ(msg.node_entities_info_seq.size(), expected.second.size());
-  for (size_t i = 0; i < expected.second.size(); i++) {
+  EXPECT_EQ(msg.gid, gid_msg_from_string(expected.gid));
+  ASSERT_EQ(msg.node_entities_info_seq.size(), expected.node_entities_info_seq.size());
+  for (size_t i = 0; i < expected.node_entities_info_seq.size(); i++) {
     const auto & node_info = msg.node_entities_info_seq[i];
-    const auto & node_info_expected = expected.second[i];
-    EXPECT_EQ(node_info.node_namespace, std::get<0>(node_info_expected));
-    EXPECT_EQ(node_info.node_name, std::get<1>(node_info_expected));
+    const auto & node_info_expected = expected.node_entities_info_seq[i];
+    EXPECT_EQ(node_info.node_namespace, node_info_expected.namespace_);
+    EXPECT_EQ(node_info.node_name, node_info_expected.name);
     auto & readers_gids = node_info.reader_gid_seq;
-    auto & expected_readers_gids = std::get<2>(node_info_expected);
+    auto & expected_readers_gids = node_info_expected.reader_gids;
     ASSERT_EQ(readers_gids.size(), expected_readers_gids.size());
     for (size_t j = 0; j < readers_gids.size(); j++) {
       EXPECT_EQ(readers_gids[j], gid_msg_from_string(expected_readers_gids[j]));
     }
     auto & writers_gids = node_info.writer_gid_seq;
-    auto & expected_writers_gids = std::get<3>(node_info_expected);
+    auto & expected_writers_gids = node_info_expected.writer_gids;
     ASSERT_EQ(writers_gids.size(), expected_writers_gids.size());
     for (size_t j = 0; j < writers_gids.size(); j++) {
       EXPECT_EQ(writers_gids[j], gid_msg_from_string(expected_writers_gids[j]));
@@ -435,27 +470,35 @@ check_participant_entities_msg(
   }
 }
 
-// reader/writer gid, is reader, participant gid, namespace, name
+struct EntityAssociations
+{
+  std::string gid;
+  bool is_reader;
+  std::string participant_gid;
+  std::string namespace_;
+  std::string name;
+};
+
 using EntitiesAssociations =
-  std::vector<std::tuple<std::string, bool, std::string, std::string, std::string>>;
+  std::vector<EntityAssociations>;
 
 void associate_entities(
   GraphCache & graph_cache,
   const EntitiesAssociations & associations)
 {
   for (const auto & elem : associations) {
-    if (std::get<1>(elem)) {
+    if (elem.is_reader) {
       graph_cache.associate_reader(
-        gid_from_string(std::get<0>(elem)),
-        gid_from_string(std::get<2>(elem)),
-        std::get<4>(elem),
-        std::get<3>(elem));
+        gid_from_string(elem.gid),
+        gid_from_string(elem.participant_gid),
+        elem.name,
+        elem.namespace_);
     } else {
       graph_cache.associate_writer(
-        gid_from_string(std::get<0>(elem)),
-        gid_from_string(std::get<2>(elem)),
-        std::get<4>(elem),
-        std::get<3>(elem));
+        gid_from_string(elem.gid),
+        gid_from_string(elem.participant_gid),
+        elem.name,
+        elem.namespace_);
     }
   }
 }
@@ -465,18 +508,18 @@ void dissociate_entities(
   const EntitiesAssociations & associations)
 {
   for (const auto & elem : associations) {
-    if (std::get<1>(elem)) {
+    if (elem.is_reader) {
       graph_cache.dissociate_reader(
-        gid_from_string(std::get<0>(elem)),
-        gid_from_string(std::get<2>(elem)),
-        std::get<4>(elem),
-        std::get<3>(elem));
+        gid_from_string(elem.gid),
+        gid_from_string(elem.participant_gid),
+        elem.name,
+        elem.namespace_);
     } else {
       graph_cache.dissociate_writer(
-        gid_from_string(std::get<0>(elem)),
-        gid_from_string(std::get<2>(elem)),
-        std::get<4>(elem),
-        std::get<3>(elem));
+        gid_from_string(elem.gid),
+        gid_from_string(elem.participant_gid),
+        elem.name,
+        elem.namespace_);
     }
   }
 }
@@ -485,19 +528,19 @@ rmw_dds_common::msg::ParticipantEntitiesInfo
 get_participant_entities_info_msg(const ParticipantEntitiesInfo & info)
 {
   rmw_dds_common::msg::ParticipantEntitiesInfo msg;
-  msg.gid = gid_msg_from_string(info.first);
-  msg.node_entities_info_seq.reserve(info.second.size());
-  for (const auto & elem : info.second) {
+  msg.gid = gid_msg_from_string(info.gid);
+  msg.node_entities_info_seq.reserve(info.node_entities_info_seq.size());
+  for (const auto & elem : info.node_entities_info_seq) {
     msg.node_entities_info_seq.emplace_back();
     auto & node_info = msg.node_entities_info_seq.back();
-    node_info.node_namespace = std::get<0>(elem);
-    node_info.node_name = std::get<1>(elem);
-    auto & readers_gids = std::get<2>(elem);
+    node_info.node_namespace = elem.namespace_;
+    node_info.node_name = elem.name;
+    auto & readers_gids = elem.reader_gids;
     node_info.reader_gid_seq.reserve(readers_gids.size());
     for (const auto & reader_gid : readers_gids) {
       node_info.reader_gid_seq.emplace_back(gid_msg_from_string(reader_gid));
     }
-    auto & writers_gids = std::get<3>(elem);
+    auto & writers_gids = elem.writer_gids;
     node_info.writer_gid_seq.reserve(writers_gids.size());
     for (const auto & writer_gid : writers_gids) {
       node_info.writer_gid_seq.emplace_back(gid_msg_from_string(writer_gid));
