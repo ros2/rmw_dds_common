@@ -59,7 +59,6 @@ struct NameAndTypes
   std::vector<std::string> types;
 };
 
-// topic_name, vector of type names
 using NamesAndTypes = std::vector<NameAndTypes>;
 
 void check_names_and_types(
@@ -396,7 +395,6 @@ struct NodeInfo
   std::string name;
 };
 
-// gid, namespace, name
 using NodeInfoVec = std::vector<NodeInfo>;
 
 rmw_dds_common::msg::ParticipantEntitiesInfo
