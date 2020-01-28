@@ -21,6 +21,10 @@
 #include <utility>
 #include <vector>
 
+#include "rmw/qos_profiles.h"
+#include "rmw/topic_endpoint_info.h"
+#include "rmw/topic_endpoint_info_array.h"
+
 #include "rmw_dds_common/graph_cache.hpp"
 
 using rmw_dds_common::GraphCache;
@@ -209,6 +213,8 @@ struct EntityInfo
 
 using EntitiesInfo = std::vector<EntityInfo>;
 
+rmw_gid_t zero_gid = {};
+
 void
 add_entities(
   GraphCache & graph_cache,
@@ -219,6 +225,8 @@ add_entities(
         gid_from_string(elem.gid),
         elem.name,
         elem.type,
+        zero_gid,
+        rmw_qos_profile_default,
         elem.is_reader));
   }
 }

@@ -1,4 +1,4 @@
-// Copyright 2019 Open Source Robotics Foundation, Inc.
+// Copyright 2020 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rmw_dds_common/graph_cache.hpp"
+
 #include <algorithm>
 #include <cassert>
+#include <cstring>
+#include <functional>
 #include <iterator>
+#include <map>
+#include <memory>
 #include <mutex>
 #include <ostream>
 #include <set>
 #include <sstream>
 #include <string>
-#include <map>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -29,8 +35,9 @@
 #include "rmw/convert_rcutils_ret_to_rmw_ret.h"
 #include "rmw/error_handling.h"
 #include "rmw/sanity_checks.h"
+#include "rmw/topic_endpoint_info.h"
+#include "rmw/topic_endpoint_info_array.h"
 
-#include "rmw_dds_common/graph_cache.hpp"
 #include "rmw_dds_common/gid_utils.hpp"
 
 using rmw_dds_common::GraphCache;
@@ -42,13 +49,15 @@ bool
 GraphCache::add_writer(
   const rmw_gid_t & gid,
   const std::string & topic_name,
-  const std::string & type_name)
+  const std::string & type_name,
+  const rmw_gid_t & participant_gid,
+  const rmw_qos_profile_t & qos)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   auto pair = data_writers_.emplace(
     std::piecewise_construct,
     std::forward_as_tuple(gid),
-    std::forward_as_tuple(topic_name, type_name));
+    std::forward_as_tuple(topic_name, type_name, participant_gid, qos));
   return pair.second;
 }
 
@@ -56,13 +65,15 @@ bool
 GraphCache::add_reader(
   const rmw_gid_t & gid,
   const std::string & topic_name,
-  const std::string & type_name)
+  const std::string & type_name,
+  const rmw_gid_t & participant_gid,
+  const rmw_qos_profile_t & qos)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   auto pair = data_readers_.emplace(
     std::piecewise_construct,
     std::forward_as_tuple(gid),
-    std::forward_as_tuple(topic_name, type_name));
+    std::forward_as_tuple(topic_name, type_name, participant_gid, qos));
   return pair.second;
 }
 
@@ -71,18 +82,24 @@ GraphCache::add_entity(
   const rmw_gid_t & gid,
   const std::string & topic_name,
   const std::string & type_name,
+  const rmw_gid_t & participant_gid,
+  const rmw_qos_profile_t & qos,
   bool is_reader)
 {
   if (is_reader) {
     return this->add_reader(
       gid,
       topic_name,
-      type_name);
+      type_name,
+      participant_gid,
+      qos);
   }
   return this->add_writer(
     gid,
     topic_name,
-    type_name);
+    type_name,
+    participant_gid,
+    qos);
 }
 
 bool
@@ -353,8 +370,203 @@ GraphCache::get_reader_count(
   return __get_count(data_readers_, topic_name, count);
 }
 
-using NamesAndTypes = std::map<std::string, std::set<std::string>>;
+static
+std::tuple<std::string, std::string, bool>
+__find_name_and_namespace_from_entity_gid(
+  const GraphCache::ParticipantToNodesMap & participant_map,
+  rmw_gid_t participant_gid,
+  rmw_gid_t entity_gid,
+  bool is_reader)
+{
+  auto it = participant_map.find(participant_gid);
+  if (participant_map.end() == it) {
+    return {"", "", false};
+  }
+  for (const auto & node_info : it->second) {
+    auto & gid_seq = is_reader ? node_info.reader_gid_seq : node_info.writer_gid_seq;
+    auto it = std::find_if(
+      gid_seq.begin(),
+      gid_seq.end(),
+      [&](const rmw_dds_common::msg::Gid & gid) -> bool {
+        return 0u == std::memcmp(gid.data.data(), entity_gid.data, RMW_GID_STORAGE_SIZE);
+      }
+    );
+    if (gid_seq.end() != it) {
+      return {node_info.node_name, node_info.node_namespace, true};
+    }
+  }
+  return {"", "", false};
+}
+
 using DemangleFunctionT = GraphCache::DemangleFunctionT;
+
+static
+rmw_ret_t
+__get_entities_info_by_topic(
+  const GraphCache::EntityGidToInfo & entities,
+  const GraphCache::ParticipantToNodesMap & participant_map,
+  const std::string & topic_name,
+  DemangleFunctionT demangle_type,
+  bool is_reader,
+  rcutils_allocator_t * allocator,
+  rmw_topic_endpoint_info_array_t * endpoints_info)
+{
+  assert(allocator);
+  assert(endpoints_info);
+
+  if (0u == entities.size()) {
+    return RMW_RET_OK;
+  }
+
+  // TODO(ivanpauno): Do something better than overallocating and shrinking to size.
+  rmw_ret_t ret = rmw_topic_endpoint_info_array_init_with_size(
+    endpoints_info,
+    entities.size(),
+    allocator);
+  if (RMW_RET_OK != ret) {
+    return ret;
+  }
+  std::unique_ptr<
+    rmw_topic_endpoint_info_array_t,
+    std::function<void(rmw_topic_endpoint_info_array_t *)>>
+  endpoints_info_delete_on_error(
+    endpoints_info,
+    [allocator](rmw_topic_endpoint_info_array_t * p) {
+      rmw_ret_t ret = rmw_topic_endpoint_info_array_fini(
+        p,
+        allocator
+      );
+      if (RMW_RET_OK != ret) {
+        RCUTILS_LOG_ERROR_NAMED(
+          log_tag,
+          "Failed to destroy endpoints_info when function failed.");
+      }
+    }
+  );
+
+  size_t i = 0;
+  for (const auto & entity_pair : entities) {
+    if (entity_pair.second.topic_name != topic_name) {
+      continue;
+    }
+
+    rmw_topic_endpoint_info_t & endpoint_info =
+      endpoints_info->info_array[i];
+    endpoint_info = rmw_get_zero_initialized_topic_endpoint_info();
+
+    auto result = __find_name_and_namespace_from_entity_gid(
+      participant_map,
+      entity_pair.second.participant_gid,
+      entity_pair.first,
+      is_reader);
+
+    if (!std::get<2>(result)) {
+      // skip endpoints that aren't associated with a node.
+      // TODO(ivanpauno): Do we want to do something else?
+      continue;
+    }
+
+    ret = rmw_topic_endpoint_info_set_node_name(
+      &endpoint_info,
+      std::get<0>(result).c_str(),
+      allocator);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+
+    ret = rmw_topic_endpoint_info_set_node_namespace(
+      &endpoint_info,
+      std::get<1>(result).c_str(),
+      allocator);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+
+    ret = rmw_topic_endpoint_info_set_topic_type(
+      &endpoint_info,
+      demangle_type(entity_pair.second.topic_type).c_str(),
+      allocator);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+
+    ret = rmw_topic_endpoint_info_set_endpoint_type(
+      &endpoint_info,
+      is_reader ? RMW_ENDPOINT_SUBSCRIPTION : RMW_ENDPOINT_PUBLISHER);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+
+    ret = rmw_topic_endpoint_info_set_gid(
+      &endpoint_info,
+      entity_pair.first.data,
+      RMW_GID_STORAGE_SIZE);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+
+    ret = rmw_topic_endpoint_info_set_qos_profile(
+      &endpoint_info,
+      &entity_pair.second.qos);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+    endpoints_info->count++;
+  }
+
+  if (0u == endpoints_info->count) {
+    // Array will be freed.
+    return RMW_RET_OK;
+  }
+  // shrink to size
+  void * p = allocator->reallocate(
+    endpoints_info->info_array,
+    endpoints_info->count * sizeof(rmw_topic_endpoint_info_t),
+    allocator->state);
+  if (nullptr == p) {
+    return RMW_RET_BAD_ALLOC;
+  }
+  endpoints_info->info_array = static_cast<rmw_topic_endpoint_info_t *>(p);
+  endpoints_info_delete_on_error.release();
+
+  return RMW_RET_OK;
+}
+
+rmw_ret_t
+GraphCache::get_writers_info_by_topic(
+  const std::string & topic_name,
+  DemangleFunctionT demangle_type,
+  rcutils_allocator_t * allocator,
+  rmw_topic_endpoint_info_array_t * endpoints_info) const
+{
+  return __get_entities_info_by_topic(
+    data_writers_,
+    participants_,
+    topic_name,
+    demangle_type,
+    false,
+    allocator,
+    endpoints_info);
+}
+
+rmw_ret_t
+GraphCache::get_readers_info_by_topic(
+  const std::string & topic_name,
+  DemangleFunctionT demangle_type,
+  rcutils_allocator_t * allocator,
+  rmw_topic_endpoint_info_array_t * endpoints_info) const
+{
+  return __get_entities_info_by_topic(
+    data_readers_,
+    participants_,
+    topic_name,
+    demangle_type,
+    true,
+    allocator,
+    endpoints_info);
+}
+
+using NamesAndTypes = std::map<std::string, std::set<std::string>>;
 
 static
 void

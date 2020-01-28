@@ -1,4 +1,4 @@
-// Copyright 2019 Open Source Robotics Foundation, Inc.
+// Copyright 2020 Open Source Robotics Foundation, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,10 @@
 #include <vector>
 
 #include "rcutils/logging_macros.h"
+
 #include "rmw/names_and_types.h"
+#include "rmw/topic_endpoint_info.h"
+#include "rmw/topic_endpoint_info_array.h"
 #include "rmw/types.h"
 
 #include "rmw_dds_common/gid_utils.hpp"
@@ -35,12 +38,11 @@
 namespace rmw_dds_common
 {
 
-// Forward-declarations of things at the end of the file
+// Forward-declaration, defined at end of file.
 struct EntityInfo;
 
+/// Graph cache data structure.
 /**
- * Graph cache data structure.
- *
  * Manages relationships between participants, nodes and topics.
  */
 class GraphCache
@@ -67,9 +69,11 @@ public:
   RMW_DDS_COMMON_PUBLIC
   bool
   add_writer(
-    const rmw_gid_t & gid,
+    const rmw_gid_t & writer_gid,
     const std::string & topic_name,
-    const std::string & type_name);
+    const std::string & type_name,
+    const rmw_gid_t & participant_gid,
+    const rmw_qos_profile_t & qos);
 
   /**
    * Add a data reader based on discovery.
@@ -82,9 +86,11 @@ public:
   RMW_DDS_COMMON_PUBLIC
   bool
   add_reader(
-    const rmw_gid_t & gid,
+    const rmw_gid_t & reader_gid,
     const std::string & topic_name,
-    const std::string & type_name);
+    const std::string & type_name,
+    const rmw_gid_t & participant_gid,
+    const rmw_qos_profile_t & qos);
 
   RMW_DDS_COMMON_PUBLIC
   bool
@@ -92,6 +98,8 @@ public:
     const rmw_gid_t & gid,
     const std::string & topic_name,
     const std::string & type_name,
+    const rmw_gid_t & participant_gid,
+    const rmw_qos_profile_t & qos,
     bool is_reader);
 
   /**
@@ -303,6 +311,22 @@ public:
 
   using DemangleFunctionT = std::string (*)(const std::string &);
 
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  get_writers_info_by_topic(
+    const std::string & topic_name,
+    DemangleFunctionT demangle_type,
+    rcutils_allocator_t * allocator,
+    rmw_topic_endpoint_info_array_t * endpoints_info) const;
+
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  get_readers_info_by_topic(
+    const std::string & topic_name,
+    DemangleFunctionT demangle_type,
+    rcutils_allocator_t * allocator,
+    rmw_topic_endpoint_info_array_t * endpoints_info) const;
+
   /**
    * Get all the topic names and types.
    *
@@ -443,10 +467,18 @@ struct EntityInfo
 {
   std::string topic_name;
   std::string topic_type;
+  rmw_gid_t participant_gid;
+  rmw_qos_profile_t qos;
 
-  EntityInfo(std::string topic_name, std::string topic_type)
+  EntityInfo(
+    const std::string & topic_name,
+    const std::string & topic_type,
+    const rmw_gid_t & participant_gid,
+    const rmw_qos_profile_t & qos)
   : topic_name(topic_name),
-    topic_type(topic_type)
+    topic_type(topic_type),
+    participant_gid(participant_gid),
+    qos(qos)
   {}
 };
 
