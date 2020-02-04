@@ -289,7 +289,7 @@ GraphCache::associate_reader(
   const std::string & node_namespace)
 {
   std::lock_guard<std::mutex> guard(mutex_);
-  auto add_reader_gid = [&](rmw_dds_common::msg::NodeEntitiesInfo & info)
+  auto add_reader_gid = [&reader_gid](rmw_dds_common::msg::NodeEntitiesInfo & info)
     {
       info.reader_gid_seq.emplace_back();
       convert_gid_to_msg(&reader_gid, &info.reader_gid_seq.back());
@@ -662,6 +662,9 @@ GraphCache::get_names_and_types(
     return RMW_RET_INVALID_ARGUMENT;
   }
 
+  // TODO(ivanpauno): Avoid using an intermediate representation.
+  // We need a way to reallocate `topic_names_and_types.names` and `topic_names_and_types.names`.
+  // Or have a good guess of the size (lower bound), and then shrink.
   NamesAndTypes topics;
   {
     std::lock_guard<std::mutex> guard(mutex_);
@@ -729,6 +732,8 @@ __get_names_and_types_from_gids(
   return topics;
 }
 
+using GetEntitiesGids = const GraphCache::GidSeq & (*)(const rmw_dds_common::msg::NodeEntitiesInfo &);
+
 static
 rmw_ret_t
 __get_names_and_types_by_node(
@@ -738,7 +743,7 @@ __get_names_and_types_by_node(
   const std::string & namespace_,
   DemangleFunctionT demangle_topic,
   DemangleFunctionT demangle_type,
-  const GraphCache::GidSeq & (*get_entities_gids)(const rmw_dds_common::msg::NodeEntitiesInfo &),
+  GetEntitiesGids get_entities_gids,
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types)
 {
@@ -867,15 +872,15 @@ GraphCache::get_node_names(
   rcutils_ret_t rcutils_ret =
     rcutils_string_array_init(node_names, nodes_number, allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
-    RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
     rcutils_reset_error();
+    RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
     goto fail;
   }
   rcutils_ret =
     rcutils_string_array_init(node_namespaces, nodes_number, allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
-    RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
     rcutils_reset_error();
+    RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
     goto fail;
   }
   {
@@ -904,14 +909,12 @@ fail:
     RCUTILS_LOG_ERROR_NAMED(
       "rmw_dds_common",
       "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
-    rcutils_reset_error();
   }
   rcutils_ret = rcutils_string_array_fini(node_namespaces);
   if (rcutils_ret != RCUTILS_RET_OK) {
     RCUTILS_LOG_ERROR_NAMED(
       "rmw_dds_common",
       "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
-    rcutils_reset_error();
   }
   return RMW_RET_BAD_ALLOC;
 }

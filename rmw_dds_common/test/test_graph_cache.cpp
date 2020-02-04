@@ -40,13 +40,11 @@ MATCHER_P2(IsNameAndNamespace, namespace_, name, "")
   return (arg.namespace_ == namespace_) && (arg.name == name);
 }
 
-using NamesAndNamespaces = std::vector<NameAndNamespace>;
-
 void
 check_names_and_namespace(
   const rcutils_string_array_t & names,
   const rcutils_string_array_t & namespaces,
-  const NamesAndNamespaces & expected)
+  const std::vector<NameAndNamespace> & expected)
 {
   ASSERT_EQ(names.size, namespaces.size);
   ASSERT_EQ(expected.size(), names.size);
@@ -63,11 +61,9 @@ struct NameAndTypes
   std::vector<std::string> types;
 };
 
-using NamesAndTypes = std::vector<NameAndTypes>;
-
 void check_names_and_types(
   const rmw_names_and_types_t & names_and_types,
-  const NamesAndTypes & expected)
+  const std::vector<NameAndTypes> & expected)
 {
   ASSERT_EQ(names_and_types.names.size, expected.size());
 
@@ -94,8 +90,8 @@ using DemangleFunctionT = GraphCache::DemangleFunctionT;
 void
 check_results(
   const GraphCache & graph_cache,
-  const NamesAndNamespaces & nodes_names_and_namespaces = {},
-  const NamesAndTypes & topics_names_and_types = {},
+  const std::vector<NameAndNamespace> & nodes_names_and_namespaces = {},
+  const std::vector<NameAndTypes> & topics_names_and_types = {},
   DemangleFunctionT demangle_topic = identity_demangle,
   DemangleFunctionT demangle_type = identity_demangle)
 {
@@ -124,8 +120,8 @@ void check_results_by_node(
   const GraphCache & graph_cache,
   const std::string & node_namespace,
   const std::string & node_name,
-  const NamesAndTypes & readers_names_and_types = {},
-  const NamesAndTypes & writers_names_and_types = {},
+  const std::vector<NameAndTypes> & readers_names_and_types = {},
+  const std::vector<NameAndTypes> & writers_names_and_types = {},
   DemangleFunctionT demangle_topic = identity_demangle,
   DemangleFunctionT demangle_type = identity_demangle)
 {
@@ -211,14 +207,12 @@ struct EntityInfo
   bool is_reader;
 };
 
-using EntitiesInfo = std::vector<EntityInfo>;
-
-rmw_gid_t zero_gid = {};
+static constexpr rmw_gid_t zero_gid = {};
 
 void
 add_entities(
   GraphCache & graph_cache,
-  const EntitiesInfo & entities_info)
+  const std::vector<EntityInfo> & entities_info)
 {
   for (const auto & elem : entities_info) {
     EXPECT_TRUE(graph_cache.add_entity(
@@ -234,7 +228,7 @@ add_entities(
 void
 remove_entities(
   GraphCache & graph_cache,
-  const EntitiesInfo & entities_info)
+  const std::vector<EntityInfo> & entities_info)
 {
   for (const auto & elem : entities_info) {
     EXPECT_TRUE(graph_cache.remove_entity(
@@ -403,12 +397,10 @@ struct NodeInfo
   std::string name;
 };
 
-using NodeInfoVec = std::vector<NodeInfo>;
-
 rmw_dds_common::msg::ParticipantEntitiesInfo
 add_nodes(
   GraphCache & graph_cache,
-  const NodeInfoVec & node_info)
+  const std::vector<NodeInfo> & node_info)
 {
   rmw_dds_common::msg::ParticipantEntitiesInfo msg;
   for (const auto & elem : node_info) {
@@ -423,7 +415,7 @@ add_nodes(
 rmw_dds_common::msg::ParticipantEntitiesInfo
 remove_nodes(
   GraphCache & graph_cache,
-  const NodeInfoVec & node_info)
+  const std::vector<NodeInfo> & node_info)
 {
   rmw_dds_common::msg::ParticipantEntitiesInfo msg;
   for (const auto & elem : node_info) {
