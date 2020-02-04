@@ -351,10 +351,10 @@ GraphCache::get_writer_count(
   const std::string & topic_name,
   size_t * count) const
 {
+  std::lock_guard<std::mutex> guard(mutex_);
   if (!count) {
     return RMW_RET_INVALID_ARGUMENT;
   }
-  std::lock_guard<std::mutex> guard(mutex_);
   return __get_count(data_writers_, topic_name, count);
 }
 
@@ -528,7 +528,6 @@ __get_entities_info_by_topic(
   }
   endpoints_info->info_array = static_cast<rmw_topic_endpoint_info_t *>(p);
   endpoints_info_delete_on_error.release();
-
   return RMW_RET_OK;
 }
 
@@ -539,6 +538,7 @@ GraphCache::get_writers_info_by_topic(
   rcutils_allocator_t * allocator,
   rmw_topic_endpoint_info_array_t * endpoints_info) const
 {
+  std::lock_guard<std::mutex> lock(mutex_);
   return __get_entities_info_by_topic(
     data_writers_,
     participants_,
@@ -556,6 +556,7 @@ GraphCache::get_readers_info_by_topic(
   rcutils_allocator_t * allocator,
   rmw_topic_endpoint_info_array_t * endpoints_info) const
 {
+  std::lock_guard<std::mutex> lock(mutex_);
   return __get_entities_info_by_topic(
     data_readers_,
     participants_,
