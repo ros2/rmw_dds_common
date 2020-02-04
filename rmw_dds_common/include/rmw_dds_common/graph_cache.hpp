@@ -61,10 +61,12 @@ public:
   /**
    * Add a data writer based on discovery.
    *
-   * /param gid the data writer guid
-   * /param topic_name
-   * /param type_name
-   * /return true if a change has been recorded
+   * \param gid The data writer guid.
+   * \param topic_name
+   * \param type_name
+   * \param participant_gid gid of the participant.
+   * \param qos Quality of service of the writer.
+   * \return `true` when a change took place.
    */
   RMW_DDS_COMMON_PUBLIC
   bool
@@ -78,10 +80,12 @@ public:
   /**
    * Add a data reader based on discovery.
    *
-   * /param gid the data reader guid
-   * /param topic_name
-   * /param type_name
-   * /return true if a change has been recorded
+   * \param gid The data reader guid
+   * \param topic_name
+   * \param type_name
+   * \param participant_gid gid of the participant.
+   * \param qos Quality of service of the writer.
+   * \return `true` when a change took place.
    */
   RMW_DDS_COMMON_PUBLIC
   bool
@@ -92,6 +96,17 @@ public:
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos);
 
+  /**
+   * Add a data reader based on discovery.
+   *
+   * \param gid The data reader guid.
+   * \param topic_name
+   * \param type_name
+   * \param participant_gid gid of the participant.
+   * \param qos Quality of service of the writer.
+   * \param is_reader Adds a reader when `true`, if not a writer.
+   * \return `true` when a change took place.
+   */
   RMW_DDS_COMMON_PUBLIC
   bool
   add_entity(
@@ -105,8 +120,8 @@ public:
   /**
    * Remove a data writer based on discovery.
    *
-   * /param gid the data writer guid
-   * /return true if a change has been recorded
+   * \param gid The data writer guid.
+   * \return `true` when a change took place.
    */
   RMW_DDS_COMMON_PUBLIC
   bool
@@ -115,8 +130,8 @@ public:
   /**
    * Remove a data reader based on discovery.
    *
-   * /param gid the data reader guid
-   * /return true if a change has been recorded
+   * \param gid The data reader guid.
+   * \return `true` when a change took place.
    */
   RMW_DDS_COMMON_PUBLIC
   bool
@@ -129,16 +144,15 @@ public:
   /**
    * @}
    * \defgroup common_api
-   * Methods used to update the Graph Cache either based on DDS discovery or
-   * in local entities changes.
+   * Methods used to update the Graph Cache.
    * @{
    */
 
   /**
    * Remove a participant based on discovery.
    *
-   * /param participant_gid
-   * /return true if a change has been recorded
+   * \param participant_gid
+   * \return `true` when a change took place.
    */
   RMW_DDS_COMMON_PUBLIC
   bool
@@ -153,9 +167,9 @@ public:
    */
 
   /**
-   * Update participant info, based on received ParticipantEntitiesInfo message.
+   * Update participant info based on a received `ParticipantEntitiesInfo` message.
    *
-   * /param msg will be filled with the received participant entities info message
+   * \param msg Will be filled with the received `ParticipantEntitiesInfo` message.
    */
   RMW_DDS_COMMON_PUBLIC
   void
@@ -175,10 +189,10 @@ public:
   /**
    * Add a node to the graph, and get the message to be sent.
    *
-   * /param gid participant GUID.
-   * /param node_name name of the node to be added.
-   * /param node_namespace node namespace.
-   * /return message to be sent.
+   * \param gid participant GUID.
+   * \param node_name name of the node to be added.
+   * \param node_namespace node namespace.
+   * \return message to be sent.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -190,10 +204,10 @@ public:
   /**
    * Remove a node to the graph, and get the message to be sent.
    *
-   * /param gid participant GUID.
-   * /param node_name name of the node to be added.
-   * /param node_namespace node namespace.
-   * /return message to be sent.
+   * \param gid participant GUID.
+   * \param node_name name of the node to be added.
+   * \param node_namespace node namespace.
+   * \return message to be sent.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -203,13 +217,13 @@ public:
     const std::string & node_namespace);
 
   /**
-   * Associate a writer with a node, and get a message to be sent.
+   * Associate a writer with a node, and get an update message to be sent.
    *
-   * /param writer_gid GUID of the data writer.
-   * /param participant_gid participant GUID.
-   * /param node_name name of the node to be added.
-   * /param node_namespace node namespace.
-   * /return message to be sent.
+   * \param writer_gid GUID of the data writer.
+   * \param participant_gid GUID of the `Participant`.
+   * \param node_name Name of the node to be added.
+   * \param node_namespace Node namespace.
+   * \return Message to be sent.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -220,13 +234,13 @@ public:
     const std::string & node_namespace);
 
   /**
-   * Dissociate a writer with a node, and get a message to be sent.
+   * Dissociate a writer from a node, and get an update message to be sent.
    *
-   * /param writer_gid GUID of the data writer.
-   * /param participant_gid participant GUID.
-   * /param node_name name of the node to be added.
-   * /param node_namespace node namespace.
-   * /return message to be sent.
+   * \param writer_gid GUID of the data writer.
+   * \param participant_gid GUID of the `Participant`.
+   * \param node_name Name of the node to be added.
+   * \param node_namespace Node namespace.
+   * \return Message to be sent.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -237,13 +251,13 @@ public:
     const std::string & node_namespace);
 
   /**
-   * Associate a reader with a node, and get a message to be sent.
+   * Associate a reader with a node, and get an update message to be sent.
    *
-   * /param reader_gid GUID of the data reader.
-   * /param participant_gid participant GUID.
-   * /param node_name name of the node to be added.
-   * /param node_namespace node namespace.
-   * /return message to be sent.
+   * \param reader_gid GUID of the data reader.
+   * \param participant_gid GUID of the `Participant`.
+   * \param node_name Name of the node to be added.
+   * \param node_namespace Node namespace.
+   * \return Message to be sent.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -254,13 +268,13 @@ public:
     const std::string & node_namespace);
 
   /**
-   * Dissociate a reader with a node, and get a message to be sent.
+   * Dissociate a reader from a node, and get an update message to be sent.
    *
-   * /param reader_gid GUID of the data reader.
-   * /param participant_gid participant GUID.
-   * /param node_name name of the node to be added.
-   * /param node_namespace node namespace.
-   * /return message to be sent.
+   * \param reader_gid GUID of the data reader.
+   * \param participant_gid GUID of the `Participant`.
+   * \param node_name Name of the node to be added.
+   * \param node_namespace Node namespace.
+   * \return Message to be sent.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -283,8 +297,8 @@ public:
    * \param[in] topic_name Name of the topic.
    * \param[out] count The result will be populated there.
    *
-   * \return RMW_RET_INVALID_ARGUMENT, or
-   * \return RMW_RET_ERROR, or
+   * \return RMW_RET_INVALID_ARGUMENT if count is `nullptr`, or
+   * \return RMW_RET_ERROR if an unexpected error take place, or
    * \return RMW_RET_OK.
    */
   RMW_DDS_COMMON_PUBLIC
@@ -299,8 +313,8 @@ public:
    * \param[in] topic_name Name of the topic.
    * \param[out] count The result will be populated there.
    *
-   * \return RMW_RET_INVALID_ARGUMENT, or
-   * \return RMW_RET_ERROR, or
+   * \return RMW_RET_INVALID_ARGUMENT if count is `nullptr`, or
+   * \return RMW_RET_ERROR if an unexpected error take place, or
    * \return RMW_RET_OK.
    */
   RMW_DDS_COMMON_PUBLIC
@@ -361,7 +375,7 @@ public:
    *   into a ros topic name.
    * \param[in] demangle_type Function that indicates how a dds type name is demangled
    *   into a ros type name.
-   * \param[in] allocator.
+   * \param[in] allocator
    * \param[inout] topic_names_and_types A zero initialized names and types object, that
    *   will be populated with the result.
    *
