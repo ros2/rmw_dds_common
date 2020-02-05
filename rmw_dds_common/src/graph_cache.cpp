@@ -656,8 +656,8 @@ GraphCache::get_names_and_types(
 {
   assert(demangle_topic);
   assert(demangle_type);
-  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(allocator, "get_node_names allocator is not valid",
-    return RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "get_node_names allocator is not valid", return RMW_RET_INVALID_ARGUMENT);
   if (RMW_RET_OK != rmw_names_and_types_check_zero(topic_names_and_types)) {
     return RMW_RET_INVALID_ARGUMENT;
   }
@@ -732,7 +732,8 @@ __get_names_and_types_from_gids(
   return topics;
 }
 
-using GetEntitiesGids = const GraphCache::GidSeq & (*)(const rmw_dds_common::msg::NodeEntitiesInfo &);
+using GetEntitiesGids =
+  const GraphCache::GidSeq & (*)(const rmw_dds_common::msg::NodeEntitiesInfo &);
 
 static
 rmw_ret_t
@@ -749,8 +750,8 @@ __get_names_and_types_by_node(
 {
   assert(demangle_topic);
   assert(demangle_type);
-  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(allocator, "get_node_names allocator is not valid",
-    return RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "get_node_names allocator is not valid", return RMW_RET_INVALID_ARGUMENT);
   if (RMW_RET_OK != rmw_names_and_types_check_zero(topic_names_and_types)) {
     return RMW_RET_INVALID_ARGUMENT;
   }
@@ -865,8 +866,8 @@ GraphCache::get_node_names(
   if (rmw_check_zero_rmw_string_array(node_namespaces) != RMW_RET_OK) {
     return RMW_RET_INVALID_ARGUMENT;
   }
-  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(allocator, "get_node_names allocator is not valid",
-    return RMW_RET_INVALID_ARGUMENT);
+  RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+    allocator, "get_node_names allocator is not valid", return RMW_RET_INVALID_ARGUMENT);
 
   size_t nodes_number = __get_number_of_nodes(participants_);
   rcutils_ret_t rcutils_ret =

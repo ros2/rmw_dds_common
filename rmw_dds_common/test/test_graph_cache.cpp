@@ -215,7 +215,8 @@ add_entities(
   const std::vector<EntityInfo> & entities_info)
 {
   for (const auto & elem : entities_info) {
-    EXPECT_TRUE(graph_cache.add_entity(
+    EXPECT_TRUE(
+      graph_cache.add_entity(
         gid_from_string(elem.gid),
         elem.name,
         elem.type,
@@ -231,7 +232,8 @@ remove_entities(
   const std::vector<EntityInfo> & entities_info)
 {
   for (const auto & elem : entities_info) {
-    EXPECT_TRUE(graph_cache.remove_entity(
+    EXPECT_TRUE(
+      graph_cache.remove_entity(
         gid_from_string(elem.gid),
         elem.is_reader));
   }
@@ -561,7 +563,8 @@ TEST(test_graph_cache, normal_usage)
 
   // Add some nodes.
   check_participant_entities_msg(
-    add_nodes(graph_cache, {
+    add_nodes(
+      graph_cache, {
     {"participant1", "ns1", "node1"},
     {"participant1", "ns1", "node2"},
     {"participant1", "ns2", "node1"}}),
@@ -590,7 +593,8 @@ TEST(test_graph_cache, normal_usage)
   // Add more participants and nodes.
   add_participants(graph_cache, {"participant2", "participant3"});
   check_participant_entities_msg(
-    add_nodes(graph_cache, {
+    add_nodes(
+      graph_cache, {
     {"participant2", "ns1", "node3"},
     {"participant2", "ns3", "node1"}}),
   {
@@ -693,7 +697,8 @@ TEST(test_graph_cache, normal_usage)
     {"topic2", {"Str"}},
     {"topic3", {"Bool"}},
   });
-  check_results_by_node(graph_cache, "ns1", "node1",
+  check_results_by_node(
+    graph_cache, "ns1", "node1",
   {
     {"topic1", {"Float", "Str"}},
     {"topic2", {"Str"}},
@@ -702,14 +707,16 @@ TEST(test_graph_cache, normal_usage)
     {"topic3", {"Bool"}},
   });
   check_results_by_node(graph_cache, "ns1", "node2");
-  check_results_by_node(graph_cache, "ns1", "node3",
+  check_results_by_node(
+    graph_cache, "ns1", "node3",
   {
     {"topic2", {"Str"}},
   },
   {
     {"topic1", {"Int", "Str"}},
   });
-  check_results_by_node(graph_cache, "ns2", "node1",
+  check_results_by_node(
+    graph_cache, "ns2", "node1",
   {
     {"topic2", {"Str"}},
   });
@@ -748,7 +755,8 @@ TEST(test_graph_cache, normal_usage)
     {"topic2", {"Str"}},
     {"topic3", {"Bool"}},
   });
-  check_results_by_node(graph_cache, "ns1", "node1",
+  check_results_by_node(
+    graph_cache, "ns1", "node1",
   {
     {"topic2", {"Str"}},
   },
@@ -757,7 +765,8 @@ TEST(test_graph_cache, normal_usage)
   });
   check_results_by_node(graph_cache, "ns1", "node2");
   check_results_by_node(graph_cache, "ns1", "node3");
-  check_results_by_node(graph_cache, "ns2", "node1",
+  check_results_by_node(
+    graph_cache, "ns2", "node1",
   {
     {"topic2", {"Str"}},
   });
@@ -782,7 +791,8 @@ TEST(test_graph_cache, normal_usage)
   });
 
   // Associate them with a remote participant.
-  auto msg = get_participant_entities_info_msg({
+  auto msg = get_participant_entities_info_msg(
+  {
     "remote_participant",
     {
       {
@@ -797,7 +807,8 @@ TEST(test_graph_cache, normal_usage)
         {"reader7"},
         {}
       }
-    }});
+    }
+  });
   graph_cache.update_participant_entities(msg);
 
   // Check state.
@@ -818,7 +829,8 @@ TEST(test_graph_cache, normal_usage)
     {"topic3", {"Bool"}},
     {"topic4", {"Custom"}},
   });
-  check_results_by_node(graph_cache, "ns1", "node1",
+  check_results_by_node(
+    graph_cache, "ns1", "node1",
   {
     {"topic2", {"Str"}},
   },
@@ -827,12 +839,14 @@ TEST(test_graph_cache, normal_usage)
   });
   check_results_by_node(graph_cache, "ns1", "node2");
   check_results_by_node(graph_cache, "ns1", "node3");
-  check_results_by_node(graph_cache, "ns2", "node1",
+  check_results_by_node(
+    graph_cache, "ns2", "node1",
   {
     {"topic2", {"Str"}},
   });
   check_results_by_node(graph_cache, "ns3", "node1");
-  check_results_by_node(graph_cache, "ns3", "node2",
+  check_results_by_node(
+    graph_cache, "ns3", "node2",
   {
     {"topic1", {"Str"}},
   },
@@ -840,7 +854,8 @@ TEST(test_graph_cache, normal_usage)
     {"topic2", {"Str"}},
     {"topic4", {"Custom"}},
   });
-  check_results_by_node(graph_cache, "ns4", "node1",
+  check_results_by_node(
+    graph_cache, "ns4", "node1",
   {
     {"topic1", {"Custom"}},
   });
@@ -880,7 +895,8 @@ TEST(test_graph_cache, normal_usage)
     {"topic2", {"Str"}},
     {"topic3", {"Bool"}},
   });
-  check_results_by_node(graph_cache, "ns1", "node1",
+  check_results_by_node(
+    graph_cache, "ns1", "node1",
   {
     {"topic2", {"Str"}},
   },
@@ -889,13 +905,15 @@ TEST(test_graph_cache, normal_usage)
   });
   check_results_by_node(graph_cache, "ns1", "node2");
   check_results_by_node(graph_cache, "ns1", "node3");
-  check_results_by_node(graph_cache, "ns2", "node1",
+  check_results_by_node(
+    graph_cache, "ns2", "node1",
   {
     {"topic2", {"Str"}},
   });
   check_results_by_node(graph_cache, "ns3", "node1");
   check_results_by_node(graph_cache, "ns3", "node2");
-  check_results_by_node(graph_cache, "ns4", "node1",
+  check_results_by_node(
+    graph_cache, "ns4", "node1",
   {
     {"topic1", {"Custom"}},
   });
@@ -907,7 +925,8 @@ TEST(test_graph_cache, normal_usage)
   check_results_by_topic(graph_cache, "some_topic", 0, 0);
 
   // Associate them with a remote participant.
-  msg = get_participant_entities_info_msg({
+  msg = get_participant_entities_info_msg(
+  {
     "remote_participant",
     {
       {
@@ -916,7 +935,8 @@ TEST(test_graph_cache, normal_usage)
         {"reader7"},
         {}
       }
-    }});
+    }
+  });
   graph_cache.update_participant_entities(msg);
 
   // Check state.
@@ -935,7 +955,8 @@ TEST(test_graph_cache, normal_usage)
     {"topic2", {"Str"}},
     {"topic3", {"Bool"}},
   });
-  check_results_by_node(graph_cache, "ns1", "node1",
+  check_results_by_node(
+    graph_cache, "ns1", "node1",
   {
     {"topic2", {"Str"}},
   },
@@ -944,13 +965,15 @@ TEST(test_graph_cache, normal_usage)
   });
   check_results_by_node(graph_cache, "ns1", "node2");
   check_results_by_node(graph_cache, "ns1", "node3");
-  check_results_by_node(graph_cache, "ns2", "node1",
+  check_results_by_node(
+    graph_cache, "ns2", "node1",
   {
     {"topic2", {"Str"}},
   });
   check_results_by_node(graph_cache, "ns3", "node1");
   check_results_by_node(graph_cache, "ns3", "node2");
-  check_results_by_node(graph_cache, "ns4", "node1",
+  check_results_by_node(
+    graph_cache, "ns4", "node1",
   {
     {"topic1", {"Custom"}},
   });
@@ -962,7 +985,8 @@ TEST(test_graph_cache, normal_usage)
   check_results_by_topic(graph_cache, "some_topic", 0, 0);
 
   // Remove remote participant
-  msg = get_participant_entities_info_msg({
+  msg = get_participant_entities_info_msg(
+  {
     "remote_participant",
     {}
   });
@@ -993,7 +1017,8 @@ TEST(test_graph_cache, normal_usage)
     {"topic2", {"Str"}},
     {"topic3", {"Bool"}},
   });
-  check_results_by_node(graph_cache, "ns1", "node1",
+  check_results_by_node(
+    graph_cache, "ns1", "node1",
   {
     {"topic2", {"Str"}},
   },
@@ -1002,7 +1027,8 @@ TEST(test_graph_cache, normal_usage)
   });
   check_results_by_node(graph_cache, "ns1", "node2");
   check_results_by_node(graph_cache, "ns1", "node3");
-  check_results_by_node(graph_cache, "ns2", "node1",
+  check_results_by_node(
+    graph_cache, "ns2", "node1",
   {
     {"topic2", {"Str"}},
   });
@@ -1053,7 +1079,8 @@ TEST(test_graph_cache, normal_usage)
   {
     {"topic3", {"Bool"}},
   });
-  check_results_by_node(graph_cache, "ns1", "node1",
+  check_results_by_node(
+    graph_cache, "ns1", "node1",
     {},
   {
     {"topic3", {"Bool"}},
