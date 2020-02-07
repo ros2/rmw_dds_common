@@ -6,7 +6,7 @@ module rmw_dds_common {
     struct ParticipantEntitiesInfo {
         @key
         rmw_dds_common::msg::Gid gid;
-        sequence<rmw_dds_common::msg::NodeEntitiesInfo, 1024> node_entities_info_seq;
+        sequence<rmw_dds_common::msg::NodeEntitiesInfo> node_entities_info_seq;
     };
   };
 };
