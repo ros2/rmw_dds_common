@@ -460,15 +460,19 @@ __get_entities_info_by_topic(
       entity_pair.first,
       is_reader);
 
-    if (!std::get<2>(result)) {
-      // skip endpoints that aren't associated with a node.
-      // TODO(ivanpauno): Do we want to do something else?
-      continue;
+    std::string node_name;
+    std::string node_namespace;
+    if (std::get<2>(result)) {
+      node_name = std::move(std::get<0>(result));
+      node_namespace = std::move(std::get<1>(result));
+    } else {
+      node_name = "_NODE_NAME_UNKNOWN_";
+      node_namespace = "_NODE_NAMESPACE_UNKNOWN_";
     }
 
     ret = rmw_topic_endpoint_info_set_node_name(
       &endpoint_info,
-      std::get<0>(result).c_str(),
+      node_name.c_str(),
       allocator);
     if (RMW_RET_OK != ret) {
       return ret;
@@ -476,7 +480,7 @@ __get_entities_info_by_topic(
 
     ret = rmw_topic_endpoint_info_set_node_namespace(
       &endpoint_info,
-      std::get<1>(result).c_str(),
+      node_namespace.c_str(),
       allocator);
     if (RMW_RET_OK != ret) {
       return ret;
