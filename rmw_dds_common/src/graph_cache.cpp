@@ -414,11 +414,24 @@ __get_entities_info_by_topic(
     return RMW_RET_OK;
   }
 
-  // TODO(ivanpauno): Do something better than overallocating and shrinking to size.
+  size_t size = std::count_if(
+    entities.begin(),
+    entities.end(),
+    [&topic_name](const GraphCache::EntityGidToInfo::value_type & item) {
+      return item.second.topic_name == topic_name;
+    }
+  );
+  if (0u == size) {
+    return RMW_RET_OK;
+  }
+
   rmw_ret_t ret = rmw_topic_endpoint_info_array_init_with_size(
     endpoints_info,
-    entities.size(),
+    size,
     allocator);
+  // TODO(ivanpauno): `count` should be initialized by `rmw_topic_endpoint_info_array_init_with_size`,
+  // and should be probably called `size`.
+  endpoints_info->count = size; 
   if (RMW_RET_OK != ret) {
     return ret;
   }
@@ -446,8 +459,7 @@ __get_entities_info_by_topic(
       continue;
     }
 
-    rmw_topic_endpoint_info_t & endpoint_info =
-      endpoints_info->info_array[i];
+    rmw_topic_endpoint_info_t & endpoint_info = endpoints_info->info_array[i];
     endpoint_info = rmw_get_zero_initialized_topic_endpoint_info();
 
     auto result = __find_name_and_namespace_from_entity_gid(
@@ -511,23 +523,9 @@ __get_entities_info_by_topic(
     if (RMW_RET_OK != ret) {
       return ret;
     }
-    endpoints_info->count++;
+    i++;
   }
 
-  if (0u == endpoints_info->count) {
-    // Array will be freed.
-    return RMW_RET_OK;
-  }
-  // shrink to size
-  void * p = allocator->reallocate(
-    endpoints_info->info_array,
-    endpoints_info->count * sizeof(rmw_topic_endpoint_info_t),
-    allocator->state);
-  if (nullptr == p) {
-    RMW_SET_ERROR_MSG("allocator reallocate failed");
-    return RMW_RET_BAD_ALLOC;
-  }
-  endpoints_info->info_array = static_cast<rmw_topic_endpoint_info_t *>(p);
   endpoints_info_delete_on_error.release();
   return RMW_RET_OK;
 }
