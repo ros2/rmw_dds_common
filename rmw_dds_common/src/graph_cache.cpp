@@ -524,6 +524,7 @@ __get_entities_info_by_topic(
     endpoints_info->count * sizeof(rmw_topic_endpoint_info_t),
     allocator->state);
   if (nullptr == p) {
+    RMW_SET_ERROR_MSG("allocator reallocate failed");
     return RMW_RET_BAD_ALLOC;
   }
   endpoints_info->info_array = static_cast<rmw_topic_endpoint_info_t *>(p);
