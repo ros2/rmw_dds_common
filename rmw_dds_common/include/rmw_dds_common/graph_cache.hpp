@@ -58,9 +58,8 @@ public:
    * @{
    */
 
+  /// Add a data writer based on discovery.
   /**
-   * Add a data writer based on discovery.
-   *
    * \param gid The data writer guid.
    * \param topic_name
    * \param type_name
@@ -77,9 +76,8 @@ public:
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos);
 
+  /// Add a data reader based on discovery.
   /**
-   * Add a data reader based on discovery.
-   *
    * \param gid The data reader guid
    * \param topic_name
    * \param type_name
@@ -96,9 +94,8 @@ public:
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos);
 
+  /// Add a data reader based on discovery.
   /**
-   * Add a data reader based on discovery.
-   *
    * \param gid The data reader guid.
    * \param topic_name
    * \param type_name
@@ -117,9 +114,8 @@ public:
     const rmw_qos_profile_t & qos,
     bool is_reader);
 
+  /// Remove a data writer based on discovery.
   /**
-   * Remove a data writer based on discovery.
-   *
    * \param gid The data writer guid.
    * \return `true` when a change took place.
    */
@@ -127,9 +123,8 @@ public:
   bool
   remove_writer(const rmw_gid_t & gid);
 
+  /// Remove a data reader based on discovery.
   /**
-   * Remove a data reader based on discovery.
-   *
    * \param gid The data reader guid.
    * \return `true` when a change took place.
    */
@@ -137,9 +132,8 @@ public:
   bool
   remove_reader(const rmw_gid_t & gid);
 
+  /// Remove a data reader or writer based based on discovery.
   /**
-   * Remove a data reader or writer based based on discovery.
-   *
    * \param gid The endpoint guid.
    * \param is_reader `true` for removing a data reader.
    * \return `true` when a change took place.
@@ -155,9 +149,8 @@ public:
    * @{
    */
 
+  /// Remove a participant based on discovery.
   /**
-   * Remove a participant based on discovery.
-   *
    * \param participant_gid
    * \return `true` when a change took place.
    */
@@ -173,9 +166,8 @@ public:
    * @{
    */
 
+  /// Update participant info based on a received `ParticipantEntitiesInfo` message.
   /**
-   * Update participant info based on a received `ParticipantEntitiesInfo` message.
-   *
    * \param msg Will be filled with the received `ParticipantEntitiesInfo` message.
    */
   RMW_DDS_COMMON_PUBLIC
@@ -189,18 +181,16 @@ public:
    * @{
    */
 
+  /// Add a discovered participant to the cache.
   /**
-   * Add a discovered participant to the cache.
-   *
    * \param gid The participant guid.
    */
   RMW_DDS_COMMON_PUBLIC
   void
   add_participant(const rmw_gid_t & participant_gid);
 
+  /// Add a node to the graph, and get the message to be sent.
   /**
-   * Add a node to the graph, and get the message to be sent.
-   *
    * \param gid participant GUID.
    * \param node_name name of the node to be added.
    * \param node_namespace node namespace.
@@ -213,9 +203,8 @@ public:
     const std::string & node_name,
     const std::string & node_namespace);
 
+  /// Remove a node to the graph, and get the message to be sent.
   /**
-   * Remove a node to the graph, and get the message to be sent.
-   *
    * \param gid participant GUID.
    * \param node_name name of the node to be added.
    * \param node_namespace node namespace.
@@ -228,9 +217,8 @@ public:
     const std::string & node_name,
     const std::string & node_namespace);
 
+  /// Remove a node to the graph, and get the message to be sent.
   /**
-   * Associate a writer with a node, and get an update message to be sent.
-   *
    * \param writer_gid GUID of the data writer.
    * \param participant_gid GUID of the `Participant`.
    * \param node_name Name of the node to be added.
@@ -245,9 +233,8 @@ public:
     const std::string & node_name,
     const std::string & node_namespace);
 
+  /// Dissociate a writer from a node, and get an update message to be sent.
   /**
-   * Dissociate a writer from a node, and get an update message to be sent.
-   *
    * \param writer_gid GUID of the data writer.
    * \param participant_gid GUID of the `Participant`.
    * \param node_name Name of the node to be added.
@@ -262,9 +249,8 @@ public:
     const std::string & node_name,
     const std::string & node_namespace);
 
+  /// Associate a reader with a node, and get an update message to be sent.
   /**
-   * Associate a reader with a node, and get an update message to be sent.
-   *
    * \param reader_gid GUID of the data reader.
    * \param participant_gid GUID of the `Participant`.
    * \param node_name Name of the node to be added.
@@ -279,9 +265,8 @@ public:
     const std::string & node_name,
     const std::string & node_namespace);
 
+  /// Dissociate a reader from a node, and get an update message to be sent.
   /**
-   * Dissociate a reader from a node, and get an update message to be sent.
-   *
    * \param reader_gid GUID of the data reader.
    * \param participant_gid GUID of the `Participant`.
    * \param node_name Name of the node to be added.
@@ -303,9 +288,8 @@ public:
    * @{
    */
 
+  /// Get the number of publishers of a topic.
   /**
-   * Get the number of publishers of a topic.
-   *
    * \param[in] topic_name Name of the topic.
    * \param[out] count The result will be populated there.
    *
@@ -319,9 +303,8 @@ public:
     const std::string & topic_name,
     size_t * count) const;
 
+  /// Get the number of subscriptions of a topic.
   /**
-   * Get the number of subscriptions of a topic.
-   *
    * \param[in] topic_name Name of the topic.
    * \param[out] count The result will be populated there.
    *
@@ -337,9 +320,8 @@ public:
 
   using DemangleFunctionT = std::string (*)(const std::string &);
 
+  /// Get an array with information about the writers in a topic.
   /**
-   * Get an array with information about the writers in a topic.
-   *
    * \param[in] topic_name Name of the topic.
    * \param[in] demangle_type Function that takes a type names and return it demangled.
    * \param[in] allocator Used to allocate memory.
@@ -357,9 +339,8 @@ public:
     rcutils_allocator_t * allocator,
     rmw_topic_endpoint_info_array_t * endpoints_info) const;
 
+  /// Get an array with information about the readers in a topic.
   /**
-   * Get an array with information about the readers in a topic.
-   *
    * \param[in] topic_name Name of the topic.
    * \param[in] demangle_type Function that takes a type names and return it demangled.
    * \param[in] allocator Used to allocate memory.
@@ -377,9 +358,8 @@ public:
     rcutils_allocator_t * allocator,
     rmw_topic_endpoint_info_array_t * endpoints_info) const;
 
+  /// Get all the topic names and types.
   /**
-   * Get all the topic names and types.
-   *
    * \param[in] demangle_topic Function that indicates how a dds topic name is demangled
    *   into a ros topic name.
    * \param[in] demangle_type Function that indicates how a dds type name is demangled
@@ -402,9 +382,8 @@ public:
     rcutils_allocator_t * allocator,
     rmw_names_and_types_t * topic_names_and_types) const;
 
+  /// Get the topic names and types that a node is publishing.
   /**
-   * Get the topic names and types that a node is publishing.
-   *
    * \param[in] node_name Name of the node.
    * \param[in] node_namespace Namespace of the node.
    * \param[in] demangle_topic Function that indicates how a dds topic name is demangled
@@ -431,9 +410,8 @@ public:
     rcutils_allocator_t * allocator,
     rmw_names_and_types_t * topic_names_and_types) const;
 
+  /// Get the topic names and types that a node is subscribing.
   /**
-   * Get the topic names and types that a node is subscribing.
-   *
    * \param[in] node_name Name of the node.
    * \param[in] node_namespace Namespace of the node.
    * \param[in] demangle_topic Function that indicates how a dds topic name is demangled
@@ -460,9 +438,8 @@ public:
     rcutils_allocator_t * allocator,
     rmw_names_and_types_t * topic_names_and_types) const;
 
+  /// Get the number of nodes that have been discovered.
   /**
-   * Get the number of nodes that have been discovered.
-   *
    * \return RMW_RET_OK, or
    * \return RMW_RET_ERROR.
    */
@@ -470,9 +447,8 @@ public:
   size_t
   get_number_of_nodes() const;
 
+  /// Copy the names and namespaces of the discovered nodes.
   /**
-   * Copy the names and namespaces of the discovered nodes.
-   *
    * \param[inout] node_names A zero initialized string array, where the node names will be copied.
    * \param[inout] node_namespaces A zero initialized string array, where the node namespaces
    *   will be copied. Each item in this array corresponds to an item in the same position of
