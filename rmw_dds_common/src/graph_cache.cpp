@@ -217,7 +217,7 @@ __modify_node_info(
   const rmw_gid_t & participant_gid,
   const std::string & node_name,
   const std::string & node_namespace,
-  FunctorT do_sth,
+  FunctorT func,
   GraphCache::ParticipantToNodesMap & participant_map)
 {
   auto participant_info = participant_map.find(participant_gid);
@@ -231,7 +231,7 @@ __modify_node_info(
     });
   assert(node_info != participant_info->second.end());
 
-  do_sth(*node_info);
+  func(*node_info);
   return __create_participant_info_message(participant_gid, participant_info->second);
 }
 
