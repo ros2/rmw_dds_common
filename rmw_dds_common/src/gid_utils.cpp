@@ -23,8 +23,6 @@
 
 using rmw_dds_common::Compare_rmw_gid_t;
 
-// (ivanpauno)
-// This function could be implementation specific, though this common one should work well.
 bool
 Compare_rmw_gid_t::operator()(const rmw_gid_t & lhs, const rmw_gid_t & rhs) const
 {
@@ -35,8 +33,6 @@ Compare_rmw_gid_t::operator()(const rmw_gid_t & lhs, const rmw_gid_t & rhs) cons
     rhs.data + RMW_GID_STORAGE_SIZE);
 }
 
-// (ivanpauno)
-// This function could be implementation specific, though this common one should work well.
 std::ostream &
 rmw_dds_common::operator<<(std::ostream & ostream, const rmw_gid_t & gid)
 {
