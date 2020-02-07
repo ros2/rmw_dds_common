@@ -137,6 +137,13 @@ public:
   bool
   remove_reader(const rmw_gid_t & gid);
 
+  /**
+   * Remove a data reader or writer based based on discovery.
+   *
+   * \param gid The endpoint guid.
+   * \param is_reader `true` for removing a data reader.
+   * \return `true` when a change took place.
+   */
   RMW_DDS_COMMON_PUBLIC
   bool
   remove_entity(const rmw_gid_t & gid, bool is_reader);
@@ -182,6 +189,11 @@ public:
    * @{
    */
 
+  /**
+   * Add a discovered participant to the cache.
+   *
+   * \param gid The participant guid.
+   */
   RMW_DDS_COMMON_PUBLIC
   void
   add_participant(const rmw_gid_t & participant_gid);
@@ -325,6 +337,18 @@ public:
 
   using DemangleFunctionT = std::string (*)(const std::string &);
 
+  /**
+   * Get an array with information about the writers in a topic.
+   *
+   * \param[in] topic_name Name of the topic.
+   * \param[in] demangle_type Function that takes a type names and return it demangled.
+   * \param[in] allocator Used to allocate memory.
+   * \param[out] endpoints_info Array with the writers information.
+   *
+   * \return RMW_RET_INVALID_ARGUMENT if count is `nullptr`, or
+   * \return RMW_RET_ERROR if an unexpected error take place, or
+   * \return RMW_RET_OK.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   get_writers_info_by_topic(
@@ -333,6 +357,18 @@ public:
     rcutils_allocator_t * allocator,
     rmw_topic_endpoint_info_array_t * endpoints_info) const;
 
+  /**
+   * Get an array with information about the readers in a topic.
+   *
+   * \param[in] topic_name Name of the topic.
+   * \param[in] demangle_type Function that takes a type names and return it demangled.
+   * \param[in] allocator Used to allocate memory.
+   * \param[out] endpoints_info Array with the readers information.
+   *
+   * \return RMW_RET_INVALID_ARGUMENT if count is `nullptr`, or
+   * \return RMW_RET_ERROR if an unexpected error take place, or
+   * \return RMW_RET_OK.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   get_readers_info_by_topic(
