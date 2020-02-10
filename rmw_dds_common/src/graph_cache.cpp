@@ -385,8 +385,15 @@ GraphCache::get_reader_count(
   return __get_count(data_readers_, topic_name, count);
 }
 
+enum class EndpointCreator
+{
+  ROS_NODE = 0,
+  UNDISCOVERED_ROS_NODE = 1,
+  BARE_DDS_PARTICIPANT = 2,
+};
+
 static
-std::tuple<std::string, std::string, bool>
+std::tuple<std::string, std::string, EndpointCreator>
 __find_name_and_namespace_from_entity_gid(
   const GraphCache::ParticipantToNodesMap & participant_map,
   rmw_gid_t participant_gid,
@@ -395,7 +402,7 @@ __find_name_and_namespace_from_entity_gid(
 {
   auto it = participant_map.find(participant_gid);
   if (participant_map.end() == it) {
-    return {"", "", false};
+    return {"", "", EndpointCreator::BARE_DDS_PARTICIPANT};
   }
   for (const auto & node_info : it->second.node_entities_info_seq) {
     auto & gid_seq = is_reader ? node_info.reader_gid_seq : node_info.writer_gid_seq;
@@ -407,10 +414,10 @@ __find_name_and_namespace_from_entity_gid(
       }
     );
     if (gid_seq.end() != it) {
-      return {node_info.node_name, node_info.node_namespace, true};
+      return {node_info.node_name, node_info.node_namespace, EndpointCreator::ROS_NODE};
     }
   }
-  return {"", "", false};
+  return {"", "", EndpointCreator::UNDISCOVERED_ROS_NODE};
 }
 
 using DemangleFunctionT = GraphCache::DemangleFunctionT;
@@ -489,12 +496,19 @@ __get_entities_info_by_topic(
 
     std::string node_name;
     std::string node_namespace;
-    if (std::get<2>(result)) {
-      node_name = std::move(std::get<0>(result));
-      node_namespace = std::move(std::get<1>(result));
-    } else {
-      node_name = "_NODE_NAME_UNKNOWN_";
-      node_namespace = "_NODE_NAMESPACE_UNKNOWN_";
+    switch (std::get<2>(result)) {
+      case EndpointCreator::ROS_NODE:
+        node_name = std::move(std::get<0>(result));
+        node_namespace = std::move(std::get<1>(result));
+        break;
+      case EndpointCreator::UNDISCOVERED_ROS_NODE:
+        node_name = "_NODE_NAME_UNKNOWN_";
+        node_namespace = "_NODE_NAMESPACE_UNKNOWN_";
+        break;
+      case EndpointCreator::BARE_DDS_PARTICIPANT:
+        node_name = "_CREATED_BY_BARE_DDS_APP_";
+        node_namespace = "_CREATED_BY_BARE_DDS_APP_";
+        break;
     }
 
     ret = rmw_topic_endpoint_info_set_node_name(
