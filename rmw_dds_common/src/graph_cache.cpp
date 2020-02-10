@@ -131,7 +131,16 @@ GraphCache::update_participant_entities(const rmw_dds_common::msg::ParticipantEn
   std::lock_guard<std::mutex> guard(mutex_);
   rmw_gid_t gid;
   rmw_dds_common::convert_msg_to_gid(&msg.gid, &gid);
-  participants_[gid] = msg.node_entities_info_seq;
+  auto it = participants_.find(gid);
+  if (participants_.end() == it) {
+    auto ret = participants_.emplace(
+      std::piecewise_construct,
+      std::forward_as_tuple(gid),
+      std::forward_as_tuple());
+    it = ret.first;
+    assert(ret.second);
+  }
+  it->second.node_entities_info_seq = msg.node_entities_info_seq;
 }
 
 bool
@@ -154,13 +163,23 @@ __create_participant_info_message(
 }
 
 void
-GraphCache::add_participant(const rmw_gid_t & participant_gid)
+GraphCache::add_participant(
+  const rmw_gid_t & participant_gid,
+  const std::string & context_name,
+  const std::string & context_namespace)
 {
   std::lock_guard<std::mutex> guard(mutex_);
-  participants_.emplace(
-    std::piecewise_construct,
-    std::forward_as_tuple(participant_gid),
-    std::forward_as_tuple());
+  auto it = participants_.find(participant_gid);
+  if (participants_.end() == it) {
+    auto ret = participants_.emplace(
+      std::piecewise_construct,
+      std::forward_as_tuple(participant_gid),
+      std::forward_as_tuple());
+    it = ret.first;
+    assert(ret.second);
+  }
+  it->second.context_name = context_name;
+  it->second.context_namespace = context_namespace;
 }
 
 rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -178,9 +197,9 @@ GraphCache::add_node(
   rmw_dds_common::msg::NodeEntitiesInfo node_info;
   node_info.node_name = node_name;
   node_info.node_namespace = node_namespace;
-  it->second.emplace_back(node_info);
+  it->second.node_entities_info_seq.emplace_back(node_info);
 
-  return __create_participant_info_message(participant_gid, it->second);
+  return __create_participant_info_message(participant_gid, it->second.node_entities_info_seq);
 }
 
 rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -194,17 +213,17 @@ GraphCache::remove_node(
   assert(it != participants_.end());
 
   auto new_end = std::remove_if(
-    it->second.begin(),
-    it->second.end(),
+    it->second.node_entities_info_seq.begin(),
+    it->second.node_entities_info_seq.end(),
     [&](const rmw_dds_common::msg::NodeEntitiesInfo & node_info) {
       return node_info.node_name == node_name && node_info.node_namespace == node_namespace;
     });
 
-  assert(new_end != it->second.end());
+  assert(new_end != it->second.node_entities_info_seq.end());
 
-  it->second.erase(new_end, it->second.end());
+  it->second.node_entities_info_seq.erase(new_end, it->second.node_entities_info_seq.end());
 
-  return __create_participant_info_message(participant_gid, it->second);
+  return __create_participant_info_message(participant_gid, it->second.node_entities_info_seq);
 }
 
 template<typename FunctorT>
@@ -219,16 +238,16 @@ __modify_node_info(
   auto participant_info = participant_map.find(participant_gid);
   assert(participant_info != participant_map.end());
   auto node_info = std::find_if(
-    participant_info->second.begin(),
-    participant_info->second.end(),
+    participant_info->second.node_entities_info_seq.begin(),
+    participant_info->second.node_entities_info_seq.end(),
     [&](const rmw_dds_common::msg::NodeEntitiesInfo & node_info)
     {
       return node_info.node_name == node_name && node_info.node_namespace == node_namespace;
     });
-  assert(node_info != participant_info->second.end());
+  assert(node_info != participant_info->second.node_entities_info_seq.end());
 
   func(*node_info);
-  return __create_participant_info_message(participant_gid, participant_info->second);
+  return __create_participant_info_message(participant_gid, participant_info->second.node_entities_info_seq);
 }
 
 rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -378,7 +397,7 @@ __find_name_and_namespace_from_entity_gid(
   if (participant_map.end() == it) {
     return {"", "", false};
   }
-  for (const auto & node_info : it->second) {
+  for (const auto & node_info : it->second.node_entities_info_seq) {
     auto & gid_seq = is_reader ? node_info.reader_gid_seq : node_info.writer_gid_seq;
     auto it = std::find_if(
       gid_seq.begin(),
@@ -693,7 +712,7 @@ __find_node(
   const std::string & node_namespace)
 {
   for (const auto & participant : participant_map) {
-    for (const auto & node : participant.second) {
+    for (const auto & node : participant.second.node_entities_info_seq) {
       if (
         node.node_name == node_name &&
         node.node_namespace == node_namespace)
@@ -840,7 +859,7 @@ __get_number_of_nodes(const GraphCache::ParticipantToNodesMap & participants_map
 {
   size_t nodes_number = 0;
   for (const auto & elem : participants_map) {
-    nodes_number += elem.second.size();
+    nodes_number += elem.second.node_entities_info_seq.size();
   }
   return nodes_number;
 }
@@ -887,7 +906,7 @@ GraphCache::get_node_names(
     size_t j = 0;
     for (const auto & elem : participants_) {
       const auto & nodes_info = elem.second;
-      for (const auto & node_info : nodes_info) {
+      for (const auto & node_info : nodes_info.node_entities_info_seq) {
         node_names->data[j] = rcutils_strdup(node_info.node_name.c_str(), *allocator);
         if (!node_names->data[j]) {
           goto fail;
@@ -942,8 +961,10 @@ rmw_dds_common::operator<<(std::ostream & ostream, const GraphCache & graph_cach
   ss << "  Discovered participants:" << std::endl;
   for (const auto & item : graph_cache.participants_) {
     ss << "    gid: '" << item.first << std::endl;
+    ss << "    context name '" << item.second.context_name << std::endl;
+    ss << "    context namespace '" << item.second.context_namespace << std::endl;
     ss << "    nodes:" << std::endl;
-    for (const auto & node_info : item.second) {
+    for (const auto & node_info : item.second.node_entities_info_seq) {
       ss << "      namespace: '" << node_info.node_namespace << "' name: '" <<
         node_info.node_name << "'" << std::endl;
       ss << "      associated data readers gids:" << std::endl;

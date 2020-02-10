@@ -365,7 +365,7 @@ add_participants(
   const std::vector<std::string> & gids)
 {
   for (const auto & gid : gids) {
-    graph_cache.add_participant(gid_from_string(gid));
+    graph_cache.add_participant(gid_from_string(gid), "", "");
   }
 }
 

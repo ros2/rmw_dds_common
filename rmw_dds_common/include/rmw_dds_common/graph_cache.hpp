@@ -41,6 +41,7 @@ namespace rmw_dds_common
 
 // Forward-declaration, defined at end of file.
 struct EntityInfo;
+struct ParticipantInfo;
 
 /// Graph cache data structure.
 /**
@@ -150,6 +151,19 @@ public:
    * @{
    */
 
+  /// Add a discovered participant to the cache.
+  /**
+   * \param gid The participant guid.
+   * \param context_name Name of the context.
+   * \param context_namespace Namespace of the context.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  void
+  add_participant(
+    const rmw_gid_t & participant_gid,
+    const std::string & context_name,
+    const std::string & context_namespace);
+
   /// Remove a participant based on discovery.
   /**
    * \param participant_gid
@@ -181,14 +195,6 @@ public:
    * Methods used to update the Graph Cache, based on local construction and destruction of objects.
    * @{
    */
-
-  /// Add a discovered participant to the cache.
-  /**
-   * \param gid The participant guid.
-   */
-  RMW_DDS_COMMON_PUBLIC
-  void
-  add_participant(const rmw_gid_t & participant_gid);
 
   /// Add a node to the graph, and get the message to be sent.
   /**
@@ -474,7 +480,7 @@ public:
   using NodeEntitiesInfoSeq =
     decltype(std::declval<rmw_dds_common::msg::ParticipantEntitiesInfo>().node_entities_info_seq);
   using EntityGidToInfo = std::map<rmw_gid_t, EntityInfo, Compare_rmw_gid_t>;
-  using ParticipantToNodesMap = std::map<rmw_gid_t, NodeEntitiesInfoSeq, Compare_rmw_gid_t>;
+  using ParticipantToNodesMap = std::map<rmw_gid_t, ParticipantInfo, Compare_rmw_gid_t>;
   using GidSeq =
     decltype(std::declval<rmw_dds_common::msg::NodeEntitiesInfo>().writer_gid_seq);
 
@@ -489,6 +495,13 @@ private:
 RMW_DDS_COMMON_PUBLIC
 std::ostream &
 operator<<(std::ostream & ostream, const GraphCache & topic_cache);
+
+struct ParticipantInfo
+{
+  GraphCache::NodeEntitiesInfoSeq node_entities_info_seq;
+  std::string context_name;
+  std::string context_namespace;
+};
 
 struct EntityInfo
 {
