@@ -15,6 +15,7 @@
 #ifndef RMW_DDS_COMMON__GRAPH_CACHE_HPP_
 #define RMW_DDS_COMMON__GRAPH_CACHE_HPP_
 
+#include <functional>
 #include <map>
 #include <mutex>
 #include <string>
@@ -318,7 +319,7 @@ public:
     const std::string & topic_name,
     size_t * count) const;
 
-  using DemangleFunctionT = std::string (*)(const std::string &);
+  using DemangleFunctionT = std::function<std::string(const std::string &)>;
 
   /// Get an array with information about the writers in a topic.
   /**

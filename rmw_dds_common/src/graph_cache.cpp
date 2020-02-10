@@ -429,9 +429,9 @@ __get_entities_info_by_topic(
     endpoints_info,
     size,
     allocator);
-  // TODO(ivanpauno): `count` should be initialized by `rmw_topic_endpoint_info_array_init_with_size`,
-  // and should be probably called `size`.
-  endpoints_info->count = size; 
+  // TODO(ivanpauno): `count` should be initialized by
+  //  `rmw_topic_endpoint_info_array_init_with_size`, and should be probably called `size`.
+  endpoints_info->count = size;
   if (RMW_RET_OK != ret) {
     return ret;
   }
@@ -731,8 +731,8 @@ __get_names_and_types_from_gids(
   return topics;
 }
 
-using GetEntitiesGids =
-  const GraphCache::GidSeq & (*)(const rmw_dds_common::msg::NodeEntitiesInfo &);
+using GetEntitiesGidsFuncT =
+  std::function<const GraphCache::GidSeq & (const rmw_dds_common::msg::NodeEntitiesInfo &)>;
 
 static
 rmw_ret_t
@@ -743,7 +743,7 @@ __get_names_and_types_by_node(
   const std::string & namespace_,
   DemangleFunctionT demangle_topic,
   DemangleFunctionT demangle_type,
-  GetEntitiesGids get_entities_gids,
+  GetEntitiesGidsFuncT get_entities_gids,
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types)
 {
