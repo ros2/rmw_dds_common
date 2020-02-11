@@ -54,6 +54,23 @@ class GraphCache
   operator<<(std::ostream & ostream, const GraphCache & topic_cache);
 
 public:
+  /// Set a callback that will be called when the state of the object changes.
+  /**
+   * \param callback callback to be called.
+   */
+  template<typename CallbackT>
+  void
+  set_on_change_callback(CallbackT && callback)
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    on_change_callback_ = callback;
+  }
+
+  /// Clear previously registered "on change" callback.
+  RMW_DDS_COMMON_PUBLIC
+  void
+  clear_on_change_callback();
+
   /**
    * \defgroup dds_discovery_api
    * Methods used to update the Graph Cache based on DDS discovery.
@@ -488,6 +505,7 @@ private:
   EntityGidToInfo data_writers_;
   EntityGidToInfo data_readers_;
   ParticipantToNodesMap participants_;
+  std::function<void()> on_change_callback_ = nullptr;
 
   mutable std::mutex mutex_;
 };

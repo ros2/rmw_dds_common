@@ -37,6 +37,7 @@ struct Context
   std::thread listener_thread;
   std::atomic_bool thread_is_running;
   rmw_guard_condition_t * listener_thread_gc;
+  rmw_guard_condition_t * graph_guard_condition;
 };
 
 }  // namespace rmw_dds_common
