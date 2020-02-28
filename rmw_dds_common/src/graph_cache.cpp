@@ -242,7 +242,7 @@ GraphCache::remove_node(
   auto new_end = std::remove_if(
     it->second.node_entities_info_seq.begin(),
     it->second.node_entities_info_seq.end(),
-    [&](const rmw_dds_common::msg::NodeEntitiesInfo & node_info) {
+    [&node_name, &node_namespace](const rmw_dds_common::msg::NodeEntitiesInfo & node_info) {
       return node_info.node_name == node_name && node_info.node_namespace == node_namespace;
     });
 
@@ -493,9 +493,6 @@ __get_entities_info_by_topic(
     endpoints_info,
     size,
     allocator);
-  // TODO(ivanpauno): `count` should be initialized by
-  //  `rmw_topic_endpoint_info_array_init_with_size`, and should be probably called `size`.
-  endpoints_info->count = size;
   if (RMW_RET_OK != ret) {
     return ret;
   }
@@ -943,15 +940,17 @@ GraphCache::get_node_names(
   rcutils_ret_t rcutils_ret =
     rcutils_string_array_init(node_names, nodes_number, allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
+    rcutils_error_string_t error_msg = rcutils_get_error_string();
     rcutils_reset_error();
-    RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
+    RMW_SET_ERROR_MSG(error_msg.str);
     goto fail;
   }
   rcutils_ret =
     rcutils_string_array_init(node_namespaces, nodes_number, allocator);
   if (rcutils_ret != RCUTILS_RET_OK) {
+    rcutils_error_string_t error_msg = rcutils_get_error_string();
     rcutils_reset_error();
-    RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
+    RMW_SET_ERROR_MSG(error_msg.str);
     goto fail;
   }
   {

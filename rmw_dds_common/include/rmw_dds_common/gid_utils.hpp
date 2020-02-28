@@ -42,7 +42,7 @@ operator==(const rmw_gid_t & lhs, const rmw_gid_t & rhs);
 
 /// Converts from rmw_gid_t to rmw_dds_common::msg::Gid
 /**
- * For internal usage, both pointers are supposed to be valid.
+ * For internal usage, both pointers are assumed to be valid.
  */
 RMW_DDS_COMMON_PUBLIC
 void

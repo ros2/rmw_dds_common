@@ -479,12 +479,9 @@ struct EntityAssociations
   std::string name;
 };
 
-using EntitiesAssociations =
-  std::vector<EntityAssociations>;
-
 void associate_entities(
   GraphCache & graph_cache,
-  const EntitiesAssociations & associations)
+  const std::vector<EntityAssociations> & associations)
 {
   for (const auto & elem : associations) {
     if (elem.is_reader) {
@@ -505,7 +502,7 @@ void associate_entities(
 
 void dissociate_entities(
   GraphCache & graph_cache,
-  const EntitiesAssociations & associations)
+  const std::vector<EntityAssociations> & associations)
 {
   for (const auto & elem : associations) {
     if (elem.is_reader) {
