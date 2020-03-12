@@ -99,7 +99,7 @@ check_results(
   {
     rcutils_string_array_t names = rcutils_get_zero_initialized_string_array();
     rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
-    graph_cache.get_node_names(&names, &namespaces, &allocator);
+    graph_cache.get_node_names(&names, &namespaces, nullptr, &allocator);
     check_names_and_namespace(names, namespaces, nodes_names_and_namespaces);
   }
 
@@ -365,7 +365,7 @@ add_participants(
   const std::vector<std::string> & gids)
 {
   for (const auto & gid : gids) {
-    graph_cache.add_participant(gid_from_string(gid), "", "");
+    graph_cache.add_participant(gid_from_string(gid), "");
   }
 }
 
