@@ -190,7 +190,7 @@ __create_participant_info_message(
 void
 GraphCache::add_participant(
   const rmw_gid_t & participant_gid,
-  const std::string & context_name)
+  const std::string & security_context)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   auto it = participants_.find(participant_gid);
@@ -202,7 +202,7 @@ GraphCache::add_participant(
     it = ret.first;
     assert(ret.second);
   }
-  it->second.context_name = context_name;
+  it->second.security_context = security_context;
   GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK();
 }
 
@@ -922,7 +922,7 @@ rmw_ret_t
 GraphCache::get_node_names(
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces,
-  rcutils_string_array_t * context_names,
+  rcutils_string_array_t * security_contexts,
   rcutils_allocator_t * allocator) const
 {
   std::lock_guard<std::mutex> guard(mutex_);
@@ -966,10 +966,10 @@ GraphCache::get_node_names(
         if (!node_namespaces->data[j]) {
           goto fail;
         }
-        if (context_names) {
-         context_names->data[j] = rcutils_strdup(
-          nodes_info.context_name.c_str(), *allocator);
-          if (!context_names->data[j]) {
+        if (security_contexts) {
+          security_contexts->data[j] = rcutils_strdup(
+            nodes_info.security_context.c_str(), *allocator);
+          if (!security_contexts->data[j]) {
             goto fail;
           }
         }
@@ -1018,7 +1018,7 @@ rmw_dds_common::operator<<(std::ostream & ostream, const GraphCache & graph_cach
   ss << "  Discovered participants:" << std::endl;
   for (const auto & item : graph_cache.participants_) {
     ss << "    gid: '" << item.first << std::endl;
-    ss << "    context name '" << item.second.context_name << std::endl;
+    ss << "    context name '" << item.second.security_context << std::endl;
     ss << "    nodes:" << std::endl;
     for (const auto & node_info : item.second.node_entities_info_seq) {
       ss << "      namespace: '" << node_info.node_namespace << "' name: '" <<
