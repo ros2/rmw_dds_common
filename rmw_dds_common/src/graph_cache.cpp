@@ -237,16 +237,17 @@ GraphCache::remove_node(
   auto it = participants_.find(participant_gid);
   assert(it != participants_.end());
 
-  auto new_end = std::remove_if(
+  // remove first element found
+  auto to_remove = std::find_if(
     it->second.node_entities_info_seq.begin(),
     it->second.node_entities_info_seq.end(),
     [&node_name, &node_namespace](const rmw_dds_common::msg::NodeEntitiesInfo & node_info) {
       return node_info.node_name == node_name && node_info.node_namespace == node_namespace;
     });
 
-  assert(new_end != it->second.node_entities_info_seq.end());
+  assert(to_remove != it->second.node_entities_info_seq.end());
 
-  it->second.node_entities_info_seq.erase(new_end, it->second.node_entities_info_seq.end());
+  it->second.node_entities_info_seq.erase(to_remove);
   GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK();
 
   return __create_participant_info_message(participant_gid, it->second.node_entities_info_seq);
