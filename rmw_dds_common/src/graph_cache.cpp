@@ -927,10 +927,16 @@ GraphCache::get_node_names(
   rcutils_allocator_t * allocator) const
 {
   std::lock_guard<std::mutex> guard(mutex_);
-  if (rmw_check_zero_rmw_string_array(node_names) != RMW_RET_OK) {
+  if (RMW_RET_OK != rmw_check_zero_rmw_string_array(node_names)) {
     return RMW_RET_INVALID_ARGUMENT;
   }
-  if (rmw_check_zero_rmw_string_array(node_namespaces) != RMW_RET_OK) {
+  if (RMW_RET_OK != rmw_check_zero_rmw_string_array(node_namespaces)) {
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+  if (
+    security_contexts &&
+    RMW_RET_OK != rmw_check_zero_rmw_string_array(security_contexts))
+  {
     return RMW_RET_INVALID_ARGUMENT;
   }
   RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
@@ -952,6 +958,16 @@ GraphCache::get_node_names(
     rcutils_reset_error();
     RMW_SET_ERROR_MSG(error_msg.str);
     goto fail;
+  }
+  if (security_contexts) {
+    rcutils_ret =
+      rcutils_string_array_init(security_contexts, nodes_number, allocator);
+    if (RCUTILS_RET_OK != rcutils_ret) {
+      rcutils_error_string_t error_msg = rcutils_get_error_string();
+      rcutils_reset_error();
+      RMW_SET_ERROR_MSG(error_msg.str);
+      goto fail;
+    }
   }
   {
     size_t j = 0;

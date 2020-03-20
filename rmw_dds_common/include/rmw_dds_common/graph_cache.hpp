@@ -476,9 +476,9 @@ public:
    * \param[inout] node_namespaces A zero initialized string array, where the node namespaces
    *   will be copied. Each item in this array corresponds to an item in the same position of
    *   node_names array. Must not be `nullptr`.
-   * \param[inout] security_contexts A zero initialized string array, where the context name of the node
-   *   will be copied. Each item in this array corresponds to an item in the same position of
-   *   node_names array. In case is `nullptr`, it won't be used.
+   * \param[inout] security_contexts A zero initialized string array, where the security context
+   *   name of the node will be copied. Each item in this array corresponds to an item in the same
+   *   position of node_names array. In case is `nullptr`, it won't be used.
    * \param[in] allocator.
    * \return RMW_RET_OK, or
    * \return RMW_RET_INVALID_ARGUMENT, or
