@@ -50,6 +50,7 @@ struct ParticipantInfo;
 class GraphCache
 {
   friend
+  RMW_DDS_COMMON_PUBLIC
   std::ostream &
   operator<<(std::ostream & ostream, const GraphCache & topic_cache);
 

@@ -31,7 +31,7 @@ extern "C"
     #define RMW_DDS_COMMON_EXPORT __declspec(dllexport)
     #define RMW_DDS_COMMON_IMPORT __declspec(dllimport)
   #endif
-  #ifdef RMW_DDS_COMMON_BUILDING_DLL
+  #ifdef RMW_DDS_COMMON_BUILDING_LIBRARY
     #define RMW_DDS_COMMON_PUBLIC RMW_DDS_COMMON_EXPORT
   #else
     #define RMW_DDS_COMMON_PUBLIC RMW_DDS_COMMON_IMPORT

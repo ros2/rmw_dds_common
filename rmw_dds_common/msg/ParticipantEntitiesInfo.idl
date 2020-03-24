@@ -4,7 +4,8 @@
 module rmw_dds_common {
   module msg {
     struct ParticipantEntitiesInfo {
-        @key
+        // We're not using keyed topics right now. Commented because is making generation fail when OpenSplice is available.
+        // @key
         rmw_dds_common::msg::Gid gid;
         sequence<rmw_dds_common::msg::NodeEntitiesInfo> node_entities_info_seq;
     };
