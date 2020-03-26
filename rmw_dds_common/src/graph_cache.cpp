@@ -45,14 +45,15 @@ using rmw_dds_common::operator<<;
 
 static const char log_tag[] = "rmw_dds_common";
 
-#define GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(condition) \
+#define GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(graph_cache_ptr, condition) \
   do { \
-    if (on_change_callback_ && condition) { \
-      on_change_callback_(); \
+    if (graph_cache_ptr->on_change_callback_ && condition) { \
+        graph_cache_ptr->on_change_callback_(); \
     } \
-  } while (0)
+  } while(0);
 
-#define GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK() GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(true)
+#define GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK(graph_cache_ptr) \
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(graph_cache_ptr, true)
 
 void
 GraphCache::clear_on_change_callback()
@@ -74,7 +75,7 @@ GraphCache::add_writer(
     std::piecewise_construct,
     std::forward_as_tuple(gid),
     std::forward_as_tuple(topic_name, type_name, participant_gid, qos));
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(pair.second);
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, pair.second);
   return pair.second;
 }
 
@@ -91,7 +92,7 @@ GraphCache::add_reader(
     std::piecewise_construct,
     std::forward_as_tuple(gid),
     std::forward_as_tuple(topic_name, type_name, participant_gid, qos));
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(pair.second);
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, pair.second);
   return pair.second;
 }
 
@@ -125,7 +126,7 @@ GraphCache::remove_writer(const rmw_gid_t & gid)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   bool ret = data_writers_.erase(gid) > 0;
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(ret);
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, ret);
   return ret;
 }
 
@@ -134,7 +135,7 @@ GraphCache::remove_reader(const rmw_gid_t & gid)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   bool ret = data_readers_.erase(gid) > 0;
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(ret);
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, ret);
   return ret;
 }
 
@@ -163,7 +164,7 @@ GraphCache::update_participant_entities(const rmw_dds_common::msg::ParticipantEn
     assert(ret.second);
   }
   it->second.node_entities_info_seq = msg.node_entities_info_seq;
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK();
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK(this);
 }
 
 bool
@@ -171,7 +172,7 @@ GraphCache::remove_participant(const rmw_gid_t & participant_gid)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   bool ret = participants_.erase(participant_gid) > 0;
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(ret);
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, ret);
   return ret;
 }
 
@@ -203,7 +204,7 @@ GraphCache::add_participant(
     assert(ret.second);
   }
   it->second.security_context = security_context;
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK();
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK(this);
 }
 
 rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -223,7 +224,7 @@ GraphCache::add_node(
   node_info.node_namespace = node_namespace;
   it->second.node_entities_info_seq.emplace_back(node_info);
 
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK();
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK(this);
   return __create_participant_info_message(participant_gid, it->second.node_entities_info_seq);
 }
 
@@ -248,7 +249,7 @@ GraphCache::remove_node(
   assert(to_remove != it->second.node_entities_info_seq.end());
 
   it->second.node_entities_info_seq.erase(to_remove);
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK();
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK(this);
 
   return __create_participant_info_message(participant_gid, it->second.node_entities_info_seq);
 }
@@ -295,7 +296,7 @@ GraphCache::associate_writer(
   auto msg = __modify_node_info(
     participant_gid, node_name, node_namespace, add_writer_gid, participants_);
 
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK();
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK(this);
   return msg;
 }
 
@@ -325,7 +326,7 @@ GraphCache::dissociate_writer(
   auto msg = __modify_node_info(
     participant_gid, node_name, node_namespace, delete_writer_gid, participants_);
 
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK();
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK(this);
   return msg;
 }
 
@@ -345,7 +346,7 @@ GraphCache::associate_reader(
   auto msg = __modify_node_info(
     participant_gid, node_name, node_namespace, add_reader_gid, participants_);
 
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK();
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK(this);
   return msg;
 }
 
@@ -375,7 +376,7 @@ GraphCache::dissociate_reader(
   auto msg = __modify_node_info(
     participant_gid, node_name, node_namespace, delete_reader_gid, participants_);
 
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK();
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK(this);
   return msg;
 }
 
@@ -1035,7 +1036,7 @@ rmw_dds_common::operator<<(std::ostream & ostream, const GraphCache & graph_cach
   ss << "  Discovered participants:" << std::endl;
   for (const auto & item : graph_cache.participants_) {
     ss << "    gid: '" << item.first << std::endl;
-    ss << "    context name '" << item.second.security_context << std::endl;
+    ss << "    security context name '" << item.second.security_context << std::endl;
     ss << "    nodes:" << std::endl;
     for (const auto & node_info : item.second.node_entities_info_seq) {
       ss << "      namespace: '" << node_info.node_namespace << "' name: '" <<
