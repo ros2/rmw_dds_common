@@ -3,10 +3,8 @@
 
 find_package(ament_cmake_core REQUIRED)
 ament_index_get_resources(rosidl_typesupport_cpp_packages "rosidl_typesupport_cpp")
-ament_index_get_resources(rosidl_generator_packages "rosidl_generator_packages")
 set(_exported_dependencies
   ${rosidl_typesupport_cpp_packages}
-  ${rosidl_generator_packages}
 )
 
 # find_package() all dependencies (if available)
