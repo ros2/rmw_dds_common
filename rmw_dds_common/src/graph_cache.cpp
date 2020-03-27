@@ -48,9 +48,9 @@ static const char log_tag[] = "rmw_dds_common";
 #define GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(graph_cache_ptr, condition) \
   do { \
     if (graph_cache_ptr->on_change_callback_ && condition) { \
-        graph_cache_ptr->on_change_callback_(); \
+      graph_cache_ptr->on_change_callback_(); \
     } \
-  } while(0);
+  } while (0);
 
 #define GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK(graph_cache_ptr) \
   GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(graph_cache_ptr, true)
