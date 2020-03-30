@@ -383,7 +383,7 @@ rmw_dds_common::msg::Gid
 gid_msg_from_string(const std::string & str)
 {
   rmw_dds_common::msg::Gid gid;
-  gid.data = {0};
+  gid.data = {};
   EXPECT_LT(str.size(), RMW_GID_STORAGE_SIZE);
   std::strncpy(
     reinterpret_cast<char *>(gid.data.data()),
