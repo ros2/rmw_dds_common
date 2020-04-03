@@ -14,8 +14,8 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <string.h>
 
-#include <cstring>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -192,7 +192,7 @@ gid_from_string(const std::string & str)
 {
   rmw_gid_t gid = {};
   EXPECT_LT(str.size(), RMW_GID_STORAGE_SIZE);
-  std::strncpy(
+  strncpy(
     reinterpret_cast<char *>(gid.data),
     str.c_str(),
     RMW_GID_STORAGE_SIZE);
@@ -385,7 +385,7 @@ gid_msg_from_string(const std::string & str)
   rmw_dds_common::msg::Gid gid;
   gid.data = {};
   EXPECT_LT(str.size(), RMW_GID_STORAGE_SIZE);
-  std::strncpy(
+  strncpy(
     reinterpret_cast<char *>(gid.data.data()),
     str.c_str(),
     RMW_GID_STORAGE_SIZE);
