@@ -195,7 +195,7 @@ gid_from_string(const std::string & str)
   memcpy(
     reinterpret_cast<char *>(gid.data),
     str.c_str(),
-    RMW_GID_STORAGE_SIZE);
+    str.size() + 1);
   return gid;
 }
 
@@ -388,7 +388,7 @@ gid_msg_from_string(const std::string & str)
   memcpy(
     reinterpret_cast<char *>(gid.data.data()),
     str.c_str(),
-    RMW_GID_STORAGE_SIZE);
+    str.size() + 1);
   return gid;
 }
 
