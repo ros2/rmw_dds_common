@@ -29,7 +29,7 @@ rosidl_generate_interfaces(
   "msg/Gid.idl"
   "msg/NodeEntitiesInfo.idl"
   "msg/ParticipantEntitiesInfo.idl"
-  SKIP_GROUP_MEMBERSHIP_CHECK
+  SKIP_RESOURCE_REGISTER
 )
 
 add_library(${PROJECT_NAME} SHARED
