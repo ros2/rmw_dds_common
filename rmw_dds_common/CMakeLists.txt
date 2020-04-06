@@ -63,11 +63,6 @@ install(
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 
-ament_export_dependencies(rcpputils)
-ament_export_dependencies(rcutils)
-ament_export_dependencies(rmw)
-ament_export_dependencies(rosidl_runtime_cpp)
-
 install(
   DIRECTORY include/
   DESTINATION include)
