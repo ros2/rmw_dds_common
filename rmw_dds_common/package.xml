@@ -12,6 +12,8 @@
   <buildtool_depend>rosidl_cmake</buildtool_depend>
   <buildtool_depend>rmw_dds_common_generators</buildtool_depend>
 
+  <buildtool_export_depend>rosidl_cmake</buildtool_export_depend>
+
   <depend>rcutils</depend>
   <depend>rcpputils</depend>
   <depend>rmw</depend>
