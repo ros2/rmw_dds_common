@@ -16,13 +16,11 @@ find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rmw_dds_common_generators REQUIRED)
-find_package(rosidl_cmake REQUIRED)
 
 ament_export_dependencies(ament_cmake_core)
 ament_export_dependencies(rcpputils)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
-ament_export_dependencies(rosidl_cmake)
 ament_export_dependencies(rosidl_runtime_cpp)
 
 rosidl_generate_interfaces(
