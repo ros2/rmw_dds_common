@@ -26,10 +26,9 @@ ament_export_dependencies(rosidl_default_runtime)
 
 rosidl_generate_interfaces(
   ${PROJECT_NAME}_interfaces
-  "msg/Gid.idl"
-  "msg/NodeEntitiesInfo.idl"
-  "msg/ParticipantEntitiesInfo.idl"
-  SKIP_GROUP_MEMBERSHIP_CHECK
+  "msg/Gid.msg"
+  "msg/NodeEntitiesInfo.msg"
+  "msg/ParticipantEntitiesInfo.msg"
 )
 
 add_library(${PROJECT_NAME} SHARED
