@@ -15,7 +15,6 @@ find_package(ament_cmake REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
-find_package(rosidl_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 ament_export_dependencies(ament_cmake_core)
