@@ -1,8 +1,0 @@
-module rmw_dds_common {
-  module msg {
-    typedef char data_t[24];
-    struct Gid {
-      data_t data;
-    };
-  };
-};
