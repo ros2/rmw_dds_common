@@ -16,13 +16,12 @@ find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rmw_dds_common_generators REQUIRED)
-find_package(rosidl_cmake REQUIRED)
 
 ament_export_dependencies(ament_cmake_core)
 ament_export_dependencies(rcpputils)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
-ament_export_dependencies(rosidl_cmake)
+ament_export_dependencies(rosidl_runtime_cpp)
 
 rosidl_generate_interfaces(
   ${PROJECT_NAME}_interfaces
@@ -39,7 +38,7 @@ ament_target_dependencies(${PROJECT_NAME}
   "rcpputils"
   "rcutils"
   "rmw"
-  "rosidl_generator_cpp")
+  "rosidl_runtime_cpp")
 add_dependencies(${PROJECT_NAME}
   ${PROJECT_NAME}_interfaces)
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -61,11 +60,6 @@ install(
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
-
-ament_export_dependencies(rcpputils)
-ament_export_dependencies(rcutils)
-ament_export_dependencies(rmw)
-ament_export_dependencies(rosidl_generator_cpp)
 
 install(
   DIRECTORY include/
