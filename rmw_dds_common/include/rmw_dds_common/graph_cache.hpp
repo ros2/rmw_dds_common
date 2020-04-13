@@ -172,13 +172,13 @@ public:
   /// Add a discovered participant to the cache.
   /**
    * \param gid The participant guid.
-   * \param security_context Name of the security context.
+   * \param enclave Name of the enclave.
    */
   RMW_DDS_COMMON_PUBLIC
   void
   add_participant(
     const rmw_gid_t & participant_gid,
-    const std::string & security_context);
+    const std::string & enclave);
 
   /// Remove a participant based on discovery.
   /**
@@ -477,7 +477,7 @@ public:
    * \param[inout] node_namespaces A zero initialized string array, where the node namespaces
    *   will be copied. Each item in this array corresponds to an item in the same position of
    *   node_names array. Must not be `nullptr`.
-   * \param[inout] security_contexts A zero initialized string array, where the security context
+   * \param[inout] enclaves A zero initialized string array, where the enclave
    *   name of the node will be copied. Each item in this array corresponds to an item in the same
    *   position of node_names array. In case is `nullptr`, it won't be used.
    * \param[in] allocator.
@@ -491,7 +491,7 @@ public:
   get_node_names(
     rcutils_string_array_t * node_names,
     rcutils_string_array_t * node_namespaces,
-    rcutils_string_array_t * security_contexts,
+    rcutils_string_array_t * enclaves,
     rcutils_allocator_t * allocator) const;
 
   /**
@@ -521,7 +521,7 @@ operator<<(std::ostream & ostream, const GraphCache & topic_cache);
 struct ParticipantInfo
 {
   GraphCache::NodeEntitiesInfoSeq node_entities_info_seq;
-  std::string security_context;
+  std::string enclave;
 };
 
 struct EntityInfo

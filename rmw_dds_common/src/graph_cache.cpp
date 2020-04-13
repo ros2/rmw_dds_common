@@ -191,7 +191,7 @@ __create_participant_info_message(
 void
 GraphCache::add_participant(
   const rmw_gid_t & participant_gid,
-  const std::string & security_context)
+  const std::string & enclave)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   auto it = participants_.find(participant_gid);
@@ -203,7 +203,7 @@ GraphCache::add_participant(
     it = ret.first;
     assert(ret.second);
   }
-  it->second.security_context = security_context;
+  it->second.enclave = enclave;
   GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK(this);
 }
 
@@ -924,7 +924,7 @@ rmw_ret_t
 GraphCache::get_node_names(
   rcutils_string_array_t * node_names,
   rcutils_string_array_t * node_namespaces,
-  rcutils_string_array_t * security_contexts,
+  rcutils_string_array_t * enclaves,
   rcutils_allocator_t * allocator) const
 {
   std::lock_guard<std::mutex> guard(mutex_);
@@ -935,8 +935,8 @@ GraphCache::get_node_names(
     return RMW_RET_INVALID_ARGUMENT;
   }
   if (
-    security_contexts &&
-    RMW_RET_OK != rmw_check_zero_rmw_string_array(security_contexts))
+    enclaves &&
+    RMW_RET_OK != rmw_check_zero_rmw_string_array(enclaves))
   {
     return RMW_RET_INVALID_ARGUMENT;
   }
@@ -960,9 +960,9 @@ GraphCache::get_node_names(
     RMW_SET_ERROR_MSG(error_msg.str);
     goto fail;
   }
-  if (security_contexts) {
+  if (enclaves) {
     rcutils_ret =
-      rcutils_string_array_init(security_contexts, nodes_number, allocator);
+      rcutils_string_array_init(enclaves, nodes_number, allocator);
     if (RCUTILS_RET_OK != rcutils_ret) {
       rcutils_error_string_t error_msg = rcutils_get_error_string();
       rcutils_reset_error();
@@ -984,10 +984,10 @@ GraphCache::get_node_names(
         if (!node_namespaces->data[j]) {
           goto fail;
         }
-        if (security_contexts) {
-          security_contexts->data[j] = rcutils_strdup(
-            nodes_info.security_context.c_str(), *allocator);
-          if (!security_contexts->data[j]) {
+        if (enclaves) {
+          enclaves->data[j] = rcutils_strdup(
+            nodes_info.enclave.c_str(), *allocator);
+          if (!enclaves->data[j]) {
             goto fail;
           }
         }
@@ -1036,7 +1036,7 @@ rmw_dds_common::operator<<(std::ostream & ostream, const GraphCache & graph_cach
   ss << "  Discovered participants:" << std::endl;
   for (const auto & item : graph_cache.participants_) {
     ss << "    gid: '" << item.first << std::endl;
-    ss << "    security context name '" << item.second.security_context << std::endl;
+    ss << "    enclave name '" << item.second.enclave << std::endl;
     ss << "    nodes:" << std::endl;
     for (const auto & node_info : item.second.node_entities_info_seq) {
       ss << "      namespace: '" << node_info.node_namespace << "' name: '" <<
