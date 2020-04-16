@@ -75,6 +75,11 @@ if(BUILD_TESTING)
   if(TARGET test_graph_cache)
     target_link_libraries(test_graph_cache ${PROJECT_NAME}_library)
   endif()
+
+  ament_add_gmock(test_gid_utils test/test_gid_utils.cpp)
+  if(TARGET test_gid_utils)
+    target_link_libraries(test_gid_utils ${PROJECT_NAME}_library)
+  endif()
 endif()
 
 ament_package()
