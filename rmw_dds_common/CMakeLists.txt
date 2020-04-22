@@ -42,10 +42,12 @@ ament_target_dependencies(${PROJECT_NAME}_library
   "rosidl_runtime_cpp")
 add_dependencies(${PROJECT_NAME}_library
   ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}_library PUBLIC
-  include
-  ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c
-  ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp)
+target_include_directories(${PROJECT_NAME}_library
+  PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c>"
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp>"
+  "$<INSTALL_INTERFACE:include>")
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
@@ -53,7 +55,7 @@ target_compile_definitions(${PROJECT_NAME}_library
   PRIVATE "RMW_DDS_COMMON_BUILDING_LIBRARY")
 
 install(
-  TARGETS ${PROJECT_NAME}_library
+  TARGETS ${PROJECT_NAME}_library EXPORT ${PROJECT_NAME}_library
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -61,6 +63,7 @@ install(
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME}_library)
+ament_export_targets(${PROJECT_NAME}_library)
 
 install(
   DIRECTORY include/
