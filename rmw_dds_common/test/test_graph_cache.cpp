@@ -21,14 +21,18 @@
 #include <utility>
 #include <vector>
 
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
+
 #include "rmw/qos_profiles.h"
 #include "rmw/topic_endpoint_info.h"
 #include "rmw/topic_endpoint_info_array.h"
 #include "./allocator_testing_utils.h"
 
+#include "rmw_dds_common/gid_utils.hpp"
 #include "rmw_dds_common/graph_cache.hpp"
 
 using rmw_dds_common::GraphCache;
+using rmw_dds_common::operator==;
 
 struct NameAndNamespace
 {
@@ -100,7 +104,8 @@ check_results(
   {
     rcutils_string_array_t names = rcutils_get_zero_initialized_string_array();
     rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
-    graph_cache.get_node_names(&names, &namespaces, nullptr, &allocator);
+    rcutils_string_array_t enclaves = rcutils_get_zero_initialized_string_array();
+    graph_cache.get_node_names(&names, &namespaces, &enclaves, &allocator);
     check_names_and_namespace(names, namespaces, nodes_names_and_namespaces);
   }
 
@@ -153,12 +158,13 @@ void check_results_by_node(
   }
 }
 
+
 void
 check_results_by_topic(
   const GraphCache & graph_cache,
   const std::string topic_name,
-  size_t readers_count = 0,
-  size_t writers_count = 0)
+  size_t readers_count = 0U,
+  size_t writers_count = 0U)
 {
   {
     // Start with a value different from the expected one, to
@@ -179,15 +185,6 @@ check_results_by_topic(
   }
 }
 
-TEST(test_graph_cache, zero_initialized)
-{
-  GraphCache graph_cache;
-
-  check_results(graph_cache);
-  check_results_by_node(graph_cache, "some_namespace", "node/name");
-  check_results_by_topic(graph_cache, "some/topic/name");
-}
-
 rmw_gid_t
 gid_from_string(const std::string & str)
 {
@@ -200,15 +197,93 @@ gid_from_string(const std::string & str)
   return gid;
 }
 
+struct EndpointInfo
+{
+  std::string gid;
+  std::string node_namespace;
+  std::string node_name;
+  std::string topic_type;
+};
+
+void
+check_results_by_topic(
+  const GraphCache & graph_cache,
+  const std::string topic_name,
+  const std::vector<EndpointInfo> & readers_info,
+  const std::vector<EndpointInfo> & writers_info)
+{
+  {
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    rmw_topic_endpoint_info_array_t info =
+      rmw_get_zero_initialized_topic_endpoint_info_array();
+    ASSERT_EQ(
+      graph_cache.get_readers_info_by_topic(
+        topic_name,
+        identity_demangle,
+        &allocator,
+        &info),
+      RMW_RET_OK);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      EXPECT_EQ(rmw_topic_endpoint_info_array_fini(&info, &allocator), RMW_RET_OK);
+    });
+    ASSERT_EQ(info.size, readers_info.size());
+    for (size_t i = 0; i < readers_info.size(); ++i) {
+      rmw_gid_t endpoint_gid = {};
+      memcpy(endpoint_gid.data, info.info_array[i].endpoint_gid, RMW_GID_STORAGE_SIZE);
+      EXPECT_EQ(gid_from_string(readers_info[i].gid), endpoint_gid);
+      EXPECT_EQ(readers_info[i].node_name, info.info_array[i].node_name);
+      EXPECT_EQ(readers_info[i].node_namespace, info.info_array[i].node_namespace);
+      EXPECT_EQ(readers_info[i].topic_type, info.info_array[i].topic_type);
+      EXPECT_EQ(RMW_ENDPOINT_SUBSCRIPTION, info.info_array[i].endpoint_type);
+    }
+  }
+
+  {
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    rmw_topic_endpoint_info_array_t info =
+      rmw_get_zero_initialized_topic_endpoint_info_array();
+    ASSERT_EQ(
+      graph_cache.get_writers_info_by_topic(
+        topic_name,
+        identity_demangle,
+        &allocator,
+        &info),
+      RMW_RET_OK);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      EXPECT_EQ(rmw_topic_endpoint_info_array_fini(&info, &allocator), RMW_RET_OK);
+    });
+    ASSERT_EQ(info.size, writers_info.size());
+    for (size_t i = 0; i < writers_info.size(); ++i) {
+      rmw_gid_t endpoint_gid = {};
+      memcpy(endpoint_gid.data, info.info_array[i].endpoint_gid, RMW_GID_STORAGE_SIZE);
+      EXPECT_EQ(gid_from_string(writers_info[i].gid), endpoint_gid);
+      EXPECT_EQ(writers_info[i].node_name, info.info_array[i].node_name);
+      EXPECT_EQ(writers_info[i].node_namespace, info.info_array[i].node_namespace);
+      EXPECT_EQ(writers_info[i].topic_type, info.info_array[i].topic_type);
+      EXPECT_EQ(RMW_ENDPOINT_PUBLISHER, info.info_array[i].endpoint_type);
+    }
+  }
+}
+
+TEST(test_graph_cache, zero_initialized)
+{
+  GraphCache graph_cache;
+
+  check_results(graph_cache);
+  check_results_by_node(graph_cache, "some_namespace", "node/name");
+  check_results_by_topic(graph_cache, "some/topic/name");
+}
+
 struct EntityInfo
 {
   std::string gid;
+  std::string participant_gid;
   std::string name;
   std::string type;
   bool is_reader;
 };
-
-static constexpr rmw_gid_t zero_gid = {};
 
 void
 add_entities(
@@ -221,7 +296,7 @@ add_entities(
         gid_from_string(elem.gid),
         elem.name,
         elem.type,
-        zero_gid,
+        gid_from_string(elem.participant_gid),
         rmw_qos_profile_default,
         elem.is_reader));
   }
@@ -240,6 +315,7 @@ remove_entities(
   }
 }
 
+
 TEST(test_graph_cache, add_remove_entities)
 {
   GraphCache graph_cache;
@@ -249,15 +325,15 @@ TEST(test_graph_cache, add_remove_entities)
     graph_cache,
   {
     // topic1 readers
-    {"reader1", "topic1", "Str", true},
-    {"reader2", "topic1", "Str", true},
-    {"reader3", "topic1", "Str", true},
-    {"reader4", "topic1", "Str", true},
+    {"reader1", "participant1", "topic1", "Str", true},
+    {"reader2", "participant1", "topic1", "Str", true},
+    {"reader3", "participant1", "topic1", "Str", true},
+    {"reader4", "participant1", "topic1", "Str", true},
     // topic2 readers
-    {"reader5", "topic2", "Str", true},
-    {"reader6", "topic2", "Int", true},
+    {"reader5", "participant1", "topic2", "Str", true},
+    {"reader6", "participant1", "topic2", "Int", true},
     // topic3 readers
-    {"reader7", "topic3", "Float", true},
+    {"reader7", "participant1", "topic3", "Float", true},
   });
 
   // Check graph state.
@@ -279,14 +355,14 @@ TEST(test_graph_cache, add_remove_entities)
     graph_cache,
   {
     // topic1 writers
-    {"writer1", "topic1", "Str", false},
-    {"writer2", "topic1", "Str", false},
+    {"writer1", "participant1", "topic1", "Str", false},
+    {"writer2", "participant1", "topic1", "Str", false},
     // topic2 writers
-    {"writer5", "topic2", "Str", false},
-    {"writer6", "topic2", "Float", false},
-    {"writer7", "topic2", "Bool", false},
+    {"writer5", "participant1", "topic2", "Str", false},
+    {"writer6", "participant1", "topic2", "Float", false},
+    {"writer7", "participant1", "topic2", "Bool", false},
     // topic4 writers
-    {"writer8", "topic4", "Int", false},
+    {"writer8", "participant1", "topic4", "Int", false},
   });
 
   // Check graph state.
@@ -310,17 +386,17 @@ TEST(test_graph_cache, add_remove_entities)
     graph_cache,
   {
     // topic1
-    {"reader2", "topic1", "Str", true},
-    {"reader3", "topic1", "Str", true},
-    {"reader4", "topic1", "Str", true},
-    {"writer2", "topic1", "Str", false},
+    {"reader2", "participant1", "topic1", "Str", true},
+    {"reader3", "participant1", "topic1", "Str", true},
+    {"reader4", "participant1", "topic1", "Str", true},
+    {"writer2", "participant1", "topic1", "Str", false},
     // topic2
-    {"reader6", "topic2", "Int", true},
-    {"writer5", "topic2", "Str", false},
-    {"writer6", "topic2", "Float", false},
-    {"writer7", "topic2", "Bool", false},
+    {"reader6", "participant1", "topic2", "Int", true},
+    {"writer5", "participant1", "topic2", "Str", false},
+    {"writer6", "participant1", "topic2", "Float", false},
+    {"writer7", "participant1", "topic2", "Bool", false},
     // topic3
-    {"reader7", "topic3", "Float", true},
+    {"reader7", "participant1", "topic3", "Float", true},
   });
 
   // Check graph state.
@@ -343,12 +419,12 @@ TEST(test_graph_cache, add_remove_entities)
     graph_cache,
   {
     // topic1
-    {"reader1", "topic1", "Str", true},
-    {"writer1", "topic1", "Str", false},
+    {"reader1", "participant1", "topic1", "Str", true},
+    {"writer1", "participant1", "topic1", "Str", false},
     // topic2
-    {"reader5", "topic2", "Str", true},
+    {"reader5", "participant1", "topic2", "Str", true},
     // topic4
-    {"writer8", "topic4", "Int", false},
+    {"writer8", "participant1", "topic4", "Int", false},
   });
 
   // Check graph state.
@@ -551,8 +627,16 @@ TEST(test_graph_cache, normal_usage)
 {
   GraphCache graph_cache;
 
+  bool change_callback_called = false;
+  auto change_callback = [&change_callback_called]() {
+      change_callback_called = true;
+    };
+  graph_cache.set_on_change_callback(change_callback);
+
   // Add one participant.
+  change_callback_called = false;
   add_participants(graph_cache, {"participant1"});
+  EXPECT_TRUE(change_callback_called);
 
   // Check state.
   check_results(graph_cache);
@@ -560,6 +644,7 @@ TEST(test_graph_cache, normal_usage)
   check_results_by_topic(graph_cache, "some_topic");
 
   // Add some nodes.
+  change_callback_called = false;
   check_participant_entities_msg(
     add_nodes(
       graph_cache, {
@@ -573,6 +658,7 @@ TEST(test_graph_cache, normal_usage)
       {"ns2", "node1", {}, {}},
     }
   });
+  EXPECT_TRUE(change_callback_called);
 
   // Check state.
   check_results(
@@ -621,21 +707,23 @@ TEST(test_graph_cache, normal_usage)
   check_results_by_topic(graph_cache, "some_topic");
 
   // Add some readers and writers.
+  change_callback_called = false;
   add_entities(
     graph_cache,
   {
     // topic1
-    {"reader1", "topic1", "Str", true},
-    {"reader2", "topic1", "Float", true},
-    {"writer1", "topic1", "Int", false},
-    {"writer2", "topic1", "Str", false},
+    {"reader1", "participant1", "topic1", "Str", true},
+    {"reader2", "participant1", "topic1", "Float", true},
+    {"writer1", "participant2", "topic1", "Int", false},
+    {"writer2", "participant2", "topic1", "Str", false},
     // topic2
-    {"reader3", "topic2", "Str", true},
-    {"reader4", "topic2", "Str", true},
-    {"reader5", "topic2", "Str", true},
+    {"reader3", "participant1", "topic2", "Str", true},
+    {"reader4", "participant1", "topic2", "Str", true},
+    {"reader5", "participant2", "topic2", "Str", true},
     // topic3
-    {"writer3", "topic3", "Bool", false},
+    {"writer3", "participant1", "topic3", "Bool", false},
   });
+  EXPECT_TRUE(change_callback_called);
 
   // Check state.
   check_results(
@@ -664,6 +752,7 @@ TEST(test_graph_cache, normal_usage)
   check_results_by_topic(graph_cache, "some_topic", 0, 0);
 
   // Associate entities
+  change_callback_called = false;
   associate_entities(
     graph_cache,
   {
@@ -679,6 +768,7 @@ TEST(test_graph_cache, normal_usage)
     {"writer1", false, "participant2", "ns1", "node3"},
     {"writer2", false, "participant2", "ns1", "node3"},
   });
+  EXPECT_TRUE(change_callback_called);
 
   // Check state.
   check_results(
@@ -720,12 +810,22 @@ TEST(test_graph_cache, normal_usage)
   });
   check_results_by_node(graph_cache, "ns3", "node1");
   check_results_by_node(graph_cache, "ns", "some_random_node");
-  check_results_by_topic(graph_cache, "topic1", 2, 2);
+  check_results_by_topic(
+    graph_cache, "topic1",
+  {
+    {"reader1", "ns1", "node1", "Str"},
+    {"reader2", "ns1", "node1", "Float"},
+  },
+  {
+    {"writer1", "ns1", "node3", "Int"},
+    {"writer2", "ns1", "node3", "Str"},
+  });
   check_results_by_topic(graph_cache, "topic2", 3, 0);
   check_results_by_topic(graph_cache, "topic3", 0, 1);
   check_results_by_topic(graph_cache, "some_topic", 0, 0);
 
   // Associate entities
+  change_callback_called = false;
   dissociate_entities(
     graph_cache,
   {
@@ -737,6 +837,7 @@ TEST(test_graph_cache, normal_usage)
     {"writer1", false, "participant2", "ns1", "node3"},
     {"writer2", false, "participant2", "ns1", "node3"},
   });
+  EXPECT_TRUE(change_callback_called);
 
   // Check state.
   check_results(
@@ -775,17 +876,21 @@ TEST(test_graph_cache, normal_usage)
   check_results_by_topic(graph_cache, "topic3", 0, 1);
   check_results_by_topic(graph_cache, "some_topic", 0, 0);
 
+  graph_cache.clear_on_change_callback();
+  change_callback_called = false;
+
   // Add some readers and writers.
   add_entities(
     graph_cache,
   {
     // topic1
-    {"reader6", "topic1", "Str", true},
-    {"reader7", "topic1", "Custom", true},
+    {"reader6", "remote_participant", "topic1", "Str", true},
+    {"reader7", "remote_participant", "topic1", "Custom", true},
     // topic2
-    {"writer4", "topic2", "Str", false},
+    {"writer4", "remote_participant", "topic2", "Str", false},
     // topic4
-    {"writer5", "topic4", "Custom", false},
+    {"writer5", "remote_participant", "topic4", "Custom", false},
+    {"writer6", "remote_participant", "topic4", "Bool", false},
   });
 
   // Associate them with a remote participant.
@@ -808,6 +913,7 @@ TEST(test_graph_cache, normal_usage)
     }
   });
   graph_cache.update_participant_entities(msg);
+  EXPECT_FALSE(change_callback_called);
 
   // Check state.
   check_results(
@@ -825,7 +931,7 @@ TEST(test_graph_cache, normal_usage)
     {"topic1", {"Custom", "Float", "Int", "Str"}},
     {"topic2", {"Str"}},
     {"topic3", {"Bool"}},
-    {"topic4", {"Custom"}},
+    {"topic4", {"Bool", "Custom"}},
   });
   check_results_by_node(
     graph_cache, "ns1", "node1",
@@ -861,7 +967,11 @@ TEST(test_graph_cache, normal_usage)
   check_results_by_topic(graph_cache, "topic1", 4, 2);
   check_results_by_topic(graph_cache, "topic2", 3, 1);
   check_results_by_topic(graph_cache, "topic3", 0, 1);
-  check_results_by_topic(graph_cache, "topic4", 0, 1);
+  check_results_by_topic(
+    graph_cache, "topic4", {}, {
+    {"writer5", "ns3", "node2", "Custom"},
+    {"writer6", "_NODE_NAMESPACE_UNKNOWN_", "_NODE_NAME_UNKNOWN_", "Bool"},
+  });
   check_results_by_topic(graph_cache, "some_topic", 0, 0);
 
   // Remove some readers and writers.
@@ -869,11 +979,12 @@ TEST(test_graph_cache, normal_usage)
     graph_cache,
   {
     // topic1
-    {"reader6", "topic1", "Str", true},
+    {"reader6", "remote_participant", "topic1", "Str", true},
     // topic2
-    {"writer4", "topic2", "Str", false},
+    {"writer4", "remote_participant", "topic2", "Str", false},
     // topic4
-    {"writer5", "topic4", "Custom", false},
+    {"writer5", "remote_participant", "topic4", "Custom", false},
+    {"writer6", "remote_participant", "topic4", "Bool", false},
   });
 
   // Check state.
@@ -997,7 +1108,7 @@ TEST(test_graph_cache, normal_usage)
     graph_cache,
   {
     // topic1
-    {"reader7", "topic1", "Custom", true},
+    {"reader7", "remote_participant", "topic1", "Custom", true},
   });
 
   // Check state.
@@ -1058,14 +1169,14 @@ TEST(test_graph_cache, normal_usage)
     graph_cache,
   {
     // topic1
-    {"reader1", "topic1", "Str", true},
-    {"reader2", "topic1", "Float", true},
-    {"writer1", "topic1", "Int", false},
-    {"writer2", "topic1", "Str", false},
+    {"reader1", "participant1", "topic1", "Str", true},
+    {"reader2", "participant1", "topic1", "Float", true},
+    {"writer1", "participant2", "topic1", "Int", false},
+    {"writer2", "participant2", "topic1", "Str", false},
     // topic2
-    {"reader3", "topic2", "Str", true},
-    {"reader4", "topic2", "Str", true},
-    {"reader5", "topic2", "Str", true},
+    {"reader3", "participant1", "topic2", "Str", true},
+    {"reader4", "participant1", "topic2", "Str", true},
+    {"reader5", "participant2", "topic2", "Str", true},
   });
 
   // Check state.
@@ -1111,7 +1222,7 @@ TEST(test_graph_cache, normal_usage)
     graph_cache,
   {
     // topic3
-    {"writer3", "topic3", "Bool", false},
+    {"writer3", "participant1", "topic3", "Bool", false},
   });
 
   // Check state.
@@ -1127,6 +1238,8 @@ TEST(test_graph_cache, normal_usage)
   check_results_by_topic(graph_cache, "topic3", 0, 0);
   check_results_by_topic(graph_cache, "topic4", 0, 0);
   check_results_by_topic(graph_cache, "some_topic", 0, 0);
+
+  EXPECT_FALSE(change_callback_called);
 }
 
 TEST(test_graph_cache, test_operator)
@@ -1217,8 +1330,8 @@ TEST(test_graph_cache, test_operator)
     graph_cache,
   {
     // topic1
-    {"reader1", "topic1", "Str", true},
-    {"writer1", "topic1", "Str", false},
+    {"reader1", "participant1", "topic1", "Str", true},
+    {"writer1", "participant1", "topic1", "Str", false},
   });
 
   // Associate entities
@@ -1234,13 +1347,18 @@ TEST(test_graph_cache, test_operator)
   ASSERT_STREQ(stream_case3.str().c_str(), graph_cache_case3_str.c_str());
 }
 
-TEST(test_graph_cache, failing_allocators)
+TEST(test_graph_cache, bad_arguments)
 {
   GraphCache graph_cache;
 
   EXPECT_EQ(
     graph_cache.get_reader_count("topic_name", nullptr),
     RMW_RET_INVALID_ARGUMENT);
+
+  EXPECT_EQ(
+    graph_cache.get_writer_count("topic_name", nullptr),
+    RMW_RET_INVALID_ARGUMENT);
+
   rcutils_allocator_t failing_allocator = get_failing_allocator();
   rcutils_string_array_t names = rcutils_get_zero_initialized_string_array();
   rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
@@ -1264,6 +1382,7 @@ TEST(test_graph_cache, failing_allocators)
   }
 
   {
+    rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
     rmw_ret_t ret = rcutils_string_array_init(&namespaces, 3, &allocator);
     EXPECT_EQ(ret, RMW_RET_OK);
     ret = graph_cache.get_node_names(&names, &namespaces, nullptr, &allocator);
@@ -1300,6 +1419,15 @@ TEST(test_graph_cache, failing_allocators)
       &names_and_types);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
     rcutils_reset_error();
+    ret = graph_cache.get_writer_names_and_types_by_node(
+      "node_name",
+      "node_namespace",
+      identity_demangle,
+      identity_demangle,
+      &allocator,
+      nullptr);
+    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    rcutils_reset_error();
   }
 
   // Add one participant.
@@ -1329,8 +1457,8 @@ TEST(test_graph_cache, failing_allocators)
     graph_cache,
   {
     // topic1
-    {"reader1", "topic1", "Str", true},
-    {"writer1", "topic1", "Str", false},
+    {"reader1", "some_participant", "topic1", "Str", true},
+    {"writer1", "some_participant", "topic1", "Str", false},
   });
 
   // Associate entities
