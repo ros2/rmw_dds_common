@@ -72,11 +72,12 @@ install(
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_gmock REQUIRED)
+  find_package(osrf_testing_tools_cpp REQUIRED)
   ament_lint_auto_find_test_dependencies()
 
   ament_add_gmock(test_graph_cache test/test_graph_cache.cpp)
   if(TARGET test_graph_cache)
-    target_link_libraries(test_graph_cache ${PROJECT_NAME}_library)
+    target_link_libraries(test_graph_cache ${PROJECT_NAME}_library osrf_testing_tools_cpp::memory_tools)
   endif()
 
   ament_add_gmock(test_gid_utils test/test_gid_utils.cpp)
