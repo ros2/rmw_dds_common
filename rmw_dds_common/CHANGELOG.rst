@@ -2,8 +2,8 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2020-05-26)
+------------------
 * Added Doxyfile (`#19 <https://github.com/ros2/rmw_dds_common/issues/19>`_)
 * Improve test coverage. (`#20 <https://github.com/ros2/rmw_dds_common/issues/20>`_)
 * Add README and QUALITY_DECLARATION for current QL level (`#17 <https://github.com/ros2/rmw_dds_common/issues/17>`_)
