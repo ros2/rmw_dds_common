@@ -2,6 +2,13 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added Doxyfile (`#19 <https://github.com/ros2/rmw_dds_common/issues/19>`_)
+* Improve test coverage. (`#20 <https://github.com/ros2/rmw_dds_common/issues/20>`_)
+* Add README and QUALITY_DECLARATION for current QL level (`#17 <https://github.com/ros2/rmw_dds_common/issues/17>`_)
+* Contributors: Alejandro Hernández Cordero, Michel Hidalgo, brawner
+
 0.1.0 (2020-04-25)
 ------------------
 * Export targets in addition to include directories / libraries (`#15 <https://github.com/ros2/rmw_dds_common/issues/15>`_)
