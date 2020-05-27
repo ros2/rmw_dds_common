@@ -1363,10 +1363,14 @@ TEST(test_graph_cache, bad_arguments)
     rcutils_allocator_t allocator = rcutils_get_default_allocator();
     rcutils_string_array_t names = rcutils_get_zero_initialized_string_array();
     rmw_ret_t ret = rcutils_string_array_init(&names, 3, &allocator);
-    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(ret, RMW_RET_OK) << rcutils_get_error_string().str;
+    rcutils_reset_error();
     rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
     ret = graph_cache.get_node_names(&names, &namespaces, nullptr, &allocator);
-    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT) << rcutils_get_error_string().str;
+    rcutils_reset_error();
+    ret = rcutils_string_array_fini(&names);
+    EXPECT_EQ(ret, RMW_RET_OK) << rcutils_get_error_string().str;
     rcutils_reset_error();
   }
 
@@ -1375,9 +1379,13 @@ TEST(test_graph_cache, bad_arguments)
     rcutils_string_array_t names = rcutils_get_zero_initialized_string_array();
     rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
     rmw_ret_t ret = rcutils_string_array_init(&namespaces, 3, &allocator);
-    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(ret, RMW_RET_OK) << rcutils_get_error_string().str;
+    rcutils_reset_error();
     ret = graph_cache.get_node_names(&names, &namespaces, nullptr, &allocator);
-    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT) << rcutils_get_error_string().str;
+    rcutils_reset_error();
+    ret = rcutils_string_array_fini(&namespaces);
+    EXPECT_EQ(ret, RMW_RET_OK) << rcutils_get_error_string().str;
     rcutils_reset_error();
   }
 
@@ -1387,9 +1395,13 @@ TEST(test_graph_cache, bad_arguments)
     rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
     rcutils_string_array_t enclaves = rcutils_get_zero_initialized_string_array();
     rmw_ret_t ret = rcutils_string_array_init(&enclaves, 3, &allocator);
-    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(ret, RMW_RET_OK) << rcutils_get_error_string().str;
+    rcutils_reset_error();
     ret = graph_cache.get_node_names(&names, &namespaces, &enclaves, &allocator);
-    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT) << rcutils_get_error_string().str;
+    rcutils_reset_error();
+    ret = rcutils_string_array_fini(&enclaves);
+    EXPECT_EQ(ret, RMW_RET_OK) << rcutils_get_error_string().str;
     rcutils_reset_error();
   }
 
