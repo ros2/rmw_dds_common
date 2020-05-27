@@ -1359,19 +1359,8 @@ TEST(test_graph_cache, bad_arguments)
     graph_cache.get_writer_count("topic_name", nullptr),
     RMW_RET_INVALID_ARGUMENT);
 
-  rcutils_allocator_t failing_allocator = get_failing_allocator();
-  rcutils_string_array_t names = rcutils_get_zero_initialized_string_array();
-  rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
-  rcutils_allocator_t allocator = rcutils_get_default_allocator();
-  rcutils_allocator_t zero_allocator = rcutils_get_zero_initialized_allocator();
-
   {
-    rmw_ret_t ret = graph_cache.get_node_names(&names, &namespaces, nullptr, &failing_allocator);
-    EXPECT_EQ(ret, RMW_RET_BAD_ALLOC);
-    rcutils_reset_error();
-  }
-
-  {
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
     rcutils_string_array_t names = rcutils_get_zero_initialized_string_array();
     rmw_ret_t ret = rcutils_string_array_init(&names, 3, &allocator);
     EXPECT_EQ(ret, RMW_RET_OK);
@@ -1382,6 +1371,8 @@ TEST(test_graph_cache, bad_arguments)
   }
 
   {
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    rcutils_string_array_t names = rcutils_get_zero_initialized_string_array();
     rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
     rmw_ret_t ret = rcutils_string_array_init(&namespaces, 3, &allocator);
     EXPECT_EQ(ret, RMW_RET_OK);
@@ -1391,6 +1382,9 @@ TEST(test_graph_cache, bad_arguments)
   }
 
   {
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    rcutils_string_array_t names = rcutils_get_zero_initialized_string_array();
+    rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
     rcutils_string_array_t enclaves = rcutils_get_zero_initialized_string_array();
     rmw_ret_t ret = rcutils_string_array_init(&enclaves, 3, &allocator);
     EXPECT_EQ(ret, RMW_RET_OK);
@@ -1400,6 +1394,8 @@ TEST(test_graph_cache, bad_arguments)
   }
 
   {
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    rcutils_allocator_t zero_allocator = rcutils_get_zero_initialized_allocator();
     rmw_names_and_types_t names_and_types = rmw_get_zero_initialized_names_and_types();
     rmw_ret_t ret = graph_cache.get_writer_names_and_types_by_node(
       "node_name",
@@ -1469,6 +1465,16 @@ TEST(test_graph_cache, bad_arguments)
     {"reader1", true, "participant1", "ns1", "node1"},
     {"writer1", false, "participant1", "ns1", "node2"},
   });
+
+  {
+    rcutils_allocator_t failing_allocator = get_failing_allocator();
+    rcutils_string_array_t names = rcutils_get_zero_initialized_string_array();
+    rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
+    rmw_ret_t ret = graph_cache.get_node_names(&names, &namespaces, nullptr, &failing_allocator);
+    EXPECT_EQ(ret, RMW_RET_BAD_ALLOC);
+    rcutils_reset_error();
+  }
+
   {
     rmw_topic_endpoint_info_array_t topic_endpoint_info_array_sub =
       rmw_get_zero_initialized_topic_endpoint_info_array();
