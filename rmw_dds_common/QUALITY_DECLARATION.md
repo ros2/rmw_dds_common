@@ -107,6 +107,8 @@ Changes are required to make a best effort to keep or increase coverage before b
 
 Current coverage statistics can be viewed [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_dds_common_rmw_dds_common_include_rmw_dds_common/) and [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_dds_common_rmw_dds_common_src/). This package does not yet meet the 95% coverage guideline, but it is currently above 90%.
 
+A summary of how these statistics are calculated can be found in the [ROS 2 On-boarding guide](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
+
 ### Performance [4.iv]
 
 `rmw_dds_common` does not currently have performance tests.
