@@ -1,18 +1,17 @@
-# rmw_dds_common
+# rmw_dds_common: ROS 2 C++ utilities for DDS-based RMWs
 
-Package with a common implementation of Node discovery for all DDS based `rmw` implementations, including:
-
-- A generic [`GraphCache`](rmw_dds_common/include/rmw_dds_common/graph_cache.hpp) to track DDS entities such as participants and data readers and writers, plus ROS nodes as an additional abstraction for any DDS based `rmw` implementation to use
-- Common messages to communicate [ROS nodes discovery information](https://github.com/ros2/design/pull/250):
-  - [`rmw_dds_common/msg/Gid`](rmw_dds_common/msg/Gid.msg)
-  - [`rmw_dds_common/msg/NodeEntitiesInfo`](rmw_dds_common/msg/NodeEntitiesInfo.msg)
-  - [`rmw_dds_common/msg/ParticipantEntitiesInfo`](rmw_dds_common/msg/ParticipantEntitiesInfo.msg)
-- Some useful data types and utilities:
-  - A generic [`Context`](rmw_dds_common/include/rmw_dds_common/context.hpp) type to withhold most state needed to implement [ROS nodes discovery](https://github.com/ros2/design/pull/250)
-  - [Comparison utilities and some C++ operator overloads](rmw_dds_common/include/rmw_dds_common/gid_utils.hpp) for `rmw_gid_t` instances
-  - [Conversion utilities](rmw_dds_common/include/rmw_dds_common/gid_utils.hpp) between `rmw_dds_common/msg/Gid` messages and `rmw_gid_t` instances
-
+`rmw_dds_common` is a collection of C++ APIs to support DDS based, C++ RMW implementations. 
 
 ## Quality Declaration
 
 This package claims to be in the **Quality Level 4** category, see the [Quality Declaration](rmw_dds_common/QUALITY_DECLARATION.md) for more details.
+
+## API
+
+This package contains:
+
+- Generic graph cache
+- Common discovery messages
+- Data types and utilities
+
+See [feature list](rmw_dds_common/docs/FEATURES.md) for further reference.
