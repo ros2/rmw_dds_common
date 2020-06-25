@@ -149,6 +149,52 @@ Currently nightly results can be seen here:
 * [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rmw_dds_common/)
 * [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rmw_dds_common/)
 
-## Vulnerability Disclosure Policy [7.i]
+## Security [7]
+
+### Vulnerability Disclosure Policy [7.i]
 
 This package conforms to the Vulnerability Disclosure Policy in [REP-2006](https://www.ros.org/reps/rep-2006.html).
+
+# Current status Summary
+
+The chart below compares the requirements in the REP-2004 with the current state of the `rmw_dds_common` package.
+
+|Number| Requirement| Current state |
+|--|--|--|
+|1| **Version policy** |---|
+|1.i|Version Policy available | ✓ |
+|1.ii|Stable version |✓ |
+|1.iii|Declared public API|✓|
+|1.iv|API stability policy|✓|
+|1.v|ABI stability policy|✓|
+|1.vi_|API/ABI stable within ros distribution|✓|
+|2| **Change control process** |---|
+|2.i| All changes occur on change request | ✓|
+|2.ii| Contributor origin (DCO, CLA, etc) | ✓|
+|2.iii| Peer review policy | ✓ |
+|2.iv| CI policy for change requests | ✓ |
+|2.v| Documentation policy for change requests | ✓ |
+|3| **Documentation** | --- |
+|3.i| Per feature documentation | ✓ |
+|3.ii| Per public API item documentation | * |
+|3.iii| Declared License(s) | ✓ |
+|3.iv| Copyright in source files| ✓ |
+|3.v.a| Quality declaration linked to README | ✓ |
+|3.v.b| Centralized declaration available for peer review |✓|
+|4| **Testing** | --- |
+|4.i| Feature items tests | ✓ |
+|4.ii| Public API tests | ✓ |
+|4.iii.a| Using coverage | ✓ |
+|4.iii.a| Coverage policy | ✓ |
+|4.iv.a| Performance tests (if applicable) | ☓ |
+|4.iv.b| Performance tests policy| ✓ |
+|4.v.a| Code style enforcement (linters)| ✓ |
+|4.v.b| Use of static analysis tools | ✓ |
+|5| **Dependencies** | --- |
+|5.i| Must not have ROS lower level dependencies | ✓ |
+|5.ii| Optional ROS lower level dependencies| ✓ |
+|5.iii| Justifies quality use of non-ROS dependencies |✓|
+|6| **Platform support** | --- |
+|6.i| Support targets Tier1 ROS platforms| ✓ |
+|7| **Security** | --- |
+|7.i| Vulnerability Disclosure Policy | ✓ |
