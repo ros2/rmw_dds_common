@@ -2,9 +2,9 @@ This document is a declaration of software quality for the `rmw_dds_common` pack
 
 # `rmw_dds_common` Quality Declaration
 
-The package `rmw_dds_common` claims to be in the **Quality Level 4** category.
+The package `rmw_dds_common` claims to be in the **Quality Level 3** category.
 
-Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 4 in REP-2004](https://www.ros.org/reps/rep-2004.html).
+Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 3 in REP-2004](https://www.ros.org/reps/rep-2004.html).
 
 ## Version Policy [1]
 
@@ -14,7 +14,8 @@ Below are the rationales, notes, and caveats for this claim, organized by each r
 
 ### Version Stability [1.ii]
 
-`rmw_dds_common` is not yet at a stable version, i.e. `>= 1.0.0`.
+`rmw_dds_common` is at a stable version, i.e. `>= 1.0.0`.
+The current version can be found in its [package.xml](package.xml), and its change history can be found in its [CHANGELOG](CHANGELOG.rst).
 
 ### Public API Declaration [1.iii]
 
@@ -85,12 +86,13 @@ The results of the test can be found [here](https://ci.ros2.org/view/nightly/job
 
 ### Feature Testing [4.i]
 
-Each feature in `rmw_dds_common` has corresponding tests which simulate typical usage, and they are located in the `test` directory.
+Each feature in `rmw_dds_common` has tests which simulate typical usage, and they are located in the [test](./test) directory.
 New features are required to have tests before being added.
 
 ### Public API Testing [4.ii]
 
-Each part of the public API have tests, and new additions or changes to the public API require tests before being added.
+Each part of the public API has tests, which are located in the [test](./test) directory.
+New additions or changes to the public API require tests before being added.
 The tests aim to cover both typical usage and corner cases, but are quantified by contributing to code coverage.
 
 ### Coverage [4.iii]
@@ -147,6 +149,52 @@ Currently nightly results can be seen here:
 * [mac_osx_release](https://ci.ros2.org/view/nightly/job/nightly_osx_release/lastBuild/testReport/rmw_dds_common/)
 * [windows_release](https://ci.ros2.org/view/nightly/job/nightly_win_rel/lastBuild/testReport/rmw_dds_common/)
 
-## Vulnerability Disclosure Policy [7.i]
+## Security [7]
+
+### Vulnerability Disclosure Policy [7.i]
 
 This package conforms to the Vulnerability Disclosure Policy in [REP-2006](https://www.ros.org/reps/rep-2006.html).
+
+# Current status Summary
+
+The chart below compares the requirements in the REP-2004 with the current state of the `rmw_dds_common` package.
+
+|Number| Requirement| Current state |
+|--|--|--|
+|1| **Version policy** |---|
+|1.i|Version Policy available | ✓ |
+|1.ii|Stable version |✓ |
+|1.iii|Declared public API|✓|
+|1.iv|API stability policy|✓|
+|1.v|ABI stability policy|✓|
+|1.vi_|API/ABI stable within ros distribution|✓|
+|2| **Change control process** |---|
+|2.i| All changes occur on change request | ✓|
+|2.ii| Contributor origin (DCO, CLA, etc) | ✓|
+|2.iii| Peer review policy | ✓ |
+|2.iv| CI policy for change requests | ✓ |
+|2.v| Documentation policy for change requests | ✓ |
+|3| **Documentation** | --- |
+|3.i| Per feature documentation | ✓ |
+|3.ii| Per public API item documentation | * |
+|3.iii| Declared License(s) | ✓ |
+|3.iv| Copyright in source files| ✓ |
+|3.v.a| Quality declaration linked to README | ✓ |
+|3.v.b| Centralized declaration available for peer review |✓|
+|4| **Testing** | --- |
+|4.i| Feature items tests | ✓ |
+|4.ii| Public API tests | ✓ |
+|4.iii.a| Using coverage | ✓ |
+|4.iii.a| Coverage policy | ✓ |
+|4.iv.a| Performance tests (if applicable) | ☓ |
+|4.iv.b| Performance tests policy| ✓ |
+|4.v.a| Code style enforcement (linters)| ✓ |
+|4.v.b| Use of static analysis tools | ✓ |
+|5| **Dependencies** | --- |
+|5.i| Must not have ROS lower level dependencies | ✓ |
+|5.ii| Optional ROS lower level dependencies| ✓ |
+|5.iii| Justifies quality use of non-ROS dependencies |✓|
+|6| **Platform support** | --- |
+|6.i| Support targets Tier1 ROS platforms| ✓ |
+|7| **Security** | --- |
+|7.i| Vulnerability Disclosure Policy | ✓ |
