@@ -2,9 +2,9 @@ This document is a declaration of software quality for the `rmw_dds_common` pack
 
 # `rmw_dds_common` Quality Declaration
 
-The package `rmw_dds_common` claims to be in the **Quality Level 4** category.
+The package `rmw_dds_common` claims to be in the **Quality Level 3** category.
 
-Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 4 in REP-2004](https://www.ros.org/reps/rep-2004.html).
+Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 3 in REP-2004](https://www.ros.org/reps/rep-2004.html).
 
 ## Version Policy [1]
 
@@ -14,7 +14,8 @@ Below are the rationales, notes, and caveats for this claim, organized by each r
 
 ### Version Stability [1.ii]
 
-`rmw_dds_common` is not yet at a stable version, i.e. `>= 1.0.0`.
+`rmw_dds_common` is at a stable version, i.e. `>= 1.0.0`.
+The current version can be found in its [package.xml](package.xml), and its change history can be found in its [CHANGELOG](CHANGELOG.rst).
 
 ### Public API Declaration [1.iii]
 
@@ -85,12 +86,13 @@ The results of the test can be found [here](https://ci.ros2.org/view/nightly/job
 
 ### Feature Testing [4.i]
 
-Each feature in `rmw_dds_common` has corresponding tests which simulate typical usage, and they are located in the `test` directory.
+Each feature in `rmw_dds_common` has tests which simulate typical usage, and they are located in the [test](./test) directory.
 New features are required to have tests before being added.
 
 ### Public API Testing [4.ii]
 
-Each part of the public API have tests, and new additions or changes to the public API require tests before being added.
+Each part of the public API has tests, which are located in the [test](./test) directory.
+New additions or changes to the public API require tests before being added.
 The tests aim to cover both typical usage and corner cases, but are quantified by contributing to code coverage.
 
 ### Coverage [4.iii]
