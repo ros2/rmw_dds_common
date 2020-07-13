@@ -341,6 +341,7 @@ public:
     const std::string & topic_name,
     size_t * count) const;
 
+  /// Callable used to demangle a name.
   using DemangleFunctionT = std::function<std::string(const std::string &)>;
 
   /// Get an array with information about the writers in a topic.
@@ -498,10 +499,18 @@ public:
    * @}
    */
 
+  /// Internal, do not use.
+  /// Sequence of NodeEntitiesInfo messages.
   using NodeEntitiesInfoSeq =
     decltype(std::declval<rmw_dds_common::msg::ParticipantEntitiesInfo>().node_entities_info_seq);
+  /// Internal, do not use.
+  /// Map from endpoint gids to endpoints discovery info.
   using EntityGidToInfo = std::map<rmw_gid_t, EntityInfo, Compare_rmw_gid_t>;
+  /// Internal, do not use.
+  /// Map from participant gids to participant discovery info.
   using ParticipantToNodesMap = std::map<rmw_gid_t, ParticipantInfo, Compare_rmw_gid_t>;
+  /// Internal, do not use.
+  /// Sequence of endpoints gids.
   using GidSeq =
     decltype(std::declval<rmw_dds_common::msg::NodeEntitiesInfo>().writer_gid_seq);
 
@@ -518,24 +527,28 @@ RMW_DDS_COMMON_PUBLIC
 std::ostream &
 operator<<(std::ostream & ostream, const GraphCache & topic_cache);
 
+/// Structure to represent the discovery data of a Participant.
 struct ParticipantInfo
 {
+  /// Discovery information of each Node created from a Participant.
   GraphCache::NodeEntitiesInfoSeq node_entities_info_seq;
   /// Name of the enclave.
   std::string enclave;
 };
 
+/// Structure to represent the discovery data of an endpoint (reader or writer).
 struct EntityInfo
 {
-  /// Topic name
+  /// Topic name.
   std::string topic_name;
-  /// topic type
+  /// Topic type.
   std::string topic_type;
-  /// participant gid
+  /// Participant gid.
   rmw_gid_t participant_gid;
-  /// quality of service
+  /// Quality of service of the topic.
   rmw_qos_profile_t qos;
 
+  /// Simple constructor.
   EntityInfo(
     const std::string & topic_name,
     const std::string & topic_type,

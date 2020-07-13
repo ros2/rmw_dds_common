@@ -27,16 +27,27 @@
 namespace rmw_dds_common
 {
 
+/// Structure of data that a Context will need in any rmw implementation
+/// mapping one Participant to Multiple Nodes.
 struct Context
 {
+  /// Gid of the Participant that the context uses.
   rmw_gid_t gid;
+  /// Publisher used to publish ParticipantEntitiesInfo discovery data.
   rmw_publisher_t * pub;
+  /// Subscriber used to listen ParticipantEntitiesInfo discovery data.
   rmw_subscription_t * sub;
+  /// Cached graph from listened discovery data.
   GraphCache graph_cache;
+  /// Mutex that should be locked when updating graph cache/publishing a message.
   std::mutex node_update_mutex;
+  /// Thread where to listen to discovery data.
   std::thread listener_thread;
+  /// Indicates if the thread is running.
   std::atomic_bool thread_is_running;
+  /// Awakes listener thread when finishing the context.
   rmw_guard_condition_t * listener_thread_gc;
+  /// Guard condition that should be triggered when the graph changes.
   rmw_guard_condition_t * graph_guard_condition;
 };
 

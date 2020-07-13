@@ -26,6 +26,7 @@ namespace rmw_dds_common
 /// Comparator for rmw_gid_t, in order to use them as a key of a map
 struct RMW_DDS_COMMON_PUBLIC_TYPE Compare_rmw_gid_t
 {
+  /// Compare lhs with rhs.
   bool operator()(const rmw_gid_t & lhs, const rmw_gid_t & rhs) const;
 };
 
