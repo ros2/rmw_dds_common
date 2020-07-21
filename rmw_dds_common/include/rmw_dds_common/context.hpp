@@ -35,7 +35,7 @@ struct Context
   rmw_gid_t gid;
   /// Publisher used to publish ParticipantEntitiesInfo discovery data.
   rmw_publisher_t * pub;
-  /// Subscriber used to listen ParticipantEntitiesInfo discovery data.
+  /// Subscriber used to listen to ParticipantEntitiesInfo discovery data.
   rmw_subscription_t * sub;
   /// Cached graph from listened discovery data.
   GraphCache graph_cache;
