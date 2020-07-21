@@ -43,7 +43,7 @@ struct Context
   std::mutex node_update_mutex;
   /// Thread where to listen to discovery data.
   std::thread listener_thread;
-  /// Indicates if the thread is running.
+  /// Indicates if the listener thread is running.
   std::atomic_bool thread_is_running;
   /// Awakes listener thread when finishing the context.
   rmw_guard_condition_t * listener_thread_gc;
