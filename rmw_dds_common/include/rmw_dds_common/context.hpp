@@ -31,7 +31,7 @@ namespace rmw_dds_common
 /// mapping one Participant to Multiple Nodes.
 struct Context
 {
-  /// Gid of the Participant that the context uses.
+  /// Global ID of the Participant that the Context uses.
   rmw_gid_t gid;
   /// Publisher used to publish ParticipantEntitiesInfo discovery data.
   rmw_publisher_t * pub;
