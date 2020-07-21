@@ -27,7 +27,7 @@
 namespace rmw_dds_common
 {
 
-/// Structure of data that a Context will need in any rmw implementation
+/// Base data structure that a Context will need in any DDS-based RMW implementation
 /// mapping one Participant to Multiple Nodes.
 struct Context
 {
