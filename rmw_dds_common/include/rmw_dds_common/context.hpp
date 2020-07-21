@@ -41,7 +41,7 @@ struct Context
   GraphCache graph_cache;
   /// Mutex that should be locked when updating graph cache/publishing a message.
   std::mutex node_update_mutex;
-  /// Thread where to listen to discovery data.
+  /// Thread to listen to discovery data.
   std::thread listener_thread;
   /// Indicates if the listener thread is running.
   std::atomic_bool thread_is_running;
