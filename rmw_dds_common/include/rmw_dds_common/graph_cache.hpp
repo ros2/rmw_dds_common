@@ -499,17 +499,17 @@ public:
    * @}
    */
 
-  /// Internal, do not use.
+  /// \internal
   /// Sequence of NodeEntitiesInfo messages.
   using NodeEntitiesInfoSeq =
     decltype(std::declval<rmw_dds_common::msg::ParticipantEntitiesInfo>().node_entities_info_seq);
-  /// Internal, do not use.
+  /// \internal
   /// Map from endpoint gids to endpoints discovery info.
   using EntityGidToInfo = std::map<rmw_gid_t, EntityInfo, Compare_rmw_gid_t>;
-  /// Internal, do not use.
+  /// \internal
   /// Map from participant gids to participant discovery info.
   using ParticipantToNodesMap = std::map<rmw_gid_t, ParticipantInfo, Compare_rmw_gid_t>;
-  /// Internal, do not use.
+  /// \internal
   /// Sequence of endpoints gids.
   using GidSeq =
     decltype(std::declval<rmw_dds_common::msg::NodeEntitiesInfo>().writer_gid_seq);

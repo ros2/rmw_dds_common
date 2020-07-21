@@ -39,7 +39,7 @@ struct Context
   rmw_subscription_t * sub;
   /// Cached graph from discovery data.
   GraphCache graph_cache;
-  /// Mutex that should be locked when updating graph cache/publishing a message.
+  /// Mutex that should be locked when updating graph cache and publishing a graph message.
   std::mutex node_update_mutex;
   /// Thread to listen to discovery data.
   std::thread listener_thread;
