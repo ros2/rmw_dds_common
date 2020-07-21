@@ -37,7 +37,7 @@ struct Context
   rmw_publisher_t * pub;
   /// Subscriber used to listen to ParticipantEntitiesInfo discovery data.
   rmw_subscription_t * sub;
-  /// Cached graph from listened discovery data.
+  /// Cached graph from discovery data.
   GraphCache graph_cache;
   /// Mutex that should be locked when updating graph cache/publishing a message.
   std::mutex node_update_mutex;
