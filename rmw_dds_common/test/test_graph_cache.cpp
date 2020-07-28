@@ -23,6 +23,7 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
+#include "rcutils/testing/fault_injection.h"
 #include "rmw/qos_profiles.h"
 #include "rmw/topic_endpoint_info.h"
 #include "rmw/topic_endpoint_info_array.h"
@@ -1549,4 +1550,65 @@ TEST(test_graph_cache, bad_arguments)
     EXPECT_EQ(topic_endpoint_info_array_sub.info_array, nullptr);
     rcutils_reset_error();
   }
+}
+
+TEST(test_graph_cache, get_writers_info_by_topic_maybe_fail)
+{
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    GraphCache graph_cache;
+    add_participants(graph_cache, {"participant1"});
+    add_entities(
+      graph_cache,
+    {
+      // topic1
+      {"reader1", "participant1", "topic1", "Str", true},
+      {"writer1", "participant1", "topic1", "Str", false},
+    });
+    add_nodes(
+      graph_cache, {
+      {"participant1", "ns1", "node1"},
+      {"participant1", "ns1", "node2"},
+      {"participant1", "ns2", "node1"}});
+
+    rmw_topic_endpoint_info_array_t info = rmw_get_zero_initialized_topic_endpoint_info_array();
+
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    rmw_ret_t ret = graph_cache.get_writers_info_by_topic(
+      "topic1",
+      identity_demangle,
+      &allocator,
+      &info);
+    if (RMW_RET_OK == ret) {
+      ret = rmw_topic_endpoint_info_array_fini(&info, &allocator);
+    } else {
+      rcutils_reset_error();
+    }
+
+    rcutils_string_array_t names = rcutils_get_zero_initialized_string_array();
+    rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
+    rcutils_string_array_t enclaves = rcutils_get_zero_initialized_string_array();
+    ret = graph_cache.get_node_names(&names, &namespaces, &enclaves, &allocator);
+    if (RMW_RET_OK == ret) {
+      ret = rcutils_string_array_fini(&names);
+      ret = rcutils_string_array_fini(&namespaces);
+      ret = rcutils_string_array_fini(&enclaves);
+    } else {
+      rcutils_reset_error();
+    }
+
+    DemangleFunctionT demangle_topic = identity_demangle;
+    DemangleFunctionT demangle_type = identity_demangle;
+    rmw_names_and_types_t names_and_types = rmw_get_zero_initialized_names_and_types();
+    ret = graph_cache.get_names_and_types(
+      demangle_topic,
+      demangle_type,
+      &allocator,
+      &names_and_types);
+    if (RMW_RET_OK == ret) {
+      ret = rmw_names_and_types_fini(&names_and_types);
+    } else {
+      rcutils_reset_error();
+    }
+  });
 }
