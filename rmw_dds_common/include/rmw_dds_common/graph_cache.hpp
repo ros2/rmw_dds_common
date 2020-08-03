@@ -73,14 +73,14 @@ public:
   clear_on_change_callback();
 
   /**
-   * \defgroup dds_discovery_api
+   * \defgroup dds_discovery_api dds_discovery_api
    * Methods used to update the Graph Cache based on DDS discovery.
    * @{
    */
 
   /// Add a data writer based on discovery.
   /**
-   * \param gid The data writer guid.
+   * \param writer_gid The data writer guid.
    * \param topic_name
    * \param type_name
    * \param participant_gid gid of the participant.
@@ -98,7 +98,7 @@ public:
 
   /// Add a data reader based on discovery.
   /**
-   * \param gid The data reader guid
+   * \param reader_gid The data reader guid
    * \param topic_name
    * \param type_name
    * \param participant_gid gid of the participant.
@@ -164,14 +164,14 @@ public:
 
   /**
    * @}
-   * \defgroup common_api
+   * \defgroup common_api common_api
    * Methods used to update the Graph Cache.
    * @{
    */
 
   /// Add a discovered participant to the cache.
   /**
-   * \param gid The participant guid.
+   * \param participant_gid The participant guid.
    * \param enclave Name of the enclave.
    */
   RMW_DDS_COMMON_PUBLIC
@@ -191,7 +191,7 @@ public:
 
   /**
    * @}
-   * \defgroup ros_discovery_api
+   * \defgroup ros_discovery_api ros_discovery_api
    * Methods used to update the Graph Cache based on ROS 2 specific messages received from
    * remote participants.
    * @{
@@ -207,14 +207,14 @@ public:
 
   /**
    * @}
-   * \defgroup local_api
+   * \defgroup local_api local_api
    * Methods used to update the Graph Cache, based on local construction and destruction of objects.
    * @{
    */
 
   /// Add a node to the graph, and get the message to be sent.
   /**
-   * \param gid participant GUID.
+   * \param participant_gid participant GUID.
    * \param node_name name of the node to be added.
    * \param node_namespace node namespace.
    * \return message to be sent.
@@ -228,7 +228,7 @@ public:
 
   /// Remove a node to the graph, and get the message to be sent.
   /**
-   * \param gid participant GUID.
+   * \param participant_gid participant GUID.
    * \param node_name name of the node to be added.
    * \param node_namespace node namespace.
    * \return message to be sent.
@@ -306,7 +306,7 @@ public:
 
   /**
    * @}
-   * \defgroup introspection_api
+   * \defgroup introspection_api introspection_api
    * Methods used to introspect the GraphCache.
    * @{
    */
@@ -341,6 +341,7 @@ public:
     const std::string & topic_name,
     size_t * count) const;
 
+  /// Callable used to demangle a name.
   using DemangleFunctionT = std::function<std::string(const std::string &)>;
 
   /// Get an array with information about the writers in a topic.
@@ -387,7 +388,7 @@ public:
    *   into a ros topic name.
    * \param[in] demangle_type Function that indicates how a dds type name is demangled
    *   into a ros type name.
-   * \param[in] allocator.
+   * \param[in] allocator
    * \param[inout] topic_names_and_types A zero initialized names and types object, that
    *   will be populated with the result.
    *
@@ -408,7 +409,7 @@ public:
   /// Get the topic names and types that a node is publishing.
   /**
    * \param[in] node_name Name of the node.
-   * \param[in] node_namespace Namespace of the node.
+   * \param[in] namespace_ Namespace of the node.
    * \param[in] demangle_topic Function that indicates how a dds topic name is demangled
    *   into a ros topic name.
    * \param[in] demangle_type Function that indicates how a dds type name is demangled
@@ -436,12 +437,12 @@ public:
   /// Get the topic names and types that a node is subscribing.
   /**
    * \param[in] node_name Name of the node.
-   * \param[in] node_namespace Namespace of the node.
+   * \param[in] namespace_ Namespace of the node.
    * \param[in] demangle_topic Function that indicates how a dds topic name is demangled
    *   into a ros topic name.
    * \param[in] demangle_type Function that indicates how a dds type name is demangled
    *   into a ros type name.
-   * \param[in] allocator.
+   * \param[in] allocator
    * \param[inout] topic_names_and_types A zero initialized names and types object, that
    *   will be populated with the result.
    *
@@ -480,7 +481,7 @@ public:
    * \param[inout] enclaves A zero initialized string array, where the enclave
    *   name of the node will be copied. Each item in this array corresponds to an item in the same
    *   position of node_names array. In case is `nullptr`, it won't be used.
-   * \param[in] allocator.
+   * \param[in] allocator
    * \return RMW_RET_OK, or
    * \return RMW_RET_INVALID_ARGUMENT, or
    * \return RMW_RET_BAD_ALLOC, or
@@ -498,10 +499,18 @@ public:
    * @}
    */
 
+  /// \internal
+  /// Sequence of NodeEntitiesInfo messages.
   using NodeEntitiesInfoSeq =
     decltype(std::declval<rmw_dds_common::msg::ParticipantEntitiesInfo>().node_entities_info_seq);
+  /// \internal
+  /// Map from endpoint gids to endpoints discovery info.
   using EntityGidToInfo = std::map<rmw_gid_t, EntityInfo, Compare_rmw_gid_t>;
+  /// \internal
+  /// Map from participant gids to participant discovery info.
   using ParticipantToNodesMap = std::map<rmw_gid_t, ParticipantInfo, Compare_rmw_gid_t>;
+  /// \internal
+  /// Sequence of endpoints gids.
   using GidSeq =
     decltype(std::declval<rmw_dds_common::msg::NodeEntitiesInfo>().writer_gid_seq);
 
@@ -518,19 +527,28 @@ RMW_DDS_COMMON_PUBLIC
 std::ostream &
 operator<<(std::ostream & ostream, const GraphCache & topic_cache);
 
+/// Structure to represent the discovery data of a Participant.
 struct ParticipantInfo
 {
+  /// Discovery information of each Node created from a Participant.
   GraphCache::NodeEntitiesInfoSeq node_entities_info_seq;
+  /// Name of the enclave.
   std::string enclave;
 };
 
+/// Structure to represent the discovery data of an endpoint (reader or writer).
 struct EntityInfo
 {
+  /// Topic name.
   std::string topic_name;
+  /// Topic type.
   std::string topic_type;
+  /// Participant gid.
   rmw_gid_t participant_gid;
+  /// Quality of service of the topic.
   rmw_qos_profile_t qos;
 
+  /// Simple constructor.
   EntityInfo(
     const std::string & topic_name,
     const std::string & topic_type,

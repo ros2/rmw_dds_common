@@ -4,12 +4,11 @@ PROJECT_NAME           = "rmw_dds_common"
 PROJECT_NUMBER         = master
 PROJECT_BRIEF          = "Define a common interface between DDS implementations of ROS middleware."
 
-INPUT                  = ./include ../README.md
+INPUT                  = ./include ../README.md ./QUALITY_DECLARATION.md
 USE_MDFILE_AS_MAINPAGE = ../README.md
 RECURSIVE              = YES
 OUTPUT_DIRECTORY       = doc_output
 
-EXTRACT_ALL            = YES
 SORT_MEMBER_DOCS       = NO
 
 GENERATE_LATEX         = NO
