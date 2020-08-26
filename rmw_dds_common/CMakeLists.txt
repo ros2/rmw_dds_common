@@ -82,6 +82,7 @@ if(BUILD_TESTING)
   ament_add_gmock(test_graph_cache test/test_graph_cache.cpp)
   if(TARGET test_graph_cache)
     target_link_libraries(test_graph_cache ${PROJECT_NAME}_library osrf_testing_tools_cpp::memory_tools)
+    target_compile_definitions(test_graph_cache PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
 
   ament_add_gmock(test_gid_utils test/test_gid_utils.cpp)
