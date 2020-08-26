@@ -23,6 +23,7 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
+#include "rcutils/testing/fault_injection.h"
 #include "rmw/qos_profiles.h"
 #include "rmw/topic_endpoint_info.h"
 #include "rmw/topic_endpoint_info_array.h"
@@ -1549,4 +1550,102 @@ TEST(test_graph_cache, bad_arguments)
     EXPECT_EQ(topic_endpoint_info_array_sub.info_array, nullptr);
     rcutils_reset_error();
   }
+}
+
+class TestGraphCache : public ::testing::Test
+{
+public:
+  void SetUp()
+  {
+    add_participants(graph_cache_, {"participant1"});
+    add_entities(
+      graph_cache_,
+    {
+      // topic1
+      {"reader1", "participant1", "topic1", "Str", true},
+      {"writer1", "participant1", "topic1", "Str", false},
+    });
+    add_nodes(
+      graph_cache_, {
+      {"participant1", "ns1", "node1"},
+      {"participant1", "ns1", "node2"},
+      {"participant1", "ns2", "node1"}});
+  }
+
+protected:
+  GraphCache graph_cache_;
+};
+
+TEST_F(TestGraphCache, get_writers_info_by_topic_maybe_fail)
+{
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rmw_topic_endpoint_info_array_t info = rmw_get_zero_initialized_topic_endpoint_info_array();
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+
+    rmw_ret_t ret = graph_cache_.get_writers_info_by_topic(
+      "topic1",
+      identity_demangle,
+      &allocator,
+      &info);
+    if (RMW_RET_OK == ret) {
+      ret = rmw_topic_endpoint_info_array_fini(&info, &allocator);
+      if (RMW_RET_OK != ret) {
+        // If fault injection causes fini to fail, it should work the second time.
+        EXPECT_EQ(RMW_RET_OK, rmw_topic_endpoint_info_array_fini(&info, &allocator));
+      }
+    } else {
+      rcutils_reset_error();
+    }
+  });
+}
+
+TEST_F(TestGraphCache, get_node_names_maybe_fail)
+{
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    rcutils_string_array_t names = rcutils_get_zero_initialized_string_array();
+    rcutils_string_array_t namespaces = rcutils_get_zero_initialized_string_array();
+    rcutils_string_array_t enclaves = rcutils_get_zero_initialized_string_array();
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    rmw_ret_t ret = graph_cache_.get_node_names(&names, &namespaces, &enclaves, &allocator);
+    if (RMW_RET_OK == ret) {
+      // rcutils_string_array_fini is not under test, so disable fault injection test here.
+      int64_t fault_injection_count = rcutils_fault_injection_get_count();
+      rcutils_fault_injection_set_count(RCUTILS_FAULT_INJECTION_NEVER_FAIL);
+
+      EXPECT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&names));
+      EXPECT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&namespaces));
+      EXPECT_EQ(RCUTILS_RET_OK, rcutils_string_array_fini(&enclaves));
+
+      rcutils_fault_injection_set_count(fault_injection_count);
+    } else {
+      rcutils_reset_error();
+    }
+  });
+}
+
+TEST_F(TestGraphCache, get_names_and_types_maybe_fail)
+{
+  RCUTILS_FAULT_INJECTION_TEST(
+  {
+    DemangleFunctionT demangle_topic = identity_demangle;
+    DemangleFunctionT demangle_type = identity_demangle;
+    rcutils_allocator_t allocator = rcutils_get_default_allocator();
+    rmw_names_and_types_t names_and_types = rmw_get_zero_initialized_names_and_types();
+    rmw_ret_t ret = graph_cache_.get_names_and_types(
+      demangle_topic,
+      demangle_type,
+      &allocator,
+      &names_and_types);
+    if (RMW_RET_OK == ret) {
+      ret = rmw_names_and_types_fini(&names_and_types);
+      if (RMW_RET_OK != ret) {
+        // If fault injection causes fini to fail, it should work the second time.
+        EXPECT_EQ(RMW_RET_OK, rmw_names_and_types_fini(&names_and_types));
+      }
+    } else {
+      rcutils_reset_error();
+    }
+  });
 }
