@@ -1010,6 +1010,14 @@ fail:
       "rmw_dds_common",
       "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
   }
+  if (enclaves) {
+    rcutils_ret = rcutils_string_array_fini(enclaves);
+    if (rcutils_ret != RCUTILS_RET_OK) {
+      RCUTILS_LOG_ERROR_NAMED(
+        "rmw_dds_common",
+        "failed to cleanup during error handling: %s", rcutils_get_error_string().str);
+    }
+  }
   return RMW_RET_BAD_ALLOC;
 }
 
