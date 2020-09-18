@@ -207,6 +207,7 @@ public:
       {"participant1", "ns1", "node1"},
       {"participant1", "ns1", "node2"},
       {"participant1", "ns2", "node1"}});
+    reset_heap_counters();
   }
   void TearDown(::benchmark::State & st)
   {
@@ -257,6 +258,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, add_node_benchmark)(benchmark::State & st)
   add_participants(graph_cache_, {"participant1"});
   int n = 0;
 
+  reset_heap_counters();
+
   for (auto _ : st) {
     add_nodes(graph_cache_, {{"participant1", "ns1", "node" + std::to_string(n++)}});
   }
@@ -273,6 +276,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, remove_node_benchmark)(benchmark::State & st
 {
   GraphCache graph_cache_;
   add_participants(graph_cache_, {"participant1"});
+
+  reset_heap_counters();
 
   int n = 0;
   for (auto _ : st) {
