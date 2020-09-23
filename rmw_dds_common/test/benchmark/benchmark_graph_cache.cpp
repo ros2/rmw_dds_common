@@ -231,7 +231,7 @@ protected:
   GraphCache graph_cache_;
 };
 
-BENCHMARK_DEFINE_F(PerformanceTest, add_participant_benchmark)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, add_participant_benchmark)(benchmark::State & st)
 {
   GraphCache graph_cache_;
   int n = 0;
@@ -239,9 +239,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, add_participant_benchmark)(benchmark::State 
     add_participants(graph_cache_, {"participant" + std::to_string(n++)});
   }
 }
-BENCHMARK_REGISTER_F(PerformanceTest, add_participant_benchmark);
 
-BENCHMARK_DEFINE_F(PerformanceTest, remove_participant_benchmark)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, remove_participant_benchmark)(benchmark::State & st)
 {
   GraphCache graph_cache_;
 
@@ -250,9 +249,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, remove_participant_benchmark)(benchmark::Sta
     remove_participants(graph_cache_, {"participant1"});
   }
 }
-BENCHMARK_REGISTER_F(PerformanceTest, remove_participant_benchmark);
 
-BENCHMARK_DEFINE_F(PerformanceTest, add_node_benchmark)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, add_node_benchmark)(benchmark::State & st)
 {
   GraphCache graph_cache_;
   add_participants(graph_cache_, {"participant1"});
@@ -270,9 +268,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, add_node_benchmark)(benchmark::State & st)
 
   remove_participants(graph_cache_, {"participant1"});
 }
-BENCHMARK_REGISTER_F(PerformanceTest, add_node_benchmark);
 
-BENCHMARK_DEFINE_F(PerformanceTest, remove_node_benchmark)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, remove_node_benchmark)(benchmark::State & st)
 {
   GraphCache graph_cache_;
   add_participants(graph_cache_, {"participant1"});
@@ -286,9 +283,8 @@ BENCHMARK_DEFINE_F(PerformanceTest, remove_node_benchmark)(benchmark::State & st
   }
   remove_participants(graph_cache_, {"participant1"});
 }
-BENCHMARK_REGISTER_F(PerformanceTest, remove_node_benchmark);
 
-BENCHMARK_DEFINE_F(TestGraphCache, get_writers_info_by_topic_benchmark)(benchmark::State & st)
+BENCHMARK_F(TestGraphCache, get_writers_info_by_topic_benchmark)(benchmark::State & st)
 {
   for (auto _ : st) {
     rmw_topic_endpoint_info_array_t info = rmw_get_zero_initialized_topic_endpoint_info_array();
@@ -308,9 +304,8 @@ BENCHMARK_DEFINE_F(TestGraphCache, get_writers_info_by_topic_benchmark)(benchmar
     }
   }
 }
-BENCHMARK_REGISTER_F(TestGraphCache, get_writers_info_by_topic_benchmark);
 
-BENCHMARK_DEFINE_F(TestGraphCache, get_readers_info_by_topic_benchmark)(benchmark::State & st)
+BENCHMARK_F(TestGraphCache, get_readers_info_by_topic_benchmark)(benchmark::State & st)
 {
   for (auto _ : st) {
     rmw_topic_endpoint_info_array_t info = rmw_get_zero_initialized_topic_endpoint_info_array();
@@ -330,9 +325,8 @@ BENCHMARK_DEFINE_F(TestGraphCache, get_readers_info_by_topic_benchmark)(benchmar
     }
   }
 }
-BENCHMARK_REGISTER_F(TestGraphCache, get_readers_info_by_topic_benchmark);
 
-BENCHMARK_DEFINE_F(TestGraphCache, get_names_and_types_benchmark)(benchmark::State & st)
+BENCHMARK_F(TestGraphCache, get_names_and_types_benchmark)(benchmark::State & st)
 {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
@@ -352,9 +346,8 @@ BENCHMARK_DEFINE_F(TestGraphCache, get_names_and_types_benchmark)(benchmark::Sta
     }
   }
 }
-BENCHMARK_REGISTER_F(TestGraphCache, get_names_and_types_benchmark);
 
-BENCHMARK_DEFINE_F(TestGraphCache, get_reader_names_and_types_by_node)(benchmark::State & st)
+BENCHMARK_F(TestGraphCache, get_reader_names_and_types_by_node)(benchmark::State & st)
 {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
@@ -376,9 +369,8 @@ BENCHMARK_DEFINE_F(TestGraphCache, get_reader_names_and_types_by_node)(benchmark
     }
   }
 }
-BENCHMARK_REGISTER_F(TestGraphCache, get_reader_names_and_types_by_node);
 
-BENCHMARK_DEFINE_F(TestGraphCache, get_writer_names_and_types_by_node)(benchmark::State & st)
+BENCHMARK_F(TestGraphCache, get_writer_names_and_types_by_node)(benchmark::State & st)
 {
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
@@ -400,9 +392,8 @@ BENCHMARK_DEFINE_F(TestGraphCache, get_writer_names_and_types_by_node)(benchmark
     }
   }
 }
-BENCHMARK_REGISTER_F(TestGraphCache, get_writer_names_and_types_by_node);
 
-BENCHMARK_DEFINE_F(TestGraphCache, get_reader_count_benchmark)(benchmark::State & st)
+BENCHMARK_F(TestGraphCache, get_reader_count_benchmark)(benchmark::State & st)
 {
   size_t count;
   for (auto _ : st) {
@@ -412,9 +403,8 @@ BENCHMARK_DEFINE_F(TestGraphCache, get_reader_count_benchmark)(benchmark::State 
     }
   }
 }
-BENCHMARK_REGISTER_F(TestGraphCache, get_reader_count_benchmark);
 
-BENCHMARK_DEFINE_F(TestGraphCache, get_writer_count_benchmark)(benchmark::State & st)
+BENCHMARK_F(TestGraphCache, get_writer_count_benchmark)(benchmark::State & st)
 {
   size_t count;
   for (auto _ : st) {
@@ -424,9 +414,8 @@ BENCHMARK_DEFINE_F(TestGraphCache, get_writer_count_benchmark)(benchmark::State 
     }
   }
 }
-BENCHMARK_REGISTER_F(TestGraphCache, get_writer_count_benchmark);
 
-BENCHMARK_DEFINE_F(TestGraphCache, associate_entities_benchmark)(benchmark::State & st)
+BENCHMARK_F(TestGraphCache, associate_entities_benchmark)(benchmark::State & st)
 {
   for (auto _ : st) {
     // Associate entities
@@ -444,4 +433,3 @@ BENCHMARK_DEFINE_F(TestGraphCache, associate_entities_benchmark)(benchmark::Stat
     });
   }
 }
-BENCHMARK_REGISTER_F(TestGraphCache, associate_entities_benchmark);

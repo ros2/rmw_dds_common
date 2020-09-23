@@ -90,7 +90,7 @@ if(BUILD_TESTING)
     target_link_libraries(test_gid_utils ${PROJECT_NAME}_library)
   endif()
 
-  add_performance_test(benchmark_graph_cache benchmark/benchmark_graph_cache.cpp)
+  add_performance_test(benchmark_graph_cache test/benchmark/benchmark_graph_cache.cpp)
   if(TARGET benchmark_graph_cache)
     target_include_directories(benchmark_graph_cache PUBLIC include)
     target_link_libraries(benchmark_graph_cache ${PROJECT_NAME}_library)
