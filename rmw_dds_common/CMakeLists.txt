@@ -92,7 +92,6 @@ if(BUILD_TESTING)
 
   add_performance_test(benchmark_graph_cache test/benchmark/benchmark_graph_cache.cpp)
   if(TARGET benchmark_graph_cache)
-    target_include_directories(benchmark_graph_cache PUBLIC include)
     target_link_libraries(benchmark_graph_cache ${PROJECT_NAME}_library)
   endif()
 endif()
