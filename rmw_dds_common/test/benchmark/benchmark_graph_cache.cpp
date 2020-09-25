@@ -230,16 +230,7 @@ protected:
   GraphCache graph_cache;
 };
 
-BENCHMARK_F(PerformanceTest, add_participant_benchmark)(benchmark::State & st)
-{
-  GraphCache graph_cache;
-  size_t n = 0;
-  for (auto _ : st) {
-    add_participants(graph_cache, {"participant" + std::to_string(n++)});
-  }
-}
-
-BENCHMARK_F(PerformanceTest, remove_participant_benchmark)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, add_remove_participant_benchmark)(benchmark::State & st)
 {
   GraphCache graph_cache;
 
@@ -249,38 +240,18 @@ BENCHMARK_F(PerformanceTest, remove_participant_benchmark)(benchmark::State & st
   }
 }
 
-BENCHMARK_F(PerformanceTest, add_node_benchmark)(benchmark::State & st)
+BENCHMARK_F(PerformanceTest, add_remove_participant_and_node_benchmark)(benchmark::State & st)
 {
   GraphCache graph_cache;
-  add_participants(graph_cache, {"participant1"});
-  size_t n = 0;
 
   reset_heap_counters();
 
   for (auto _ : st) {
-    add_nodes(graph_cache, {{"participant1", "ns1", "node" + std::to_string(n++)}});
+    add_participants(graph_cache, {"participant1"});
+    add_nodes(graph_cache, {{"participant1", "ns1", "node"}});
+    remove_nodes(graph_cache, {{"participant1", "ns1", "node"}});
+    remove_participants(graph_cache, {"participant1"});
   }
-
-  for (unsigned int i = 0; i < n; i++) {
-    remove_nodes(graph_cache, {{"participant1", "ns1", "node" + std::to_string(i++)}});
-  }
-
-  remove_participants(graph_cache, {"participant1"});
-}
-
-BENCHMARK_F(PerformanceTest, remove_node_benchmark)(benchmark::State & st)
-{
-  GraphCache graph_cache;
-  add_participants(graph_cache, {"participant1"});
-
-  reset_heap_counters();
-
-  size_t n = 0;
-  for (auto _ : st) {
-    add_nodes(graph_cache, {{"participant1", "ns1", "node" + std::to_string(n)}});
-    remove_nodes(graph_cache, {{"participant1", "ns1", "node" + std::to_string(n++)}});
-  }
-  remove_participants(graph_cache, {"participant1"});
 }
 
 BENCHMARK_F(TestGraphCache, get_writers_info_by_topic_benchmark)(benchmark::State & st)
