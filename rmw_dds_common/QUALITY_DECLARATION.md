@@ -2,9 +2,9 @@ This document is a declaration of software quality for the `rmw_dds_common` pack
 
 # `rmw_dds_common` Quality Declaration
 
-The package `rmw_dds_common` claims to be in the **Quality Level 3** category.
+The package `rmw_dds_common` claims to be in the **Quality Level 2** category.
 
-Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 3 in REP-2004](https://www.ros.org/reps/rep-2004.html).
+Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 2 in REP-2004](https://www.ros.org/reps/rep-2004.html).
 
 ## Version Policy [1]
 
@@ -107,7 +107,7 @@ This includes:
 
 Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
 
-Current coverage statistics can be viewed [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_dds_common_rmw_dds_common_include_rmw_dds_common/) and [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_dds_common_rmw_dds_common_src/). This package does not yet meet the 95% coverage guideline, but it is currently above 90%.
+Current coverage statistics can be viewed [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_dds_common_rmw_dds_common_include_rmw_dds_common/) and [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_dds_common_rmw_dds_common_src/).
 
 A summary of how these statistics are calculated can be found in the [ROS 2 On-boarding guide](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
 
