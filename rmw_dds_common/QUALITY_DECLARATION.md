@@ -113,7 +113,7 @@ A summary of how these statistics are calculated can be found in the [ROS 2 On-b
 
 ### Performance [4.iv]
 
-`rmw_dds_common` does not currently have performance tests.
+The performance tests of `rmw_dds_common` are located in the [test/benchmark directory](https://github.com/ros2/rmw_dds_common/tree/master/rmw_dds_common/test/benchmark). The most recent test results can be found [here](http://build.ros2.org/view/Rci/job/Rci__benchmark_ubuntu_focal_amd64/BenchmarkTable/).
 
 ### Linters and Static Analysis [4.v]
 
@@ -186,7 +186,7 @@ The chart below compares the requirements in the REP-2004 with the current state
 |4.ii| Public API tests | ✓ |
 |4.iii.a| Using coverage | ✓ |
 |4.iii.a| Coverage policy | ✓ |
-|4.iv.a| Performance tests (if applicable) | ☓ |
+|4.iv.a| Performance tests (if applicable) | ✓ |
 |4.iv.b| Performance tests policy| ✓ |
 |4.v.a| Code style enforcement (linters)| ✓ |
 |4.v.b| Use of static analysis tools | ✓ |
