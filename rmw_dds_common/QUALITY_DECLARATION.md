@@ -113,7 +113,7 @@ A summary of how these statistics are calculated can be found in the [ROS 2 On-b
 
 ### Performance [4.iv]
 
-The performance tests of `rmw_dds_common` are located in the [test/benchmark directory](https://github.com/ros2/rmw_dds_common/tree/master/rmw_dds_common/test/benchmark). The most recent test results can be found [here](http://build.ros2.org/view/Rci/job/Rci__benchmark_ubuntu_focal_amd64/BenchmarkTable/).
+The performance tests of `rmw_dds_common` are located in the [test/benchmark directory](https://github.com/ros2/rmw_dds_common/tree/foxy/rmw_dds_common/test/benchmark). The most recent test results can be found [here](http://build.ros2.org/view/Fci/job/Fci__benchmark_ubuntu_focal_amd64/BenchmarkTable/).
 
 ### Linters and Static Analysis [4.v]
 
