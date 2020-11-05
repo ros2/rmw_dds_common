@@ -20,7 +20,7 @@
 #include "rmw_dds_common/time_utils.hpp"
 
 rmw_time_t
-rmw_dds_common::maintain_32bit_limits(const rmw_time_t & time)
+rmw_dds_common::rmw_time_to_dds_time(const rmw_time_t & time)
 {
   rmw_time_t t = time;
 

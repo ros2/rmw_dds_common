@@ -36,12 +36,12 @@ namespace rmw_dds_common
  * nanoseconds value is too large for unsigned 32-bits it saturates
  * and issues a warning.
  * 
- * \param[in] time to check
- * \return updated time value
+ * \param[in] time to convert
+ * \return converted time value
  */
 RMW_DDS_COMMON_PUBLIC
 rmw_time_t
-maintain_32bit_limits(const rmw_time_t & time);
+rmw_time_to_dds_time(const rmw_time_t & time);
 
 }  // namespace rmw_dds_common
 

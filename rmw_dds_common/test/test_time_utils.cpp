@@ -26,21 +26,21 @@ operator==(rmw_time_t t1, rmw_time_t t2)
 TEST(test_time_utils, test_unmodified_zeros)
 {
   const rmw_time_t zeros { 0, 0 };
-  auto t1 = rmw_dds_common::maintain_32bit_limits(zeros);
+  auto t1 = rmw_dds_common::rmw_time_to_dds_time(zeros);
   EXPECT_TRUE(t1 == zeros);
 }
 
 TEST(test_time_utils, test_unmodified_max)
 {
   const rmw_time_t max_dds_time { 0x7FFFFFFF, 0xFFFFFFFF };
-  auto t2 = rmw_dds_common::maintain_32bit_limits(max_dds_time);
+  auto t2 = rmw_dds_common::rmw_time_to_dds_time(max_dds_time);
   EXPECT_TRUE(t2 == max_dds_time);
 }
 
 TEST(test_time_utils, test_seconds_overflow)
 {
   const rmw_time_t slightly_too_large { 2147483651, 0 };
-  auto t3 = rmw_dds_common::maintain_32bit_limits(slightly_too_large);
+  auto t3 = rmw_dds_common::rmw_time_to_dds_time(slightly_too_large);
   const rmw_time_t result3 { 0x7FFFFFFF, 4000000000 };
   EXPECT_TRUE(t3 == result3);
 }
@@ -49,6 +49,6 @@ TEST(test_time_utils, test_saturation)
 {
   const rmw_time_t max_64 { LLONG_MAX, ULLONG_MAX };
   const rmw_time_t max_dds_time { 0x7FFFFFFF, 0xFFFFFFFF };
-  auto t4 = rmw_dds_common::maintain_32bit_limits(max_64);
+  auto t4 = rmw_dds_common::rmw_time_to_dds_time(max_64);
   EXPECT_TRUE(t4 == max_dds_time);
 }
