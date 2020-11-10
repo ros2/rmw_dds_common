@@ -35,7 +35,7 @@ namespace rmw_dds_common
  * to move the excess seconds to the nanoseconds field. If the resulting
  * nanoseconds value is too large for unsigned 32-bits it saturates
  * and issues a warning.
- * 
+ *
  * \param[in] time to convert
  * \return converted time value
  */
