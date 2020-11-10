@@ -41,7 +41,7 @@ namespace rmw_dds_common
  */
 RMW_DDS_COMMON_PUBLIC
 rmw_time_t
-rmw_time_to_dds_time(const rmw_time_t & time);
+clamp_rmw_time_to_dds_time(const rmw_time_t & time);
 
 }  // namespace rmw_dds_common
 
