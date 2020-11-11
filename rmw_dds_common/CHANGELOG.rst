@@ -2,6 +2,15 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.2 (2020-11-11)
+------------------
+* Update QD links to Foxy
+* Updated performance section QD (`#30 <https://github.com/ros2/rmw_dds_common/issues/30>`_)
+* Update Quality Declaration to QL2 (`#31 <https://github.com/ros2/rmw_dds_common/issues/31>`_)
+* Add fault injection macro unit tests (`#27 <https://github.com/ros2/rmw_dds_common/issues/27>`_)
+* Added benchmark test to rmw_dds_common (`#29 <https://github.com/ros2/rmw_dds_common/issues/29>`_)
+* Contributors: Alejandro Hernández Cordero, Michel Hidalgo, Stephen Brawner
+
 1.0.1 (2020-06-01)
 ------------------
 * Add Security Vulnerability Policy pointing to REP-2006 (`#21 <https://github.com/ros2/rmw_dds_common/issues/21>`_)
