@@ -2,9 +2,9 @@ This document is a declaration of software quality for the `rmw_dds_common` pack
 
 # `rmw_dds_common` Quality Declaration
 
-The package `rmw_dds_common` claims to be in the **Quality Level 2** category.
+The package `rmw_dds_common` claims to be in the **Quality Level 1** category when it is used with a **Quality Level 1** middleware.
 
-Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 2 in REP-2004](https://www.ros.org/reps/rep-2004.html).
+Below are the rationales, notes, and caveats for this claim, organized by each requirement listed in the [Package Requirements for Quality Level 1 in REP-2004](https://www.ros.org/reps/rep-2004.html).
 
 ## Version Policy [1]
 
@@ -107,13 +107,21 @@ This includes:
 
 Changes are required to make a best effort to keep or increase coverage before being accepted, but decreases are allowed if properly justified and accepted by reviewers.
 
-Current coverage statistics can be viewed [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_dds_common_rmw_dds_common_include_rmw_dds_common/) and [here](https://ci.ros2.org/job/ci_linux_coverage/lastSuccessfulBuild/cobertura/src_ros2_rmw_dds_common_rmw_dds_common_src/).
+Current coverage statistics can be viewed [here](https://ci.ros2.org/job/ci_linux_coverage/lastCompletedBuild/cobertura/src_ros2_rmw_dds_common_rmw_dds_common_include_rmw_dds_common/) and [here](https://ci.ros2.org/job/ci_linux_coverage/lastCompletedBuild/cobertura/src_ros2_rmw_dds_common_rmw_dds_common_src/).
 
 A summary of how these statistics are calculated can be found in the [ROS 2 On-boarding guide](https://index.ros.org/doc/ros2/Contributing/ROS-2-On-boarding-Guide/#note-on-coverage-runs).
 
 ### Performance [4.iv]
 
-The performance tests of `rmw_dds_common` are located in the [test/benchmark directory](https://github.com/ros2/rmw_dds_common/tree/master/rmw_dds_common/test/benchmark). The most recent test results can be found [here](http://build.ros2.org/view/Rci/job/Rci__benchmark_ubuntu_focal_amd64/BenchmarkTable/).
+`rmw_dds_common` follows the recommendations for performance testing of C code in the [ROS 2 Developer Guide](https://index.ros.org/doc/ros2/Contributing/Developer-Guide/#performance), and opts to do performance analysis on each release rather than each change.
+
+The performance tests of `rmw_dds_common` are located in the [test/benchmark directory](https://github.com/ros2/rmw_dds_common/tree/master/rmw_dds_common/test/benchmark).
+
+Package and system level performance benchmarks that cover features of `rmw_dds_common` can be found at:
+* [Benchmarks](http://build.ros2.org/view/Rci/job/Rci__benchmark_ubuntu_focal_amd64/BenchmarkTable/)
+* [Performance](http://build.ros2.org/view/Rci/job/Rci__nightly-performance_ubuntu_focal_amd64/lastCompletedBuild/)
+
+Changes that introduce regressions in performance must be adequately justified in order to be accepted and merged.
 
 ### Linters and Static Analysis [4.v]
 
@@ -125,12 +133,12 @@ Results of the nightly linter tests can be found [here](https://ci.ros2.org/view
 
 ### Direct Runtime ROS Dependencies [5.i]/[5.ii]
 
-`rmw_dds_common` has the following runtime ROS dependencies:
-* `rcutils`
-* `rcpputils`
-* `rmw`
-* `rosidl_default_runtime`
-* `rosidl_runtime_cpp`
+`rmw_dds_common` has the following runtime ROS dependencies which are at **Quality Level 1**
+* `rcutils`: [QUALITY DECLARATION](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md)
+* `rcpputils`: [QUALITY DECLARATION](https://github.com/ros2/rcpputils/blob/master/QUALITY_DECLARATION.md)
+* `rmw`: [QUALITY DECLARATION](https://github.com/ros2/rmw/blob/master/rmw/QUALITY_DECLARATION.md)
+* `rosidl_default_runtime`: [QUALITY DECLARATION](https://github.com/ros2/rosidl_defaults/blob/master/rosidl_default_runtime/QUALITY_DECLARATION.md)
+* `rosidl_runtime_cpp`: [QUALITY DECLARATION](https://github.com/ros2/rosidl/blob/master/rosidl_runtime_cpp/QUALITY_DECLARATION.md)
 
 It has several "buildtool" dependencies, which do not affect the resulting quality of the package, because they do not contribute to the public library API.
 It also has several test dependencies, which do not affect the resulting quality of the package, because they are only used to build and run the test code.

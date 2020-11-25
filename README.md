@@ -1,10 +1,10 @@
 # rmw_dds_common: ROS 2 C++ utilities for DDS-based RMWs
 
-`rmw_dds_common` is a collection of C++ APIs to support DDS based, C++ RMW implementations. 
+`rmw_dds_common` is a collection of C++ APIs to support DDS based, C++ RMW implementations.
 
 ## Quality Declaration
 
-This package claims to be in the **Quality Level 2** category, see the [Quality Declaration](rmw_dds_common/QUALITY_DECLARATION.md) for more details.
+This package claims to be in the **Quality Level 1** category, see the [Quality Declaration](rmw_dds_common/QUALITY_DECLARATION.md) for more details.
 
 ## API
 
