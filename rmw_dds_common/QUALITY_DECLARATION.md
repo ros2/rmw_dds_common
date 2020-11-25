@@ -136,7 +136,7 @@ Results of the nightly linter tests can be found [here](https://ci.ros2.org/view
 `rmw_dds_common` has the following runtime ROS dependencies which are at **Quality Level 1**
 * `rcutils`: [QUALITY DECLARATION](https://github.com/ros2/rcutils/blob/master/QUALITY_DECLARATION.md)
 * `rcpputils`: [QUALITY DECLARATION](https://github.com/ros2/rcpputils/blob/master/QUALITY_DECLARATION.md)
-* `rmw`: [QUALITY DECLARATION](https://github.com/ros2/rmw/blob/master/QUALITY_DECLARATION.md)
+* `rmw`: [QUALITY DECLARATION](https://github.com/ros2/rmw/blob/master/rmw/QUALITY_DECLARATION.md)
 * `rosidl_default_runtime`: [QUALITY DECLARATION](https://github.com/ros2/rosidl_defaults/blob/master/rosidl_default_runtime/QUALITY_DECLARATION.md)
 * `rosidl_runtime_cpp`: [QUALITY DECLARATION](https://github.com/ros2/rosidl/blob/master/rosidl_runtime_cpp/QUALITY_DECLARATION.md)
 
