@@ -2,8 +2,8 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.1 (2020-12-10)
+------------------
 * Update QD to QL 1 (`#38 <https://github.com/ros2/rmw_dds_common/issues/38>`_)
 * Contributors: Stephen Brawner
 
