@@ -2,6 +2,11 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update QD to QL 1 (`#38 <https://github.com/ros2/rmw_dds_common/issues/38>`_)
+* Contributors: Stephen Brawner
+
 1.1.0 (2020-11-11)
 ------------------
 * Create a utility function to limit rmw_time_t to 32-bit values (`#37 <https://github.com/ros2/rmw_dds_common/issues/37>`_)
