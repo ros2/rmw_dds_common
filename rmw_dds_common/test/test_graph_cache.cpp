@@ -120,6 +120,7 @@ check_results(
       &allocator,
       &names_and_types);
     check_names_and_types(names_and_types, topics_names_and_types);
+    EXPECT_EQ(rmw_names_and_types_fini(&names_and_types), RMW_RET_OK);
   }
 }
 
@@ -1503,6 +1504,8 @@ TEST(test_graph_cache, bad_arguments)
     EXPECT_STREQ(topic_endpoint_info_pub.node_name, "_CREATED_BY_BARE_DDS_APP_");
     EXPECT_STREQ(topic_endpoint_info_pub.node_namespace, "_CREATED_BY_BARE_DDS_APP_");
     EXPECT_STREQ(topic_endpoint_info_pub.topic_type, "Str");
+    EXPECT_EQ(
+      rmw_topic_endpoint_info_array_fini(&topic_endpoint_info_array_sub, &allocator), RMW_RET_OK);
     rcutils_reset_error();
   }
   {
@@ -1534,6 +1537,8 @@ TEST(test_graph_cache, bad_arguments)
     EXPECT_STREQ(topic_endpoint_info_pub.node_name, "_CREATED_BY_BARE_DDS_APP_");
     EXPECT_STREQ(topic_endpoint_info_pub.node_namespace, "_CREATED_BY_BARE_DDS_APP_");
     EXPECT_STREQ(topic_endpoint_info_pub.topic_type, "Str");
+    EXPECT_EQ(
+      rmw_topic_endpoint_info_array_fini(&topic_endpoint_info_array_sub, &allocator), RMW_RET_OK);
     rcutils_reset_error();
   }
   {
