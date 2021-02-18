@@ -40,7 +40,9 @@ namespace rmw_dds_common
  *   Must be pre-allocated by the caller. This parameter is optional and may be set to `NULL`.
  * \param[in] reason_size: Size of the string buffer `reason`, if one is provided.
  * \return `RMW_RET_OK` if the check was successful, or
- * \return `RMW_RET_INVALID_ARGUMENT` if any of the policies have value "unknown"
+ * \return `RMW_RET_INVALID_ARGUMENT` if `compatiblity` is NULL, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if any of the policies have value "unknown".
+ * \return `RMW_RET_ERROR` if there is an unexpected error.
  */
 RMW_DDS_COMMON_PUBLIC
 rmw_ret_t
