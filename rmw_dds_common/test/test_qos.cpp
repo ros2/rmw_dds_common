@@ -600,11 +600,22 @@ TEST(test_qos, test_qos_profile_check_compatible_no_reason)
 TEST(test_qos, test_qos_profile_check_compatible_invalid)
 {
   // Null compatible parameter
-  const size_t reason_size = 2048;
-  char reason[2048] = "";
-  rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
-  rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
-  rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
-    pub_qos, sub_qos, nullptr, reason, reason_size);
-  EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+  {
+    const size_t reason_size = 2048;
+    char reason[2048] = "";
+    rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
+    rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
+    rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
+      pub_qos, sub_qos, nullptr, reason, reason_size);
+    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+  }
+  // Null reason, but non-zero reason_size
+  {
+    rmw_qos_compatibility_type_t compatible;
+    rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
+    rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
+    rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
+      pub_qos, sub_qos, &compatible, nullptr, 3u);
+    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+  }
 }

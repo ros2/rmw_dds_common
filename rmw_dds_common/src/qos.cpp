@@ -81,6 +81,11 @@ qos_profile_check_compatible(
     return RMW_RET_INVALID_ARGUMENT;
   }
 
+  if (!reason && reason_size != 0u) {
+    RMW_SET_ERROR_MSG("reason parameter is null, but reason_size parameter is not zero");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+
   std::ostringstream reason_ss;
 
   // Presume profiles are compatible until proven otherwise
