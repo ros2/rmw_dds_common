@@ -84,40 +84,34 @@ qos_profile_check_compatible(
     return RMW_RET_INVALID_ARGUMENT;
   }
 
-  // Presume profiles are compatible until proven otherwise
-  *compatibility = RMW_QOS_COMPATIBILITY_OK;
-
   // If there are any "unknown" values, then there is an error
   if (RMW_QOS_POLICY_RELIABILITY_UNKNOWN == publisher_qos.reliability) {
-    *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
     RMW_SET_ERROR_MSG("Publisher reliability is unknown");
     return RMW_RET_INVALID_ARGUMENT;
   }
   if (RMW_QOS_POLICY_RELIABILITY_UNKNOWN == subscription_qos.reliability) {
-    *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
     RMW_SET_ERROR_MSG("Subscription reliability is unknown");
     return RMW_RET_INVALID_ARGUMENT;
   }
   if (RMW_QOS_POLICY_DURABILITY_UNKNOWN == publisher_qos.durability) {
-    *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
     RMW_SET_ERROR_MSG("Publisher durability is unknown");
     return RMW_RET_INVALID_ARGUMENT;
   }
   if (RMW_QOS_POLICY_DURABILITY_UNKNOWN == subscription_qos.durability) {
-    *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
     RMW_SET_ERROR_MSG("Subscription durability is unknown");
     return RMW_RET_INVALID_ARGUMENT;
   }
   if (RMW_QOS_POLICY_LIVELINESS_UNKNOWN == publisher_qos.liveliness) {
-    *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
     RMW_SET_ERROR_MSG("Publisher liveliness is unknown");
     return RMW_RET_INVALID_ARGUMENT;
   }
   if (RMW_QOS_POLICY_LIVELINESS_UNKNOWN == subscription_qos.liveliness) {
-    *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
     RMW_SET_ERROR_MSG("Subscription liveliness is unknown");
     return RMW_RET_INVALID_ARGUMENT;
   }
+
+  // Presume profiles are compatible until proven otherwise
+  *compatibility = RMW_QOS_COMPATIBILITY_OK;
 
   // Best effort publisher and reliable subscription
   if (publisher_qos.reliability == RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT &&
