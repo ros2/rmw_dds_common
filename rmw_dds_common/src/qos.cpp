@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
+#include "rmw_dds_common/qos.hpp"
+
 #include <sstream>
+#include <string>
 
 #include "rmw/qos_profiles.h"
-
-#include "rmw_dds_common/qos.hpp"
 
 namespace rmw_dds_common
 {
