@@ -76,7 +76,7 @@ qos_profile_check_compatible(
   size_t reason_size)
 {
   if (!compatibility) {
-    _write_to_buffer("ERROR: compatiblity parameter is null", reason, reason_size);
+    _write_to_buffer("ERROR: compatibility parameter is null", reason, reason_size);
     return RMW_RET_INVALID_ARGUMENT;
   }
 
