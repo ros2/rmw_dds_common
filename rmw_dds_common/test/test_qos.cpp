@@ -502,8 +502,7 @@ TEST(test_qos, test_qos_profile_check_compatible_unknown)
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-    EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_ERROR);
-    EXPECT_LT(0u, strnlen(reason, 1));
+    EXPECT_EQ(0u, strnlen(reason, 1));
   }
   // Sub reliable unknown
   {
@@ -516,8 +515,7 @@ TEST(test_qos, test_qos_profile_check_compatible_unknown)
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-    EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_ERROR);
-    EXPECT_LT(0u, strnlen(reason, 1));
+    EXPECT_EQ(0u, strnlen(reason, 1));
   }
   // Pub durability unknown
   {
@@ -530,8 +528,7 @@ TEST(test_qos, test_qos_profile_check_compatible_unknown)
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-    EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_ERROR);
-    EXPECT_LT(0u, strnlen(reason, 1));
+    EXPECT_EQ(0u, strnlen(reason, 1));
   }
   // Sub durability unknown
   {
@@ -544,8 +541,7 @@ TEST(test_qos, test_qos_profile_check_compatible_unknown)
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-    EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_ERROR);
-    EXPECT_LT(0u, strnlen(reason, 1));
+    EXPECT_EQ(0u, strnlen(reason, 1));
   }
   // Pub liveliness unknown
   {
@@ -558,8 +554,7 @@ TEST(test_qos, test_qos_profile_check_compatible_unknown)
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-    EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_ERROR);
-    EXPECT_LT(0u, strnlen(reason, 1));
+    EXPECT_EQ(0u, strnlen(reason, 1));
   }
   // Sub liveliness unknown
   {
@@ -572,8 +567,7 @@ TEST(test_qos, test_qos_profile_check_compatible_unknown)
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-    EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_ERROR);
-    EXPECT_LT(0u, strnlen(reason, 1));
+    EXPECT_EQ(0u, strnlen(reason, 1));
   }
 }
 

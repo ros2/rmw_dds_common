@@ -17,6 +17,7 @@
 #include <sstream>
 #include <string>
 
+#include "rmw/error_handling.h"
 #include "rmw/qos_profiles.h"
 
 namespace rmw_dds_common
@@ -76,7 +77,7 @@ qos_profile_check_compatible(
   size_t reason_size)
 {
   if (!compatibility) {
-    _write_to_buffer("ERROR: compatibility parameter is null", reason, reason_size);
+    RMW_SET_ERROR_MSG("compatibility parameter is null");
     return RMW_RET_INVALID_ARGUMENT;
   }
 
@@ -88,32 +89,32 @@ qos_profile_check_compatible(
   // If there are any "unknown" values, then there is an error
   if (RMW_QOS_POLICY_RELIABILITY_UNKNOWN == publisher_qos.reliability) {
     *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
-    _write_to_buffer("ERROR: Publisher reliability is unknown", reason, reason_size);
+    RMW_SET_ERROR_MSG("Publisher reliability is unknown");
     return RMW_RET_INVALID_ARGUMENT;
   }
   if (RMW_QOS_POLICY_RELIABILITY_UNKNOWN == subscription_qos.reliability) {
     *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
-    _write_to_buffer("ERROR: Subscription reliability is unknown", reason, reason_size);
+    RMW_SET_ERROR_MSG("Subscription reliability is unknown");
     return RMW_RET_INVALID_ARGUMENT;
   }
   if (RMW_QOS_POLICY_DURABILITY_UNKNOWN == publisher_qos.durability) {
     *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
-    _write_to_buffer("ERROR: Publisher durability is unknown", reason, reason_size);
+    RMW_SET_ERROR_MSG("Publisher durability is unknown");
     return RMW_RET_INVALID_ARGUMENT;
   }
   if (RMW_QOS_POLICY_DURABILITY_UNKNOWN == subscription_qos.durability) {
     *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
-    _write_to_buffer("ERROR: Subscription durability is unknown", reason, reason_size);
+    RMW_SET_ERROR_MSG("Subscription durability is unknown");
     return RMW_RET_INVALID_ARGUMENT;
   }
   if (RMW_QOS_POLICY_LIVELINESS_UNKNOWN == publisher_qos.liveliness) {
     *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
-    _write_to_buffer("ERROR: Publisher liveliness is unknown", reason, reason_size);
+    RMW_SET_ERROR_MSG("Publisher liveliness is unknown");
     return RMW_RET_INVALID_ARGUMENT;
   }
   if (RMW_QOS_POLICY_LIVELINESS_UNKNOWN == subscription_qos.liveliness) {
     *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
-    _write_to_buffer("ERROR: Subscription liveliness is unknown", reason, reason_size);
+    RMW_SET_ERROR_MSG("Subscription liveliness is unknown");
     return RMW_RET_INVALID_ARGUMENT;
   }
 
