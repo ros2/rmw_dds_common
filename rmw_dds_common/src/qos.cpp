@@ -53,18 +53,18 @@ operator<<(std::ostream & out, const rmw_time_t & t)
 }
 
 static void
-_write_to_buffer(const std::string message, char * buffer, size_t buffer_size)
+_write_to_buffer(const char * message, char * buffer, size_t buffer_size)
 {
   // Only write if a buffer is provided
   if (!buffer || buffer_size == 0u) {
     return;
   }
-  size_t write_size = message.size();
+  size_t write_size = sizeof(message);
   // Only write up to the buffers max size
   if (write_size > buffer_size) {
     write_size = buffer_size;
   }
-  strncpy(buffer, message.c_str(), write_size);
+  strncpy(buffer, message, write_size);
 }
 
 rmw_ret_t
@@ -234,7 +234,7 @@ qos_profile_check_compatible(
 
   // Write any issues to the output buffer (if one is provided)
   if (RMW_QOS_COMPATIBILITY_OK != *compatibility) {
-    _write_to_buffer(reason_ss.str(), reason, reason_size);
+    _write_to_buffer(reason_ss.str().c_str(), reason, reason_size);
   }
 
   return RMW_RET_OK;
