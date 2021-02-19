@@ -41,8 +41,8 @@ TEST(test_qos, test_qos_profile_check_compatible_reliability)
   // Reliable pub, reliable sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
@@ -57,8 +57,8 @@ TEST(test_qos, test_qos_profile_check_compatible_reliability)
   // Reliable pub, best effort sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
@@ -73,8 +73,8 @@ TEST(test_qos, test_qos_profile_check_compatible_reliability)
   // Best effort pub, best effort sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
@@ -89,8 +89,8 @@ TEST(test_qos, test_qos_profile_check_compatible_reliability)
   // Best effort pub, reliable sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
@@ -108,8 +108,8 @@ TEST(test_qos, test_qos_profile_check_compatible_durability)
   // Volatile pub, volatile sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
@@ -123,8 +123,8 @@ TEST(test_qos, test_qos_profile_check_compatible_durability)
   // Volatile pub, transient local sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
@@ -138,8 +138,8 @@ TEST(test_qos, test_qos_profile_check_compatible_durability)
   // Transient local pub, transient local sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
@@ -153,8 +153,8 @@ TEST(test_qos, test_qos_profile_check_compatible_durability)
   // Transient local pub, volatile sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
@@ -172,8 +172,8 @@ TEST(test_qos, test_qos_profile_check_compatible_deadline)
   // No deadline pub, no deadline sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.deadline = RMW_QOS_DEADLINE_DEFAULT;
@@ -188,8 +188,8 @@ TEST(test_qos, test_qos_profile_check_compatible_deadline)
   // No deadline pub, deadline sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.deadline = RMW_QOS_DEADLINE_DEFAULT;
@@ -204,8 +204,8 @@ TEST(test_qos, test_qos_profile_check_compatible_deadline)
   // Deadline pub > deadline sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.deadline = {1, 1};
@@ -219,8 +219,8 @@ TEST(test_qos, test_qos_profile_check_compatible_deadline)
   // Deadline pub == deadline sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.deadline = {1, 1};
@@ -234,8 +234,8 @@ TEST(test_qos, test_qos_profile_check_compatible_deadline)
   // Deadline pub < deadline sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.deadline = {1, 1};
@@ -253,8 +253,8 @@ TEST(test_qos, test_qos_profile_check_compatible_liveliness)
   // Automatic pub, automatic sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
@@ -268,8 +268,8 @@ TEST(test_qos, test_qos_profile_check_compatible_liveliness)
   // Automatic pub, manual sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
@@ -283,8 +283,8 @@ TEST(test_qos, test_qos_profile_check_compatible_liveliness)
   // Manual pub, manual sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
@@ -298,8 +298,8 @@ TEST(test_qos, test_qos_profile_check_compatible_liveliness)
   // Manual pub, automatic sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
@@ -317,8 +317,8 @@ TEST(test_qos, test_qos_profile_check_compatible_liveliness_lease_duration)
   // No duration pub, no duration sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness_lease_duration = RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT;
@@ -332,8 +332,8 @@ TEST(test_qos, test_qos_profile_check_compatible_liveliness_lease_duration)
   // No duration pub, some duration sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness_lease_duration = RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT;
@@ -347,8 +347,8 @@ TEST(test_qos, test_qos_profile_check_compatible_liveliness_lease_duration)
   // Lease duration pub == lease duration sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness_lease_duration = {1, 0};
@@ -362,8 +362,8 @@ TEST(test_qos, test_qos_profile_check_compatible_liveliness_lease_duration)
   // Lease duration pub > lease duration sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness_lease_duration = {1, 1};
@@ -377,8 +377,8 @@ TEST(test_qos, test_qos_profile_check_compatible_liveliness_lease_duration)
   // Lease duration pub < lease duration sub
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness_lease_duration = {1, 1};
@@ -398,8 +398,8 @@ TEST(test_qos, test_qos_profile_check_compatible_system_default)
   // Pub best effort, sub system default
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
@@ -413,8 +413,8 @@ TEST(test_qos, test_qos_profile_check_compatible_system_default)
   // Pub system default, sub reliable
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT;
@@ -428,8 +428,8 @@ TEST(test_qos, test_qos_profile_check_compatible_system_default)
   // Pub volatile, sub system default
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
@@ -443,8 +443,8 @@ TEST(test_qos, test_qos_profile_check_compatible_system_default)
   // Pub system default, sub transient local
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.durability = RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT;
@@ -458,8 +458,8 @@ TEST(test_qos, test_qos_profile_check_compatible_system_default)
   // Pub automatic, sub system default
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
@@ -473,8 +473,8 @@ TEST(test_qos, test_qos_profile_check_compatible_system_default)
   // Pub system default, sub manual by topic
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT;
@@ -494,80 +494,74 @@ TEST(test_qos, test_qos_profile_check_compatible_unknown)
   // Pub reliable unknown
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_UNKNOWN;
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-    EXPECT_EQ(0u, strnlen(reason, 1));
   }
   // Sub reliable unknown
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     sub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_UNKNOWN;
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-    EXPECT_EQ(0u, strnlen(reason, 1));
   }
   // Pub durability unknown
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.durability = RMW_QOS_POLICY_DURABILITY_UNKNOWN;
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-    EXPECT_EQ(0u, strnlen(reason, 1));
   }
   // Sub durability unknown
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     sub_qos.durability = RMW_QOS_POLICY_DURABILITY_UNKNOWN;
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-    EXPECT_EQ(0u, strnlen(reason, 1));
   }
   // Pub liveliness unknown
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_UNKNOWN;
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-    EXPECT_EQ(0u, strnlen(reason, 1));
   }
   // Sub liveliness unknown
   {
     rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     sub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_UNKNOWN;
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-    EXPECT_EQ(0u, strnlen(reason, 1));
   }
 }
 
@@ -619,8 +613,8 @@ TEST(test_qos, test_qos_profile_check_compatible_invalid)
 {
   // Null compatible parameter
   {
-    const size_t reason_size = 2048;
-    char reason[2048] = "";
+    const size_t reason_size = 2048u;
+    char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(

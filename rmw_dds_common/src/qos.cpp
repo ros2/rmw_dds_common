@@ -113,6 +113,11 @@ qos_profile_check_compatible(
   // Presume profiles are compatible until proven otherwise
   *compatibility = RMW_QOS_COMPATIBILITY_OK;
 
+  // Initialize reason buffer
+  if (reason) {
+    reason[0] = '\0';
+  }
+
   // Best effort publisher and reliable subscription
   if (publisher_qos.reliability == RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT &&
     subscription_qos.reliability == RMW_QOS_POLICY_RELIABILITY_RELIABLE)
