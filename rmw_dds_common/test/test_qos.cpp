@@ -489,9 +489,24 @@ TEST(test_qos, test_qos_profile_check_compatible_system_default)
 
 TEST(test_qos, test_qos_profile_check_compatible_unknown)
 {
-  // Policies set to "unknown" should cause an return error
+  // Some policies set to "unknown" should cause a warning
 
-  // Pub reliable unknown
+  // Pub best effort, sub unknown
+  {
+    rmw_qos_compatibility_type_t compatible;
+    const size_t reason_size = 2048u;
+    char reason[2048];
+    rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
+    rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
+    pub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+    sub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_UNKNOWN;
+    rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
+      pub_qos, sub_qos, &compatible, reason, reason_size);
+    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_WARNING);
+    EXPECT_LT(0u, strnlen(reason, 1));
+  }
+  // Pub unknown, sub reliable
   {
     rmw_qos_compatibility_type_t compatible;
     const size_t reason_size = 2048u;
@@ -499,23 +514,29 @@ TEST(test_qos, test_qos_profile_check_compatible_unknown)
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_UNKNOWN;
+    sub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
-    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_WARNING);
+    EXPECT_LT(0u, strnlen(reason, 1));
   }
-  // Sub reliable unknown
+  // Pub volatile, sub unknown
   {
     rmw_qos_compatibility_type_t compatible;
     const size_t reason_size = 2048u;
     char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
-    sub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_UNKNOWN;
+    pub_qos.durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+    sub_qos.durability = RMW_QOS_POLICY_DURABILITY_UNKNOWN;
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
-    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_WARNING);
+    EXPECT_LT(0u, strnlen(reason, 1));
   }
-  // Pub durability unknown
+  // Pub unknown, sub transient local
   {
     rmw_qos_compatibility_type_t compatible;
     const size_t reason_size = 2048u;
@@ -523,23 +544,29 @@ TEST(test_qos, test_qos_profile_check_compatible_unknown)
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.durability = RMW_QOS_POLICY_DURABILITY_UNKNOWN;
+    sub_qos.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
-    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_WARNING);
+    EXPECT_LT(0u, strnlen(reason, 1));
   }
-  // Sub durability unknown
+  // Pub automatic, sub unknown
   {
     rmw_qos_compatibility_type_t compatible;
     const size_t reason_size = 2048u;
     char reason[2048];
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
-    sub_qos.durability = RMW_QOS_POLICY_DURABILITY_UNKNOWN;
+    pub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+    sub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_UNKNOWN;
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
-    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_WARNING);
+    EXPECT_LT(0u, strnlen(reason, 1));
   }
-  // Pub liveliness unknown
+  // Pub unknown, sub manual by topic
   {
     rmw_qos_compatibility_type_t compatible;
     const size_t reason_size = 2048u;
@@ -547,21 +574,12 @@ TEST(test_qos, test_qos_profile_check_compatible_unknown)
     rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
     rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
     pub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_UNKNOWN;
+    sub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, reason, reason_size);
-    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
-  }
-  // Sub liveliness unknown
-  {
-    rmw_qos_compatibility_type_t compatible;
-    const size_t reason_size = 2048u;
-    char reason[2048];
-    rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
-    rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
-    sub_qos.liveliness = RMW_QOS_POLICY_LIVELINESS_UNKNOWN;
-    rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
-      pub_qos, sub_qos, &compatible, reason, reason_size);
-    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_WARNING);
+    EXPECT_LT(0u, strnlen(reason, 1));
   }
 }
 

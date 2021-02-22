@@ -19,6 +19,7 @@
 #include "rcutils/snprintf.h"
 #include "rmw/error_handling.h"
 #include "rmw/qos_profiles.h"
+#include "rmw/qos_string_conversions.h"
 
 namespace rmw_dds_common
 {
@@ -49,7 +50,7 @@ operator<(rmw_time_t t1, rmw_time_t t2)
 // Returns RMW_RET_OK if successful or no buffer was provided
 // Returns RMW_RET_ERROR if there as an error copying the message to the buffer
 static rmw_ret_t
-_append_to_buffer(const char * message, char * buffer, size_t buffer_size)
+_append_to_buffer(char * buffer, size_t buffer_size, const char * format, ...)
 {
   // Only write if a buffer is provided
   if (!buffer || buffer_size == 0u) {
@@ -58,7 +59,10 @@ _append_to_buffer(const char * message, char * buffer, size_t buffer_size)
   // Determine available space left in buffer
   size_t offset = strnlen(buffer, buffer_size);
   size_t write_size = buffer_size - offset;
-  int snprintf_ret = rcutils_snprintf(buffer + offset, write_size, "%s", message);
+  va_list args;
+  va_start(args, format);
+  int snprintf_ret = rcutils_snprintf(buffer + offset, write_size, format, args);
+  va_end(args);
   if (snprintf_ret < 0) {
     RMW_SET_ERROR_MSG("failed to append to character buffer");
     return RMW_RET_ERROR;
@@ -84,32 +88,6 @@ qos_profile_check_compatible(
     return RMW_RET_INVALID_ARGUMENT;
   }
 
-  // If there are any "unknown" values, then there is an error
-  if (RMW_QOS_POLICY_RELIABILITY_UNKNOWN == publisher_qos.reliability) {
-    RMW_SET_ERROR_MSG("Publisher reliability is unknown");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-  if (RMW_QOS_POLICY_RELIABILITY_UNKNOWN == subscription_qos.reliability) {
-    RMW_SET_ERROR_MSG("Subscription reliability is unknown");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-  if (RMW_QOS_POLICY_DURABILITY_UNKNOWN == publisher_qos.durability) {
-    RMW_SET_ERROR_MSG("Publisher durability is unknown");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-  if (RMW_QOS_POLICY_DURABILITY_UNKNOWN == subscription_qos.durability) {
-    RMW_SET_ERROR_MSG("Subscription durability is unknown");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-  if (RMW_QOS_POLICY_LIVELINESS_UNKNOWN == publisher_qos.liveliness) {
-    RMW_SET_ERROR_MSG("Publisher liveliness is unknown");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-  if (RMW_QOS_POLICY_LIVELINESS_UNKNOWN == subscription_qos.liveliness) {
-    RMW_SET_ERROR_MSG("Subscription liveliness is unknown");
-    return RMW_RET_INVALID_ARGUMENT;
-  }
-
   // Presume profiles are compatible until proven otherwise
   *compatibility = RMW_QOS_COMPATIBILITY_OK;
 
@@ -124,9 +102,9 @@ qos_profile_check_compatible(
   {
     *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
     rmw_ret_t append_ret = _append_to_buffer(
-      "ERROR: Best effort publisher and reliable subscription;",
       reason,
-      reason_size);
+      reason_size,
+      "ERROR: Best effort publisher and reliable subscription;");
     if (RMW_RET_OK != append_ret) {
       return append_ret;
     }
@@ -138,9 +116,9 @@ qos_profile_check_compatible(
   {
     *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
     rmw_ret_t append_ret = _append_to_buffer(
-      "ERROR: Volatile publisher and transient local subscription;",
       reason,
-      reason_size);
+      reason_size,
+      "ERROR: Volatile publisher and transient local subscription;");
     if (RMW_RET_OK != append_ret) {
       return append_ret;
     }
@@ -154,9 +132,9 @@ qos_profile_check_compatible(
   if (pub_deadline == deadline_default && sub_deadline != deadline_default) {
     *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
     rmw_ret_t ret = _append_to_buffer(
-      "ERROR: Subscription has a deadline, but publisher does not;",
       reason,
-      reason_size);
+      reason_size,
+      "ERROR: Subscription has a deadline, but publisher does not;");
     if (RMW_RET_OK != ret) {
       return ret;
     }
@@ -167,9 +145,9 @@ qos_profile_check_compatible(
     if (sub_deadline < pub_deadline) {
       *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
       rmw_ret_t append_ret = _append_to_buffer(
-        "ERROR: Subscription deadline is less than publisher deadline;",
         reason,
-        reason_size);
+        reason_size,
+        "ERROR: Subscription deadline is less than publisher deadline;");
       if (RMW_RET_OK != append_ret) {
         return append_ret;
       }
@@ -182,9 +160,9 @@ qos_profile_check_compatible(
   {
     *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
     rmw_ret_t append_ret = _append_to_buffer(
-      "ERROR: Publisher's liveliness is automatic and subscription's is manual by topic;",
       reason,
-      reason_size);
+      reason_size,
+      "ERROR: Publisher's liveliness is automatic and subscription's is manual by topic;");
     if (RMW_RET_OK != append_ret) {
       return append_ret;
     }
@@ -198,9 +176,9 @@ qos_profile_check_compatible(
   if (pub_lease == lease_default && sub_lease != lease_default) {
     *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
     rmw_ret_t append_ret = _append_to_buffer(
-      "ERROR: Subscription has a liveliness lease duration, but publisher does not;",
       reason,
-      reason_size);
+      reason_size,
+      "ERROR: Subscription has a liveliness lease duration, but publisher does not;");
     if (RMW_RET_OK != append_ret) {
       return append_ret;
     }
@@ -211,9 +189,9 @@ qos_profile_check_compatible(
     if (sub_lease < pub_lease) {
       *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
       rmw_ret_t append_ret = _append_to_buffer(
-        "ERROR: Subscription liveliness lease duration is less than publisher;",
         reason,
-        reason_size);
+        reason_size,
+        "ERROR: Subscription liveliness lease duration is less than publisher;");
       if (RMW_RET_OK != append_ret) {
         return append_ret;
       }
@@ -222,84 +200,110 @@ qos_profile_check_compatible(
 
   // Only check for warnings if there are no errors
   if (RMW_QOS_COMPATIBILITY_OK == *compatibility) {
-    // Reliability for publisher is "system default" and subscription is reliable
-    if (publisher_qos.reliability == RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT &&
+    // We don't know the policy if the value is "system default" or "unknown"
+    const bool pub_reliability_unknown =
+      publisher_qos.reliability == RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT ||
+      publisher_qos.reliability == RMW_QOS_POLICY_RELIABILITY_UNKNOWN;
+    const bool sub_reliability_unknown =
+      subscription_qos.reliability == RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT ||
+      subscription_qos.reliability == RMW_QOS_POLICY_RELIABILITY_UNKNOWN;
+    const bool pub_durability_unknown =
+      publisher_qos.durability == RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT ||
+      publisher_qos.durability == RMW_QOS_POLICY_DURABILITY_UNKNOWN;
+    const bool sub_durability_unknown =
+      subscription_qos.durability == RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT ||
+      subscription_qos.durability == RMW_QOS_POLICY_DURABILITY_UNKNOWN;
+    const bool pub_liveliness_unknown =
+      publisher_qos.liveliness == RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT ||
+      publisher_qos.liveliness == RMW_QOS_POLICY_LIVELINESS_UNKNOWN;
+    const bool sub_liveliness_unknown =
+      subscription_qos.liveliness == RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT ||
+      subscription_qos.liveliness == RMW_QOS_POLICY_LIVELINESS_UNKNOWN;
+
+    // Reliability for publisher is unknown and subscription is reliable
+    if (pub_reliability_unknown &&
       subscription_qos.reliability == RMW_QOS_POLICY_RELIABILITY_RELIABLE)
     {
       *compatibility = RMW_QOS_COMPATIBILITY_WARNING;
       rmw_ret_t append_ret = _append_to_buffer(
-        "WARNING: Reliable subscription, but publisher is system default;",
         reason,
-        reason_size);
+        reason_size,
+        "WARNING: Reliable subscription, but publisher is %s;",
+        rmw_qos_reliability_policy_to_str(publisher_qos.reliability));
       if (RMW_RET_OK != append_ret) {
         return append_ret;
       }
     } else {
-      // Reliability for publisher is best effort and subscription is "system default"
+      // Reliability for publisher is best effort and subscription is unknown
       if (publisher_qos.reliability == RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT &&
-        subscription_qos.reliability == RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT)
+        sub_reliability_unknown)
       {
         *compatibility = RMW_QOS_COMPATIBILITY_WARNING;
         rmw_ret_t append_ret = _append_to_buffer(
-          "WARNING: Best effort publisher, but subscription is system default;",
           reason,
-          reason_size);
+          reason_size,
+          "WARNING: Best effort publisher, but subscription is %s;",
+          rmw_qos_reliability_policy_to_str(subscription_qos.reliability));
         if (RMW_RET_OK != append_ret) {
           return append_ret;
         }
       }
     }
 
-    // Durability for publisher is "system default" and subscription is transient local
-    if (publisher_qos.durability == RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT &&
+    // Durability for publisher is unknown and subscription is transient local
+    if (pub_durability_unknown &&
       subscription_qos.durability == RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL)
     {
       *compatibility = RMW_QOS_COMPATIBILITY_WARNING;
       rmw_ret_t ret = _append_to_buffer(
-        "WARNING: Transient local subscription, but publisher is system default;",
         reason,
-        reason_size);
+        reason_size,
+        "WARNING: Transient local subscription, but publisher is %s;",
+        rmw_qos_durability_policy_to_str(publisher_qos.durability));
       if (RMW_RET_OK != ret) {
         return ret;
       }
     } else {
-      // Durability for publisher is volatile and subscription is "system default"
+      // Durability for publisher is volatile and subscription is unknown
       if (publisher_qos.durability == RMW_QOS_POLICY_DURABILITY_VOLATILE &&
-        subscription_qos.durability == RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT)
+        sub_durability_unknown)
       {
         *compatibility = RMW_QOS_COMPATIBILITY_WARNING;
         rmw_ret_t ret = _append_to_buffer(
-          "WARNING: Volatile publisher, but subscription is system default;",
           reason,
-          reason_size);
+          reason_size,
+          "WARNING: Volatile publisher, but subscription is %s;",
+          rmw_qos_durability_policy_to_str(subscription_qos.durability));
         if (RMW_RET_OK != ret) {
           return ret;
         }
       }
     }
 
-    // Automatic liveliness for publisher and "system default" for subscription
-    if (publisher_qos.liveliness == RMW_QOS_POLICY_LIVELINESS_AUTOMATIC &&
-      subscription_qos.liveliness == RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT)
+    // Unknown liveliness for publisher and manual by topic for subscription
+    if (pub_liveliness_unknown &&
+      subscription_qos.liveliness == RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC)
     {
       *compatibility = RMW_QOS_COMPATIBILITY_WARNING;
       rmw_ret_t ret = _append_to_buffer(
-        "WARNING: Publisher's liveliness is automatic, but subscription's is system default;",
         reason,
-        reason_size);
+        reason_size,
+        "WARNING: Subscription's liveliness is manual by topic, but publisher's is %s;",
+        rmw_qos_liveliness_policy_to_str(publisher_qos.liveliness));
       if (RMW_RET_OK != ret) {
         return ret;
       }
     } else {
-      if (publisher_qos.liveliness == RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT &&
-        subscription_qos.liveliness == RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC)
+      // Automatic liveliness for publisher and unknown for subscription
+      if (publisher_qos.liveliness == RMW_QOS_POLICY_LIVELINESS_AUTOMATIC &&
+        sub_liveliness_unknown)
       {
         *compatibility = RMW_QOS_COMPATIBILITY_WARNING;
         rmw_ret_t ret = _append_to_buffer(
-          "WARNING: Subscription's liveliness is manual by topic, but publisher's is system "
-          "default;",
           reason,
-          reason_size);
+          reason_size,
+          "WARNING: Publisher's liveliness is automatic, but subscription's is %s;",
+          rmw_qos_liveliness_policy_to_str(subscription_qos.liveliness));
         if (RMW_RET_OK != ret) {
           return ret;
         }

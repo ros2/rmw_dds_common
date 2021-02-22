@@ -45,7 +45,6 @@ namespace rmw_dds_common
  * \return `RMW_RET_OK` if the check was successful, or
  * \return `RMW_RET_INVALID_ARGUMENT` if `compatiblity` is `nullptr`, or
  * \return `RMW_RET_INVALID_ARGUMENT` if `reason` is `nullptr` and  `reason_size` is not zero, or
- * \return `RMW_RET_INVALID_ARGUMENT` if any of the policies have value "unknown".
  * \return `RMW_RET_ERROR` if there is an unexpected error.
  */
 RMW_DDS_COMMON_PUBLIC
