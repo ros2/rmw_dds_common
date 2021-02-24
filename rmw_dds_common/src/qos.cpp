@@ -93,7 +93,7 @@ qos_profile_check_compatible(
   *compatibility = RMW_QOS_COMPATIBILITY_OK;
 
   // Initialize reason buffer
-  if (reason) {
+  if (reason && reason_size != 0u) {
     reason[0] = '\0';
   }
 

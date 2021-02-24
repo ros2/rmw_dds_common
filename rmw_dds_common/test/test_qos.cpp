@@ -702,7 +702,7 @@ TEST(test_qos, test_qos_profile_check_compatible_no_reason)
 TEST(test_qos, test_qos_profile_check_compatible_reason_buffer_too_small)
 {
   // We expect a message larger than 10 characters
-  char reason[10] = "";
+  char reason[10];
   size_t reason_size = 10u;
   rmw_qos_compatibility_type_t compatible;
   rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
@@ -715,6 +715,23 @@ TEST(test_qos, test_qos_profile_check_compatible_reason_buffer_too_small)
   EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_ERROR);
   // Expect the first 10 characters including the terminating null character
   EXPECT_STREQ(reason, "ERROR: Be");
+}
+
+TEST(test_qos, test_qos_profile_check_compatible_reason_buffer_size_zero)
+{
+  char reason[10] = "untouched";
+  // With reason size zero, we don't expect any message to be written
+  size_t reason_size = 0u;
+  rmw_qos_compatibility_type_t compatible;
+  rmw_qos_profile_t pub_qos = get_qos_profile_fixture();
+  rmw_qos_profile_t sub_qos = get_qos_profile_fixture();
+  pub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  sub_qos.reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
+    pub_qos, sub_qos, &compatible, reason, reason_size);
+  EXPECT_EQ(ret, RMW_RET_OK);
+  EXPECT_EQ(compatible, RMW_QOS_COMPATIBILITY_ERROR);
+  EXPECT_STREQ(reason, "untouched");
 }
 
 TEST(test_qos, test_qos_profile_check_compatible_invalid)
