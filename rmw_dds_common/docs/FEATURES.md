@@ -11,3 +11,4 @@ This package includes:
   - A generic [`Context`](rmw_dds_common/include/rmw_dds_common/context.hpp) type to withhold most state needed to implement [ROS nodes discovery](https://github.com/ros2/design/pull/250)
   - [Comparison utilities and some C++ operator overloads](rmw_dds_common/include/rmw_dds_common/gid_utils.hpp) for `rmw_gid_t` instances
   - [Conversion utilities](rmw_dds_common/include/rmw_dds_common/gid_utils.hpp) between `rmw_dds_common/msg/Gid` messages and `rmw_gid_t` instances
+  - A function for checking the compatibility of two QoS profiles, [`qos_profile_check_compatible`](rmw_dds_common/include/rmw_dds_common/qos.hpp)
