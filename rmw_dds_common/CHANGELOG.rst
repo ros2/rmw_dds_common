@@ -2,6 +2,13 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.2.0 (2021-02-28)
+------------------
+* Add function for checking QoS profile compatibility (`#45 <https://github.com/ros2/rmw_dds_common/issues/45>`_)
+* Shorten some excessively long lines of CMake (`#44 <https://github.com/ros2/rmw_dds_common/issues/44>`_)
+* Fix test_graph_cache ASAN errors (`#41 <https://github.com/ros2/rmw_dds_common/issues/41>`_) (`#42 <https://github.com/ros2/rmw_dds_common/issues/42>`_)
+* Contributors: Jacob Perron, Scott K Logan, y-okumura-isp
+
 1.1.1 (2020-12-10)
 ------------------
 * Update QD to QL 1 (`#38 <https://github.com/ros2/rmw_dds_common/issues/38>`_)
