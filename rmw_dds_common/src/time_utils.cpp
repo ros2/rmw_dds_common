@@ -32,7 +32,7 @@ rmw_dds_common::clamp_rmw_time_to_dds_time(const rmw_time_t & time)
   static const uint64_t sec_to_ns = 1000000000ULL;
   uint64_t ns_sec_adjust = t.nsec / sec_to_ns;
   bool overflow_nsec = false,
-       overflow_sec = false;
+    overflow_sec = false;
 
   if (ns_sec_adjust > INT_MAX) {
     ns_sec_adjust = INT_MAX;
@@ -54,7 +54,7 @@ rmw_dds_common::clamp_rmw_time_to_dds_time(const rmw_time_t & time)
   }
 
   if (overflow_sec || overflow_nsec) {
-    RCUTILS_LOG_WARN_NAMED(
+    RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dds_common",
       "rmw_time_t length cannot be represented by DDS, truncated at "
       "INT_MAX seconds + (10^9 - 1) nanoseconds");
