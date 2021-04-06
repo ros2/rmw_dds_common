@@ -2,6 +2,12 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix one more instance of index.ros.org. (`#49 <https://github.com/ros2/rmw_dds_common/issues/49>`_)
+* updating quality declaration links (re: `ros2/docs.ros2.org#52 <https://github.com/ros2/docs.ros2.org/issues/52>`_) (`#46 <https://github.com/ros2/rmw_dds_common/issues/46>`_)
+* Contributors: Chris Lalancette, shonigmann
+
 1.2.0 (2021-02-28)
 ------------------
 * Add function for checking QoS profile compatibility (`#45 <https://github.com/ros2/rmw_dds_common/issues/45>`_)
