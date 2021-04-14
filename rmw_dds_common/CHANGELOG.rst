@@ -2,6 +2,12 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.3 (2021-04-14)
+------------------
+* Update quality declaration links (re: `ros2/docs.ros2.org#52 <https://github.com/ros2/docs.ros2.org/issues/52>`_) (`#47 <https://github.com/ros2/rmw_dds_common/issues/47>`_)
+* Update QD to QL 1 (`#39 <https://github.com/ros2/rmw_dds_common/issues/39>`_)
+* Contributors: Simon Honigmann, Stephen Brawner
+
 1.0.2 (2020-11-11)
 ------------------
 * Update QD links to Foxy
