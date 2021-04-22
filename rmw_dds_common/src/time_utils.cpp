@@ -29,10 +29,10 @@ rmw_dds_common::clamp_rmw_time_to_dds_time(const rmw_time_t & time)
   // If the total length in seconds cannot be represented by DDS (which is
   // limited to INT_MAX seconds + (10^9 - 1) nanoseconds) we must truncate
   // the seconds component at INT_MAX, while also normalizing nanosec to < 1s.
-  static const uint64_t sec_to_ns = 1000000000ULL;
+  constexpr uint64_t sec_to_ns = 1000000000ULL;
   uint64_t ns_sec_adjust = t.nsec / sec_to_ns;
-  bool overflow_nsec = false,
-    overflow_sec = false;
+  bool overflow_nsec = false;
+  bool overflow_sec = false;
 
   if (ns_sec_adjust > INT_MAX) {
     ns_sec_adjust = INT_MAX;
@@ -46,7 +46,7 @@ rmw_dds_common::clamp_rmw_time_to_dds_time(const rmw_time_t & time)
     t.sec += ns_sec_adjust;
   }
 
-  if (overflow_nsec || (overflow_sec && ns_sec_adjust == 0)) {
+  if (overflow_nsec || overflow_sec) {
     // The nsec component must be "saturated" if we are overflowing INT_MAX
     t.nsec = sec_to_ns - 1;
   } else {

@@ -49,6 +49,14 @@ TEST(test_time_utils, test_seconds_overflow)
   const rmw_time_t slightly_too_large_ns {0, 0x80000000 * 1000000000ULL};
   auto t3_ns = rmw_dds_common::clamp_rmw_time_to_dds_time(slightly_too_large_ns);
   EXPECT_TRUE(t3_ns == result3);
+
+  const rmw_time_t slightly_too_large_both_1 {0x7FFFFFFF, 1000000000ULL};
+  auto t3_both_1 = rmw_dds_common::clamp_rmw_time_to_dds_time(slightly_too_large_both_1);
+  EXPECT_TRUE(t3_both_1 == result3);
+
+  const rmw_time_t slightly_too_large_both_2 {0x80000000, 9999999998ULL};
+  auto t3_both_2 = rmw_dds_common::clamp_rmw_time_to_dds_time(slightly_too_large_both_2);
+  EXPECT_TRUE(t3_both_2 == result3);
 }
 
 TEST(test_time_utils, test_saturation)
@@ -81,4 +89,8 @@ TEST(test_time_utils, test_normalize)
   auto normalized_max = rmw_dds_common::clamp_rmw_time_to_dds_time(unnormalized_max);
   const rmw_time_t normalized_max_expected {0x7FFFFFFF, 999999999ULL};
   EXPECT_TRUE(normalized_max == normalized_max_expected);
+
+  const rmw_time_t unnormalized_max_2 {0x7FFFFFFE, 1999999999ULL};
+  auto normalized_max_2 = rmw_dds_common::clamp_rmw_time_to_dds_time(unnormalized_max_2);
+  EXPECT_TRUE(normalized_max_2 == normalized_max_expected);
 }
