@@ -24,21 +24,37 @@ rmw_dds_common::clamp_rmw_time_to_dds_time(const rmw_time_t & time)
 {
   rmw_time_t t = time;
 
-  // Let's try to keep the seconds value representable with 32-bits
-  // by moving the excess seconds over to the nanoseconds field.
-  if (t.sec > INT_MAX) {
-    uint64_t diff = t.sec - INT_MAX;
-    t.sec -= diff;
-    t.nsec += diff * (1000LL * 1000LL * 1000LL);
+  // Normalize rmw_time_t::nsec to be < 1s, so that it may be safely converted
+  // to a DDS Duration or Time (see DDS v1.4 section 2.3.2).
+  // If the total length in seconds cannot be represented by DDS (which is
+  // limited to INT_MAX seconds + (10^9 - 1) nanoseconds) we must truncate
+  // the seconds component at INT_MAX, while also normalizing nanosec to < 1s.
+  constexpr uint64_t sec_to_ns = 1000000000ULL;
+  uint64_t ns_sec_adjust = t.nsec / sec_to_ns;
+  bool overflow_nsec = false;
+  bool overflow_sec = false;
+
+  if (ns_sec_adjust > INT_MAX) {
+    ns_sec_adjust = INT_MAX;
+    overflow_nsec = true;
   }
 
-  // In case the nanoseconds value is too large for a 32-bit unsigned,
-  // we can at least saturate and emit a warning
-  if (t.nsec > UINT_MAX) {
-    RCUTILS_LOG_WARN_NAMED(
+  if (t.sec > INT_MAX - ns_sec_adjust) {
+    t.sec = INT_MAX;
+    overflow_sec = true;
+  } else {
+    t.sec += ns_sec_adjust;
+  }
+
+  if (overflow_nsec || overflow_sec) {
+    // The nsec component must be "saturated" if we are overflowing INT_MAX
+    t.nsec = sec_to_ns - 1;
+    RCUTILS_LOG_DEBUG_NAMED(
       "rmw_dds_common",
-      "nanoseconds value too large for 32-bits, saturated at UINT_MAX");
-    t.nsec = UINT_MAX;
+      "rmw_time_t length cannot be represented by DDS, truncated at "
+      "INT_MAX seconds + (10^9 - 1) nanoseconds");
+  } else {
+    t.nsec = t.nsec - ns_sec_adjust * sec_to_ns;
   }
 
   return t;
