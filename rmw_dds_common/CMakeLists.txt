@@ -34,6 +34,7 @@ add_library(${PROJECT_NAME}_library SHARED
   src/gid_utils.cpp
   src/graph_cache.cpp
   src/qos.cpp
+  src/security.cpp
   src/time_utils.cpp)
 
 set_target_properties(${PROJECT_NAME}_library
@@ -102,6 +103,11 @@ if(BUILD_TESTING)
   ament_add_gmock(test_time_utils test/test_time_utils.cpp)
   if(TARGET test_time_utils)
     target_link_libraries(test_time_utils ${PROJECT_NAME}_library)
+  endif()
+
+  ament_add_gmock(test_security test/test_security.cpp)
+  if(TARGET test_security)
+    target_link_libraries(test_security ${PROJECT_NAME}_library)
   endif()
 
   add_performance_test(benchmark_graph_cache test/benchmark/benchmark_graph_cache.cpp)
