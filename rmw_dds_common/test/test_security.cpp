@@ -22,16 +22,10 @@
 #include <string>
 #include <unordered_map>
 
-#ifdef _WIN32
-static constexpr const bool is_win32 = true;
-#else
-static constexpr const bool is_win32 = false;
-#endif
-
 TEST(test_security, files_exist_no_prefix)
 {
-  rcpputils::fs::path dir = rcpputils::fs::path(is_win32 ? R"(.\test_folder)" : R"(./test_folder)");
-  (void)rcpputils::fs::remove_all(dir);
+  rcpputils::fs::path dir = rcpputils::fs::path("./test_folder");
+  rcpputils::fs::remove_all(dir);
   EXPECT_TRUE(rcpputils::fs::create_directories(dir));
   EXPECT_TRUE(rcpputils::fs::exists(dir));
   EXPECT_TRUE(rcpputils::fs::is_directory(dir));
@@ -50,18 +44,30 @@ TEST(test_security, files_exist_no_prefix)
   std::unordered_map<std::string, std::string> security_files;
   ASSERT_TRUE(rmw_dds_common::get_security_files("", dir.string(), security_files));
 
-  EXPECT_EQ(security_files["IDENTITY_CA"], "./test_folder/identity_ca.cert.pem");
-  EXPECT_EQ(security_files["CERTIFICATE"], "./test_folder/cert.pem");
-  EXPECT_EQ(security_files["PRIVATE_KEY"], "./test_folder/key.pem");
-  EXPECT_EQ(security_files["PERMISSIONS_CA"], "./test_folder/permissions_ca.cert.pem");
-  EXPECT_EQ(security_files["GOVERNANCE"], "./test_folder/governance.p7s");
-  EXPECT_EQ(security_files["PERMISSIONS"], "./test_folder/permissions.p7s");
+  EXPECT_EQ(
+    security_files["IDENTITY_CA"],
+    rcpputils::fs::path("./test_folder/identity_ca.cert.pem").string());
+  EXPECT_EQ(
+    security_files["CERTIFICATE"],
+    rcpputils::fs::path("./test_folder/cert.pem").string());
+  EXPECT_EQ(
+    security_files["PRIVATE_KEY"],
+    rcpputils::fs::path("./test_folder/key.pem").string());
+  EXPECT_EQ(
+    security_files["PERMISSIONS_CA"],
+    rcpputils::fs::path("./test_folder/permissions_ca.cert.pem").string());
+  EXPECT_EQ(
+    security_files["GOVERNANCE"],
+    rcpputils::fs::path("./test_folder/governance.p7s").string());
+  EXPECT_EQ(
+    security_files["PERMISSIONS"],
+    rcpputils::fs::path("./test_folder/permissions.p7s").string());
 }
 
 TEST(test_security, files_exist_with_prefix)
 {
-  rcpputils::fs::path dir = rcpputils::fs::path(is_win32 ? R"(.\test_folder)" : R"(./test_folder)");
-  (void)rcpputils::fs::remove_all(dir);
+  rcpputils::fs::path dir = rcpputils::fs::path("./test_folder");
+  rcpputils::fs::remove_all(dir);
   EXPECT_TRUE(rcpputils::fs::create_directories(dir));
   EXPECT_TRUE(rcpputils::fs::exists(dir));
   EXPECT_TRUE(rcpputils::fs::is_directory(dir));
@@ -80,18 +86,30 @@ TEST(test_security, files_exist_with_prefix)
   std::unordered_map<std::string, std::string> security_files;
   ASSERT_TRUE(rmw_dds_common::get_security_files("file://", dir.string(), security_files));
 
-  EXPECT_EQ(security_files["IDENTITY_CA"], "file://./test_folder/identity_ca.cert.pem");
-  EXPECT_EQ(security_files["CERTIFICATE"], "file://./test_folder/cert.pem");
-  EXPECT_EQ(security_files["PRIVATE_KEY"], "file://./test_folder/key.pem");
-  EXPECT_EQ(security_files["PERMISSIONS_CA"], "file://./test_folder/permissions_ca.cert.pem");
-  EXPECT_EQ(security_files["GOVERNANCE"], "file://./test_folder/governance.p7s");
-  EXPECT_EQ(security_files["PERMISSIONS"], "file://./test_folder/permissions.p7s");
+  EXPECT_EQ(
+    security_files["IDENTITY_CA"],
+    "file://" + rcpputils::fs::path("./test_folder/identity_ca.cert.pem").string());
+  EXPECT_EQ(
+    security_files["CERTIFICATE"],
+    "file://" + rcpputils::fs::path("./test_folder/cert.pem").string());
+  EXPECT_EQ(
+    security_files["PRIVATE_KEY"],
+    "file://" + rcpputils::fs::path("./test_folder/key.pem").string());
+  EXPECT_EQ(
+    security_files["PERMISSIONS_CA"],
+    "file://" + rcpputils::fs::path("./test_folder/permissions_ca.cert.pem").string());
+  EXPECT_EQ(
+    security_files["GOVERNANCE"],
+    "file://" + rcpputils::fs::path("./test_folder/governance.p7s").string());
+  EXPECT_EQ(
+    security_files["PERMISSIONS"],
+    "file://" + rcpputils::fs::path("./test_folder/permissions.p7s").string());
 }
 
 TEST(test_security, file_missing)
 {
-  rcpputils::fs::path dir = rcpputils::fs::path(is_win32 ? R"(.\test_folder)" : R"(./test_folder)");
-  (void)rcpputils::fs::remove_all(dir);
+  rcpputils::fs::path dir = rcpputils::fs::path("./test_folder");
+  rcpputils::fs::remove_all(dir);
   EXPECT_TRUE(rcpputils::fs::create_directories(dir));
   EXPECT_TRUE(rcpputils::fs::exists(dir));
   EXPECT_TRUE(rcpputils::fs::is_directory(dir));

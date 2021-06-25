@@ -17,6 +17,7 @@
 #include <unordered_map>
 
 #include "rcpputils/filesystem_helper.hpp"
+#include "rmw_dds_common/security.hpp"
 
 namespace rmw_dds_common
 {

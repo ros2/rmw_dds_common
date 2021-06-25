@@ -18,6 +18,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "rmw_dds_common/visibility_control.h"
+
 namespace rmw_dds_common
 {
 
