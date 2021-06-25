@@ -45,6 +45,7 @@ namespace rmw_dds_common
  * \param[out] result The map where the friendly name -> filename pairs are stored.
  * \return `true` if all required files exist in the security enclave, `false` otherwise.
  */
+RMW_DDS_COMMON_PUBLIC
 bool get_security_files(
   const std::string & prefix, const std::string & secure_root,
   std::unordered_map<std::string, std::string> & result);
