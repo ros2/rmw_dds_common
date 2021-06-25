@@ -109,4 +109,5 @@ TEST(test_security, file_missing)
 
   std::unordered_map<std::string, std::string> security_files;
   ASSERT_FALSE(rmw_dds_common::get_security_files("", dir.string(), security_files));
+  ASSERT_EQ(security_files.size(), 0UL);
 }
