@@ -2,8 +2,8 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.0 (2021-06-28)
+------------------
 * Add a common function for security files. (`#51 <https://github.com/ros2/rmw_dds_common/issues/51>`_)
 * Normalize rmw_time_t according to DDS spec (`#48 <https://github.com/ros2/rmw_dds_common/issues/48>`_)
 * Contributors: Andrea Sorbini, Chris Lalancette
