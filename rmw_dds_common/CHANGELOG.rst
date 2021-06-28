@@ -2,6 +2,12 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add a common function for security files. (`#51 <https://github.com/ros2/rmw_dds_common/issues/51>`_)
+* Normalize rmw_time_t according to DDS spec (`#48 <https://github.com/ros2/rmw_dds_common/issues/48>`_)
+* Contributors: Andrea Sorbini, Chris Lalancette
+
 1.2.1 (2021-04-06)
 ------------------
 * Fix one more instance of index.ros.org. (`#49 <https://github.com/ros2/rmw_dds_common/issues/49>`_)
