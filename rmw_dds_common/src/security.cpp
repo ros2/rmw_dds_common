@@ -35,6 +35,10 @@ bool get_security_files(
     {"PERMISSIONS", "permissions.p7s"},
   };
 
+  const std::unordered_map<std::string, std::string> optional_files{
+    {"CRL", "crl.pem"},
+  };
+
   for (const std::pair<const std::string, std::string> & el : required_files) {
     rcpputils::fs::path full_path(secure_root);
     full_path /= el.second;
@@ -44,6 +48,14 @@ bool get_security_files(
     }
 
     result[el.first] = prefix + full_path.string();
+  }
+
+  for (const std::pair<const std::string, std::string> & el : optional_files) {
+    rcpputils::fs::path full_path(secure_root);
+    full_path /= el.second;
+    if (full_path.is_regular_file()) {
+      result[el.first] = prefix + full_path.string();
+    }
   }
 
   return true;
