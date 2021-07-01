@@ -35,7 +35,7 @@ bool get_security_files(
     {"PERMISSIONS", "permissions.p7s"},
   };
 
-  for (const auto & el : required_files) {
+  for (const std::pair<const std::string, std::string> & el : required_files) {
     rcpputils::fs::path full_path(secure_root);
     full_path /= el.second;
     if (!full_path.is_regular_file()) {
