@@ -31,8 +31,8 @@ namespace rmw_dds_common
  * This implements the rmw API \ref rmw_qos_profile_check_compatible().
  * See \ref rmw_qos_profile_check_compatible() for more information.
  *
- * \param[in] publisher_profile: The QoS profile used for a publisher.
- * \param[in] subscription_profile: The QoS profile used for a subscription.
+ * \param[in] publisher_qos: The QoS profile used for a publisher.
+ * \param[in] subscription_qos: The QoS profile used for a subscription.
  * \param[out] compatibility: `RMW_QOS_COMPATIBILITY_OK` if the QoS profiles are compatible, or
  *   `RMW_QOS_COMPATIBILITY_WARNING` if the QoS profiles might be compatible, or
  *   `RMW_QOS_COMPATIBILITY_ERROR` if the QoS profiles are not compatible.
