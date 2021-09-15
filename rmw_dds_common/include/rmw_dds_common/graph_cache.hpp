@@ -45,7 +45,7 @@ struct ParticipantInfo;
 
 /// Graph cache data structure.
 /**
- * Manages relationships between participants, nodes and topics.
+ * Manages relationships between participants, nodes, and topics.
  */
 class GraphCache
 {
@@ -78,14 +78,15 @@ public:
    * @{
    */
 
-  /// Add a data writer based on discovery.
+  /// Add a data writer.
   /**
-   * \param writer_gid The data writer guid.
-   * \param topic_name
-   * \param type_name
-   * \param participant_gid gid of the participant.
-   * \param qos Quality of service of the writer.
-   * \return `true` when a change took place.
+   * \param writer_gid GUID of the data writer.
+   * \param topic_name Name of the DDS topic for this data writer.
+   * \param type_name Type name of the DDS topic for this data writer.
+   * \param participant_gid GUID of the participant.
+   * \param qos QoS profile of the data writer.
+   * \return `true` if the cache was updated, `false` if the data writer
+   *   was already present.
    */
   RMW_DDS_COMMON_PUBLIC
   bool
@@ -98,12 +99,13 @@ public:
 
   /// Add a data reader based on discovery.
   /**
-   * \param reader_gid The data reader guid
-   * \param topic_name
-   * \param type_name
-   * \param participant_gid gid of the participant.
-   * \param qos Quality of service of the writer.
-   * \return `true` when a change took place.
+   * \param reader_gid GUID of the The data reader.
+   * \param topic_name Name of the DDS topic for this data reader.
+   * \param type_name Type name of the DDS topic for this data reader.
+   * \param participant_gid GUID of the participant.
+   * \param qos QoS profile of the data reader.
+   * \return `true` if the cache was updated, `false` if the data reader
+   *   was already present.
    */
   RMW_DDS_COMMON_PUBLIC
   bool
@@ -114,15 +116,16 @@ public:
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos);
 
-  /// Add a data reader based on discovery.
+  /// Add a data reader or writer.
   /**
-   * \param gid The data reader guid.
-   * \param topic_name
-   * \param type_name
-   * \param participant_gid gid of the participant.
-   * \param qos Quality of service of the writer.
-   * \param is_reader Adds a reader when `true`, if not a writer.
-   * \return `true` when a change took place.
+   * \param gid GUID of the entity.
+   * \param topic_name Name of the DDS topic for this data reader.
+   * \param type_name Type name of the DDS topic for this entity
+   * \param participant_gid GUID of the participant.
+   * \param qos QoS profile of the entity.
+   * \param is_reader Whether the entity is a data reader or a writer.
+   * \return `true` if the cache was updated, `false` if the entity
+   *   was already present.
    */
   RMW_DDS_COMMON_PUBLIC
   bool
@@ -134,29 +137,32 @@ public:
     const rmw_qos_profile_t & qos,
     bool is_reader);
 
-  /// Remove a data writer based on discovery.
+  /// Remove a data writer.
   /**
-   * \param gid The data writer guid.
-   * \return `true` when a change took place.
+   * \param gid GUID of the data writer.
+   * \return `true` if the cache was updated,
+   *   `false` if the data writer was not present.
    */
   RMW_DDS_COMMON_PUBLIC
   bool
   remove_writer(const rmw_gid_t & gid);
 
-  /// Remove a data reader based on discovery.
+  /// Remove a data reader.
   /**
-   * \param gid The data reader guid.
-   * \return `true` when a change took place.
+   * \param gid GUID of the The data reader.
+   * \return `true` if the cache was updated,
+   *   `false` if the data reader was not present.
    */
   RMW_DDS_COMMON_PUBLIC
   bool
   remove_reader(const rmw_gid_t & gid);
 
-  /// Remove a data reader or writer based based on discovery.
+  /// Remove a data reader or writer.
   /**
-   * \param gid The endpoint guid.
-   * \param is_reader `true` for removing a data reader.
-   * \return `true` when a change took place.
+   * \param gid GUID of the entity.
+   * \param is_reader Whether the entity is a data reader or a writer.
+   * \return `true` when a the cache was upated, `false` if the entity
+   *   was not present.
    */
   RMW_DDS_COMMON_PUBLIC
   bool
@@ -169,9 +175,9 @@ public:
    * @{
    */
 
-  /// Add a discovered participant to the cache.
+  /// Add a participant.
   /**
-   * \param participant_gid The participant guid.
+   * \param participant_gid GUID of the participant.
    * \param enclave Name of the enclave.
    */
   RMW_DDS_COMMON_PUBLIC
@@ -180,9 +186,9 @@ public:
     const rmw_gid_t & participant_gid,
     const std::string & enclave);
 
-  /// Remove a participant based on discovery.
+  /// Remove a participant.
   /**
-   * \param participant_gid
+   * \param participant_gid GUID of the participant.
    * \return `true` when a change took place.
    */
   RMW_DDS_COMMON_PUBLIC
@@ -197,9 +203,9 @@ public:
    * @{
    */
 
-  /// Update participant info based on a received `ParticipantEntitiesInfo` message.
+  /// Update cached participant info from a `ParticipantEntitiesInfo` message.
   /**
-   * \param msg Will be filled with the received `ParticipantEntitiesInfo` message.
+   * \param msg participant info to update cache from.
    */
   RMW_DDS_COMMON_PUBLIC
   void
@@ -208,16 +214,19 @@ public:
   /**
    * @}
    * \defgroup local_api local_api
-   * Methods used to update the Graph Cache, based on local construction and destruction of objects.
+   * Methods used to update the Graph Cache, based on local construction and destruction of entities.
+   * All of these methods return a `ParticipantEntitiesInfo` message describing the local participant
+   * state. This message can be used to update remote caches kept by remote participants.
+   * \see rmw_dds_common::GraphCache::update_participant_entities.
    * @{
    */
 
-  /// Add a node to the graph, and get the message to be sent.
+  /// Add a node to the graph.
   /**
-   * \param participant_gid participant GUID.
-   * \param node_name name of the node to be added.
-   * \param node_namespace node namespace.
-   * \return message to be sent.
+   * \param participant_gid GUID of the participant.
+   * \param node_name Name of the node to be added.
+   * \param node_namespace Namespace of the node to be added.
+   * \return Message to update other caches.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -226,12 +235,12 @@ public:
     const std::string & node_name,
     const std::string & node_namespace);
 
-  /// Remove a node to the graph, and get the message to be sent.
+  /// Remove a node from the graph.
   /**
-   * \param participant_gid participant GUID.
-   * \param node_name name of the node to be added.
-   * \param node_namespace node namespace.
-   * \return message to be sent.
+   * \param participant_gid GUID of the participant.
+   * \param node_name Name of the node to be removed.
+   * \param node_namespace Namespace of the node to be removed.
+   * \return Message to update other caches.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -240,13 +249,13 @@ public:
     const std::string & node_name,
     const std::string & node_namespace);
 
-  /// Remove a node to the graph, and get the message to be sent.
+  /// Associate a data writer with a node.
   /**
    * \param writer_gid GUID of the data writer.
-   * \param participant_gid GUID of the `Participant`.
-   * \param node_name Name of the node to be added.
-   * \param node_namespace Node namespace.
-   * \return Message to be sent.
+   * \param participant_gid GUID of the participant.
+   * \param node_name Name of the target node.
+   * \param node_namespace Namespace of the target node.
+   * \return Message to update other caches.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -256,13 +265,13 @@ public:
     const std::string & node_name,
     const std::string & node_namespace);
 
-  /// Dissociate a writer from a node, and get an update message to be sent.
+  /// Dissociate a data writer from a node.
   /**
    * \param writer_gid GUID of the data writer.
-   * \param participant_gid GUID of the `Participant`.
-   * \param node_name Name of the node to be added.
-   * \param node_namespace Node namespace.
-   * \return Message to be sent.
+   * \param participant_gid GUID of the participant.
+   * \param node_name Name of the target node.
+   * \param node_namespace Namespace of the target node.
+   * \return Message to update other caches.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -272,13 +281,13 @@ public:
     const std::string & node_name,
     const std::string & node_namespace);
 
-  /// Associate a reader with a node, and get an update message to be sent.
+  /// Associate a data reader with a node.
   /**
    * \param reader_gid GUID of the data reader.
-   * \param participant_gid GUID of the `Participant`.
-   * \param node_name Name of the node to be added.
-   * \param node_namespace Node namespace.
-   * \return Message to be sent.
+   * \param participant_gid GUID of the participant.
+   * \param node_name Name of the target node.
+   * \param node_namespace Namespace of target node.
+   * \return Message to update other caches.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -288,13 +297,13 @@ public:
     const std::string & node_name,
     const std::string & node_namespace);
 
-  /// Dissociate a reader from a node, and get an update message to be sent.
+  /// Dissociate a data reader from a node.
   /**
    * \param reader_gid GUID of the data reader.
-   * \param participant_gid GUID of the `Participant`.
-   * \param node_name Name of the node to be added.
-   * \param node_namespace Node namespace.
-   * \return Message to be sent.
+   * \param participant_gid GUID of the participant.
+   * \param node_name Name of the target node.
+   * \param node_namespace Namespace of target node.
+   * \return Message to update other caches.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_dds_common::msg::ParticipantEntitiesInfo
@@ -311,10 +320,10 @@ public:
    * @{
    */
 
-  /// Get the number of publishers of a topic.
+  /// Get the number of data writers for a DDS topic.
   /**
-   * \param[in] topic_name Name of the topic.
-   * \param[out] count The result will be populated there.
+   * \param[in] topic_name Name of the DDS topic.
+   * \param[out] count Number of data writers.
    *
    * \return RMW_RET_INVALID_ARGUMENT if count is `nullptr`, or
    * \return RMW_RET_ERROR if an unexpected error take place, or
@@ -326,10 +335,10 @@ public:
     const std::string & topic_name,
     size_t * count) const;
 
-  /// Get the number of subscriptions of a topic.
+  /// Get the number of data readers for a DDS topic.
   /**
-   * \param[in] topic_name Name of the topic.
-   * \param[out] count The result will be populated there.
+   * \param[in] topic_name Name of the DDS topic.
+   * \param[out] count Number of data readers.
    *
    * \return RMW_RET_INVALID_ARGUMENT if count is `nullptr`, or
    * \return RMW_RET_ERROR if an unexpected error take place, or
@@ -344,12 +353,13 @@ public:
   /// Callable used to demangle a name.
   using DemangleFunctionT = std::function<std::string(const std::string &)>;
 
-  /// Get an array with information about the writers in a topic.
+  /// Get an array with information about the data writers for a DDS topic.
   /**
-   * \param[in] topic_name Name of the topic.
-   * \param[in] demangle_type Function that takes a type names and return it demangled.
-   * \param[in] allocator Used to allocate memory.
-   * \param[out] endpoints_info Array with the writers information.
+   * \param[in] topic_name Name of the DDS topic.
+   * \param[in] demangle_type Function to demangle DDS topic type names.
+   * \param[in] allocator To allocate memory when populating `endpoints_info`.
+   * \param[out] endpoints_info A zero initialized topic endpoint information
+   *   array to be populated with data writers' info.
    *
    * \return RMW_RET_INVALID_ARGUMENT if count is `nullptr`, or
    * \return RMW_RET_ERROR if an unexpected error take place, or
@@ -363,12 +373,13 @@ public:
     rcutils_allocator_t * allocator,
     rmw_topic_endpoint_info_array_t * endpoints_info) const;
 
-  /// Get an array with information about the readers in a topic.
+  /// Get an array with information about the data readers for a DDS topic.
   /**
-   * \param[in] topic_name Name of the topic.
-   * \param[in] demangle_type Function that takes a type names and return it demangled.
-   * \param[in] allocator Used to allocate memory.
-   * \param[out] endpoints_info Array with the readers information.
+   * \param[in] topic_name Name of the DDS topic.
+   * \param[in] demangle_type Function to demangle DDS topic type names.
+   * \param[in] allocator To allocate memory when populating `endpoints_info`.
+   * \param[out] endpoints_info A zero initialized topic endpoint information
+   *   array to be populated with data readers' info.
    *
    * \return RMW_RET_INVALID_ARGUMENT if count is `nullptr`, or
    * \return RMW_RET_ERROR if an unexpected error take place, or
@@ -382,17 +393,14 @@ public:
     rcutils_allocator_t * allocator,
     rmw_topic_endpoint_info_array_t * endpoints_info) const;
 
-  /// Get all the topic names and types.
+  /// Get all topic names and types.
   /**
-   * \param[in] demangle_topic Function that indicates how a dds topic name is demangled
-   *   into a ros topic name.
-   * \param[in] demangle_type Function that indicates how a dds type name is demangled
-   *   into a ros type name.
-   * \param[in] allocator
-   * \param[inout] topic_names_and_types A zero initialized names and types object, that
-   *   will be populated with the result.
+   * \param[in] demangle_topic Function to demangle DDS topic names.
+   * \param[in] demangle_type Function to demangle DDS topic type names.
+   * \param[in] allocator To allocate memory when populating `topic_names_and_types`.
+   * \param[inout] topic_names_and_types A zero initialized names and types collection
+   *   to be populated with the result.
    *
-   * \return RMW_RET_NODE_NAME_NON_EXISTENT if the node doesn't exist, or
    * \return RMW_RET_INVALID_ARGUMENT if an argument is invalid, or
    * \return RMW_RET_BAD_ALLOC if an allocation failed, or
    * \return RMW_RET_ERROR if an unexpected error happened, or
@@ -406,17 +414,15 @@ public:
     rcutils_allocator_t * allocator,
     rmw_names_and_types_t * topic_names_and_types) const;
 
-  /// Get the topic names and types that a node is publishing.
+  /// Get topic names and types for all data writers associated to a node.
   /**
    * \param[in] node_name Name of the node.
    * \param[in] namespace_ Namespace of the node.
-   * \param[in] demangle_topic Function that indicates how a dds topic name is demangled
-   *   into a ros topic name.
-   * \param[in] demangle_type Function that indicates how a dds type name is demangled
-   *   into a ros type name.
-   * \param[in] allocator
-   * \param[inout] topic_names_and_types A zero initialized names and types object, that
-   *   will be populated with the result.
+   * \param[in] demangle_topic Function to demangle DDS topic names.
+   * \param[in] demangle_type Function to demangle DDS topic type names.
+   * \param[in] allocator To allocate memory when populating `topic_names_and_types`.
+   * \param[inout] topic_names_and_types A zero initialized names and types collection
+   *   to be populated with the result.
    *
    * \return RMW_RET_NODE_NAME_NON_EXISTENT if the node doesn't exist, or
    * \return RMW_RET_INVALID_ARGUMENT if an argument is invalid, or
@@ -434,17 +440,15 @@ public:
     rcutils_allocator_t * allocator,
     rmw_names_and_types_t * topic_names_and_types) const;
 
-  /// Get the topic names and types that a node is subscribing.
+  /// Get the topic names and types for all data readers associated to a node.
   /**
    * \param[in] node_name Name of the node.
    * \param[in] namespace_ Namespace of the node.
-   * \param[in] demangle_topic Function that indicates how a dds topic name is demangled
-   *   into a ros topic name.
-   * \param[in] demangle_type Function that indicates how a dds type name is demangled
-   *   into a ros type name.
-   * \param[in] allocator
-   * \param[inout] topic_names_and_types A zero initialized names and types object, that
-   *   will be populated with the result.
+   * \param[in] demangle_topic Function to demangle DDS topic names.
+   * \param[in] demangle_type Function to demangle DDS topic type names.
+   * \param[in] allocator To allocate memory when populating `topic_names_and_types`.
+   * \param[inout] topic_names_and_types A zero initialized names and types collection
+   *   to be populated with the result.
    *
    * \return RMW_RET_NODE_NAME_NON_EXISTENT if the node doesn't exist, or
    * \return RMW_RET_INVALID_ARGUMENT if an argument is invalid, or
@@ -463,29 +467,25 @@ public:
     rmw_names_and_types_t * topic_names_and_types) const;
 
   /// Get the number of nodes that have been discovered.
-  /**
-   * \return RMW_RET_OK, or
-   * \return RMW_RET_ERROR.
-   */
   RMW_DDS_COMMON_PUBLIC
   size_t
   get_number_of_nodes() const;
 
-  /// Copy the names and namespaces of the discovered nodes.
+  /// Get the names, namespaces, and enclaves of all nodes.
   /**
-   * \param[inout] node_names A zero initialized string array, where the node names will be copied.
-   *   Must not be `nullptr`.
-   * \param[inout] node_namespaces A zero initialized string array, where the node namespaces
-   *   will be copied. Each item in this array corresponds to an item in the same position of
-   *   node_names array. Must not be `nullptr`.
-   * \param[inout] enclaves A zero initialized string array, where the enclave
-   *   name of the node will be copied. Each item in this array corresponds to an item in the same
-   *   position of node_names array. In case is `nullptr`, it won't be used.
-   * \param[in] allocator
-   * \return RMW_RET_OK, or
-   * \return RMW_RET_INVALID_ARGUMENT, or
-   * \return RMW_RET_BAD_ALLOC, or
-   * \return RMW_RET_ERROR.
+   * \param[inout] node_names A zero initialized string array to be populated with node names.
+   * \param[inout] node_namespaces A zero initialized string array to be populated with node
+   *   namespaces. Each item in this array corresponds to the item at the same position in
+   *   `node_names`.
+   * \param[inout] enclaves A zero initialized string array to be populated with node
+   *   enclaves. Each item in this array corresponds to the item at the same position in
+   *   `node_names`. If `nullptr`, it will be ignored.
+   * \param[in] allocator To allocate memory when populating `node_names`, `node_namespaces`,
+   *   and `enclaves`.
+   * \return RMW_RET_INVALID_ARGUMENT if an argument is invalid, or
+   * \return RMW_RET_BAD_ALLOC if an allocation failed, or
+   * \return RMW_RET_ERROR if an unexpected error occurred, or
+   * \return RMW_RET_OK.
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
@@ -536,7 +536,7 @@ struct ParticipantInfo
   std::string enclave;
 };
 
-/// Structure to represent the discovery data of an endpoint (reader or writer).
+/// Structure to represent the discovery data of an endpoint (data reader or writer).
 struct EntityInfo
 {
   /// Topic name.

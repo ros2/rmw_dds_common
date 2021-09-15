@@ -4,8 +4,8 @@ PROJECT_NAME           = "rmw_dds_common"
 PROJECT_NUMBER         = master
 PROJECT_BRIEF          = "Define a common interface between DDS implementations of ROS middleware."
 
-INPUT                  = ./include ../README.md ./QUALITY_DECLARATION.md
-USE_MDFILE_AS_MAINPAGE = ../README.md
+INPUT                  = ./include ./README.md ./QUALITY_DECLARATION.md ./docs/FEATURES.md
+USE_MDFILE_AS_MAINPAGE = ./README.md
 RECURSIVE              = YES
 OUTPUT_DIRECTORY       = doc_output
 
@@ -17,6 +17,9 @@ ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
 PREDEFINED             += RMW_DDS_COMMON_PUBLIC=
+
+INTERNAL_DOCS          = NO
+HIDE_UNDOC_MEMBERS     = YES
 
 # Tag files that do not exist will produce a warning and cross-project linking will not work.
 TAGFILES += "../../../../doxygen_tag_files/cppreference-doxygen-web.tag.xml=http://en.cppreference.com/w/"

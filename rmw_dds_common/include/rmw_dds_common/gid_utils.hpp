@@ -40,7 +40,7 @@ RMW_DDS_COMMON_PUBLIC
 bool
 operator==(const rmw_gid_t & lhs, const rmw_gid_t & rhs);
 
-/// Converts from rmw_gid_t to rmw_dds_common::msg::Gid
+/// \internal Converts from rmw_gid_t to rmw_dds_common::msg::Gid
 /**
  * For internal usage, both pointers are assumed to be valid.
  */
@@ -50,7 +50,7 @@ convert_gid_to_msg(
   const rmw_gid_t * gid,
   rmw_dds_common::msg::Gid * msg_gid);
 
-/// Converts from rmw_dds_common::msg::Gid to rmw_gid_t
+/// \internal Converts from rmw_dds_common::msg::Gid to rmw_gid_t
 /**
  * For internal usage, both pointers are supposed to be valid.
  */
