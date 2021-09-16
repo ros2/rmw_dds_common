@@ -2,8 +2,8 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.4.0 (2021-09-16)
+------------------
 * Fix up rmw_dds_common documentation when using rosdoc2 (`#54 <https://github.com/ros2/rmw_dds_common/issues/54>`_)
 * Add support for Certificate Revocation List files (`#52 <https://github.com/ros2/rmw_dds_common/issues/52>`_)
 * Silence clang warning (`range-loop-construct`) (`#53 <https://github.com/ros2/rmw_dds_common/issues/53>`_)
