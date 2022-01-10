@@ -19,8 +19,8 @@
 
 #include "gtest/gtest.h"
 
-#include <rcpputils/filesystem_helper.hpp>
-#include <rmw_dds_common/security.hpp>
+#include "rcpputils/filesystem_helper.hpp"
+#include "rmw_dds_common/security.hpp"
 
 TEST(test_security, files_exist_no_prefix)
 {
