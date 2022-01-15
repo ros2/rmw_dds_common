@@ -2,6 +2,11 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.4.1 (2022-01-14)
+------------------
+* Fix include order for cpplint (`#55 <https://github.com/ros2/rmw_dds_common/issues/55>`_)
+* Contributors: Jacob Perron
+
 1.4.0 (2021-09-16)
 ------------------
 * Fix up rmw_dds_common documentation when using rosdoc2 (`#54 <https://github.com/ros2/rmw_dds_common/issues/54>`_)
