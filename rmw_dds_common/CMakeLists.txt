@@ -51,7 +51,7 @@ target_include_directories(${PROJECT_NAME}_library
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c>"
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp>"
-  "$<INSTALL_INTERFACE:include>")
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
@@ -65,13 +65,16 @@ install(
   RUNTIME DESTINATION bin
 )
 
-ament_export_include_directories(include)
+# Export old-style CMake variables
+ament_export_include_directories("include/${PROJECT_NAME}")
 ament_export_libraries(${PROJECT_NAME}_library)
+
+# Export modern CMake targets
 ament_export_targets(${PROJECT_NAME}_library)
 
 install(
   DIRECTORY include/
-  DESTINATION include)
+  DESTINATION include/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
