@@ -49,9 +49,16 @@ add_dependencies(${PROJECT_NAME}_library
 target_include_directories(${PROJECT_NAME}_library
   PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c>"
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp>"
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+
+# Wait for all rosidl generators to finish before building this library
+add_dependencies(${PROJECT_NAME}_library
+  ${PROJECT_NAME})
+
+# Depend on the generated C++ messages
+rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_generator_cpp")
+target_link_libraries(${PROJECT_NAME}_library PUBLIC
+  ${cpp_typesupport_target})
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
