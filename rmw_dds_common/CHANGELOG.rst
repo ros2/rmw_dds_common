@@ -2,6 +2,11 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Install headers to include/${PROJECT_NAME} (`#56 <https://github.com/ros2/rmw_dds_common/issues/56>`_)
+* Contributors: Shane Loretz
+
 1.4.1 (2022-01-14)
 ------------------
 * Fix include order for cpplint (`#55 <https://github.com/ros2/rmw_dds_common/issues/55>`_)
