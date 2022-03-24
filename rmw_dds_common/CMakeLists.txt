@@ -21,7 +21,6 @@ ament_export_dependencies(ament_cmake_core)
 ament_export_dependencies(rcpputils)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
-ament_export_dependencies(rosidl_default_runtime)
 
 rosidl_generate_interfaces(
   ${PROJECT_NAME}
@@ -39,19 +38,24 @@ add_library(${PROJECT_NAME}_library SHARED
 
 set_target_properties(${PROJECT_NAME}_library
   PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-ament_target_dependencies(${PROJECT_NAME}_library
-  "rcpputils"
-  "rcutils"
-  "rmw"
-  "rosidl_runtime_cpp")
-add_dependencies(${PROJECT_NAME}_library
-  ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}_library PUBLIC
+  rcutils::rcutils
+  rmw::rmw)
+target_link_libraries(${PROJECT_NAME}_library PRIVATE
+  rcpputils::rcpputils)
 target_include_directories(${PROJECT_NAME}_library
   PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_c>"
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp>"
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+
+# Wait for all rosidl generators to finish before building this library
+add_dependencies(${PROJECT_NAME}_library
+  ${PROJECT_NAME})
+
+# Depend on the generated C++ messages
+rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_generator_cpp")
+target_link_libraries(${PROJECT_NAME}_library PUBLIC
+  ${cpp_typesupport_target})
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
@@ -110,7 +114,9 @@ if(BUILD_TESTING)
 
   ament_add_gmock(test_security test/test_security.cpp)
   if(TARGET test_security)
-    target_link_libraries(test_security ${PROJECT_NAME}_library)
+    target_link_libraries(test_security
+      ${PROJECT_NAME}_library
+      rcpputils::rcpputils)
   endif()
 
   add_performance_test(benchmark_graph_cache test/benchmark/benchmark_graph_cache.cpp)
