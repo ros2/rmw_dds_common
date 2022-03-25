@@ -2,6 +2,11 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Use rosidl_get_typesupport_target() and target_link_libraries(). (`#57 <https://github.com/ros2/rmw_dds_common/issues/57>`_)
+* Contributors: Shane Loretz
+
 1.5.0 (2022-03-01)
 ------------------
 * Install headers to include/${PROJECT_NAME} (`#56 <https://github.com/ros2/rmw_dds_common/issues/56>`_)
