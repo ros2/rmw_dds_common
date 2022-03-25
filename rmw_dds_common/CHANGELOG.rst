@@ -2,8 +2,8 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.1 (2022-03-25)
+------------------
 * Use rosidl_get_typesupport_target() and target_link_libraries(). (`#57 <https://github.com/ros2/rmw_dds_common/issues/57>`_)
 * Contributors: Shane Loretz
 
