@@ -53,7 +53,7 @@ add_dependencies(${PROJECT_NAME}_library
   ${PROJECT_NAME})
 
 # Depend on the generated C++ messages
-rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_generator_cpp")
+rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_typesupport_cpp")
 target_link_libraries(${PROJECT_NAME}_library PUBLIC
   ${cpp_typesupport_target})
 
