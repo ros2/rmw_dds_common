@@ -104,7 +104,7 @@ if(BUILD_TESTING)
 
   ament_add_gmock(test_qos test/test_qos.cpp)
   if(TARGET test_qos)
-    target_link_libraries(test_qos ${PROJECT_NAME}_library)
+    target_link_libraries(test_qos ${PROJECT_NAME}_library osrf_testing_tools_cpp::memory_tools)
   endif()
 
   ament_add_gmock(test_time_utils test/test_time_utils.cpp)
