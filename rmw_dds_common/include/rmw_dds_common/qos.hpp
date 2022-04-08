@@ -69,7 +69,7 @@ qos_profile_check_compatible(
  * \param[out] subscription_profile: QoS policies that are compatible with the majorty of
  *   the input publisher profiles.
  * \param[out] compatible_publisher_profiles: An array of boolean values indicating if the
- *   corresponding Qos profile at the same index in the publisher profiles array is compatible
+ *   corresponding QoS profile at the same index in the publisher profiles array is compatible
  *   with the resultant subscription QoS profile or not.
  *   This parameter is optional and may be `nullptr`.
  *   If provided, it must be the same length as the publisher profiles array.
