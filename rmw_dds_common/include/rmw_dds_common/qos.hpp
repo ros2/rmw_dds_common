@@ -56,6 +56,37 @@ qos_profile_check_compatible(
   char * reason,
   size_t reason_size);
 
+/// Get compatible QoS policies for a subscription.
+/**
+ * Given one or more publisher QoS profiles, return a QoS profile for a subscirption
+ * that is compatible with the majority of the publisher profiles while maintaining the highest
+ * level of service possible.
+ *
+ * This implements the rmw API \ref rmw_qos_profile_get_most_compatible_for_subscription().
+ * See \ref rmw_qos_profile_get_most_compatible_for_subscription() for more information.
+ *
+ * \param[in] publisher_profiles: An array of QoS profiles used for publishers.
+ * \param[out] subscription_profile: QoS policies that are compatible with the majorty of
+ *   the input publisher profiles.
+ * \param[out] compatible_publisher_profiles: An array of boolean values indicating if the
+ *   corresponding Qos profile at the same index in the publisher profiles array is compatible
+ *   with the resultant subscription QoS profile or not.
+ *   This parameter is optional and may be `nullptr`.
+ *   If provided, it must be the same length as the publisher profiles array.
+ * \return `RMW_RET_OK` if the operation was successful, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `publisher_profiles` is `nullptr`, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `publisher_profiles_length` is 0, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `subscription_profile` is `nullptr`, or
+ * \return `RMW_RET_ERROR` if there is an unexpected error.
+ */
+RMW_DDS_COMMON_PUBLIC
+rmw_ret_t
+qos_profile_get_most_compatible_for_subscription(
+  const rmw_qos_profile_t * publisher_profiles,
+  size_t publisher_profiles_length,
+  rmw_qos_profile_t * subscription_profile,
+  bool * compatible_publisher_profiles);
+
 }  // namespace rmw_dds_common
 
 #endif  // RMW_DDS_COMMON__QOS_HPP_

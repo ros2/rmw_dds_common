@@ -374,4 +374,62 @@ qos_profile_check_compatible(
   return RMW_RET_OK;
 }
 
+rmw_ret_t
+qos_profile_get_most_compatible_for_subscription(
+  const rmw_qos_profile_t * publisher_profiles,
+  size_t publisher_profiles_length,
+  rmw_qos_profile_t * subscription_profile,
+  bool * compatible_publisher_profiles)
+{
+  if (!publisher_profiles) {
+    RMW_SET_ERROR_MSG("publisher_profiles parameter is null");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+  if (!subscription_profile) {
+    RMW_SET_ERROR_MSG("subscription_profile parameter is null");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+  if (0u == publisher_profiles_length) {
+    RMW_SET_ERROR_MSG("publisher_profiles_length parameter is zero");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+
+  // We only care about reliability and durability for QoS compatibility
+  // Only use "reliable" reliability if all publisher profiles are reliable
+  // Only use "transient local" durability if all publisher profiles are transient local
+  size_t number_of_reliable = 0u;
+  size_t number_of_transient_local = 0u;
+  for (size_t i = 0u; i < publisher_profiles_length; ++i) {
+    const rmw_qos_profile_t & profile = publisher_profiles[i];
+    if (RMW_QOS_POLICY_RELIABILITY_RELIABLE == profile.reliability) {
+      number_of_reliable++;
+    }
+    if (RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL == profile.durability) {
+      number_of_transient_local++;
+    }
+  }
+
+  if (number_of_reliable == publisher_profiles_length) {
+    subscription_profile->reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  } else {
+    subscription_profile->reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+  }
+
+  if (number_of_transient_local == publisher_profiles_length) {
+    subscription_profile->durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+  } else {
+    subscription_profile->durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+  }
+
+  // The above logic for selecting reliability and durability should ensure the resultant
+  // QoS profile is compatible with all publishers QoS profiles in the input
+  if (compatible_publisher_profiles) {
+    for (size_t i = 0u; i < publisher_profiles_length; ++i) {
+      compatible_publisher_profiles[i] = true;
+    }
+  }
+
+  return RMW_RET_OK;
+}
+
 }  // namespace rmw_dds_common
