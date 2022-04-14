@@ -479,4 +479,92 @@ qos_profile_get_most_compatible_for_subscription(
   return RMW_RET_OK;
 }
 
+rmw_ret_t
+qos_profile_get_most_compatible_for_publisher(
+  const rmw_topic_endpoint_info_array_t * subscriptions_info,
+  rmw_qos_profile_t * publisher_profile,
+  rmw_topic_endpoint_info_array_t * incompatible_subscriptions,
+  rcutils_allocator_t * allocator)
+{
+  if (!subscriptions_info) {
+    RMW_SET_ERROR_MSG("subscriptions_info parameter is null");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+  if (0u == subscriptions_info->size) {
+    RMW_SET_ERROR_MSG("subscriptions_info.size is zero");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+  if (!publisher_profile) {
+    RMW_SET_ERROR_MSG("publisher_profile parameter is null");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+  if (incompatible_subscriptions) {
+    rmw_ret_t ret = rmw_topic_endpoint_info_array_check_zero(incompatible_subscriptions);
+    if (RMW_RET_OK != ret) {
+      return RMW_RET_INVALID_ARGUMENT;
+    }
+    RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+      allocator, "allocator is not valid", return RMW_RET_INVALID_ARGUMENT);
+  }
+
+  const rmw_time_t deadline_default = RMW_QOS_DEADLINE_DEFAULT;
+  const rmw_time_t liveliness_lease_duration_default = RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT;
+
+  // Always use "reliable" reliability and "transient_local" durability since both policies
+  // are compatible with all subscriptions and have highest level of service
+  publisher_profile->reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  publisher_profile->durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+
+  // Only use "manual by topic" liveliness if at least one  subscription is using manual by topic
+  // Use default deadline if all subscriptions have default deadline, otherwise use smallest
+  // Use default lease duration if all subscriptions have default lease, otherwise use smallest
+  bool use_manual_by_topic = false;
+  bool use_default_deadline = true;
+  rmw_time_t smallest_deadline = RMW_DURATION_INFINITE;
+  bool use_default_liveliness_lease_duration = true;
+  rmw_time_t smallest_liveliness_lease_duration = RMW_DURATION_INFINITE;
+  for (size_t i = 0u; i < subscriptions_info->size; ++i) {
+    const rmw_qos_profile_t & profile = subscriptions_info->info_array[i].qos_profile;
+    if (RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC == profile.liveliness) {
+      use_manual_by_topic = true;
+    }
+    if (profile.deadline != deadline_default) {
+      use_default_deadline = false;
+      if (profile.deadline < smallest_deadline) {
+        smallest_deadline = profile.deadline;
+      }
+    }
+    if (profile.liveliness_lease_duration != liveliness_lease_duration_default) {
+      use_default_liveliness_lease_duration = false;
+      if (profile.liveliness_lease_duration < smallest_liveliness_lease_duration) {
+        smallest_liveliness_lease_duration = profile.liveliness_lease_duration;
+      }
+    }
+  }
+
+  if (use_manual_by_topic) {
+    publisher_profile->liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
+  } else {
+    publisher_profile->liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+  }
+
+  if (use_default_deadline) {
+    publisher_profile->deadline = RMW_QOS_DEADLINE_DEFAULT;
+  } else {
+    publisher_profile->deadline = smallest_deadline;
+  }
+
+  if (use_default_liveliness_lease_duration) {
+    publisher_profile->liveliness_lease_duration = RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT;
+  } else {
+    publisher_profile->liveliness_lease_duration = smallest_liveliness_lease_duration;
+  }
+
+  // The above logic for selecting reliability and durability should ensure the resultant
+  // QoS profile is compatible with all subscriptions in the input, so there is nothing to add
+  // to incompatible_subscriptions if it is provided.
+
+  return RMW_RET_OK;
+}
+
 }  // namespace rmw_dds_common

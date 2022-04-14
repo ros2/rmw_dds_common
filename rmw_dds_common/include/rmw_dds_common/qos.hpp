@@ -94,6 +94,43 @@ qos_profile_get_most_compatible_for_subscription(
   rmw_topic_endpoint_info_array_t * incompatible_publishers,
   rcutils_allocator_t * allocator);
 
+/// Get compatible QoS policies for a publisher.
+/**
+ * Given one or more subscription endpoints, return a QoS profile for a publisher
+ * that is compatible with the majority of the subscriptions while maintaining the highest
+ * level of service possible.
+ *
+ * This implements the rmw API \ref rmw_qos_profile_get_most_compatible_for_subscription().
+ * See \ref rmw_qos_profile_get_most_compatible_for_subscription() for more information.
+ *
+ * \param[in] subscriptions_info: Endpoint information for subscriptions.
+ * \param[out] publisher_profile: QoS profile that is compatible with the majority of
+ *   the input subscriptions.
+ * \param[out] incompatible_subscriptions: Subscription endpoints that are incompatible with the
+ *   output publisher QoS profile.
+ *   This parameter is optional and may be `nullptr`.
+ *   If provided, it must be zero initialized and you must also provide a valid allocator.
+ * \param[in] allocator: Used allocate memory for `incompatible_subscriptions`.
+ *   May be `nullptr` if `incompatible_subscriptions` is also `nullptr`.
+ * \return `RMW_RET_OK` if the operation was successful, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `subscriptions_info` is `nullptr`, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `subscriptions_info.size` is 0, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `publisher_profile` is `nullptr`, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `incompatible_subscriptions` is not `nullptr` and
+ *   is not zero initialized, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `incompatible_subscriptions` is not `nullptr` and
+ *   `allocator` is invalid, or
+ * \returns `RMW_RET_BAD_ALLOC` if memory allocation fails, or
+ * \return `RMW_RET_ERROR` if there is an unexpected error.
+ */
+RMW_DDS_COMMON_PUBLIC
+rmw_ret_t
+qos_profile_get_most_compatible_for_publisher(
+  const rmw_topic_endpoint_info_array_t * subscriptions_info,
+  rmw_qos_profile_t * publisher_profile,
+  rmw_topic_endpoint_info_array_t * incompatible_subscriptions,
+  rcutils_allocator_t * allocator);
+
 }  // namespace rmw_dds_common
 
 #endif  // RMW_DDS_COMMON__QOS_HPP_
