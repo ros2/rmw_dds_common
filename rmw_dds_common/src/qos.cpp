@@ -413,9 +413,9 @@ qos_profile_get_most_compatible_for_subscription(
   size_t number_of_reliable = 0u;
   size_t number_of_transient_local = 0u;
   size_t number_of_manual_by_topic = 0u;
-  bool default_deadline = true;
+  bool use_default_deadline = true;
   rmw_time_t largest_deadline = {0u, 0u};
-  bool default_liveliness_lease_duration = true;
+  bool use_default_liveliness_lease_duration = true;
   rmw_time_t largest_liveliness_lease_duration = {0u, 0u};
   for (size_t i = 0u; i < publishers_info->size; ++i) {
     const rmw_qos_profile_t & profile = publishers_info->info_array[i].qos_profile;
@@ -429,13 +429,13 @@ qos_profile_get_most_compatible_for_subscription(
       number_of_manual_by_topic++;
     }
     if (profile.deadline != deadline_default) {
-      default_deadline = false;
+      use_default_deadline = false;
       if (largest_deadline < profile.deadline) {
         largest_deadline = profile.deadline;
       }
     }
     if (profile.liveliness_lease_duration != liveliness_lease_duration_default) {
-      default_liveliness_lease_duration = false;
+      use_default_liveliness_lease_duration = false;
       if (largest_liveliness_lease_duration < profile.liveliness_lease_duration) {
         largest_liveliness_lease_duration = profile.liveliness_lease_duration;
       }
@@ -460,13 +460,13 @@ qos_profile_get_most_compatible_for_subscription(
     subscription_profile->liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
   }
 
-  if (default_deadline) {
+  if (use_default_deadline) {
     subscription_profile->deadline = RMW_QOS_DEADLINE_DEFAULT;
   } else {
     subscription_profile->deadline = largest_deadline;
   }
 
-  if (default_liveliness_lease_duration) {
+  if (use_default_liveliness_lease_duration) {
     subscription_profile->liveliness_lease_duration = RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT;
   } else {
     subscription_profile->liveliness_lease_duration = largest_liveliness_lease_duration;
