@@ -793,10 +793,10 @@ TEST(test_qos, test_qos_profile_get_most_compatible_for_subscription)
 
     EXPECT_EQ(ret, RMW_RET_OK);
     // Expect the reliability and durability to change, matching publisher QoS
-    EXPECT_EQ(
-      subscription_profile.reliability, publishers_info.info_array[0].qos_profile.reliability);
-    EXPECT_EQ(
-      subscription_profile.durability, publishers_info.info_array[0].qos_profile.durability);
+    const rmw_qos_profile_t & publisher_profile = publishers_info.info_array[0].qos_profile;
+    EXPECT_EQ(subscription_profile.reliability, publisher_profile.reliability);
+    EXPECT_EQ(subscription_profile.durability, publisher_profile.durability);
+    EXPECT_TRUE(rmw_time_equal(subscription_profile.deadline, publisher_profile.deadline));
   }
   // More than one publisher profile
   {
@@ -826,7 +826,7 @@ TEST(test_qos, test_qos_profile_get_most_compatible_for_subscription)
       1,
       RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,  // should result in "best effort" for subscription
       RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
-      RMW_QOS_DEADLINE_DEFAULT,
+      {3u, 0u},  // this deadline should appear in subscription QoS because it is largest
       RMW_QOS_LIFESPAN_DEFAULT,
       RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC,
       RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
@@ -837,7 +837,7 @@ TEST(test_qos, test_qos_profile_get_most_compatible_for_subscription)
       1,
       RMW_QOS_POLICY_RELIABILITY_RELIABLE,
       RMW_QOS_POLICY_DURABILITY_VOLATILE,  // should result in "volatile" for subscription
-      RMW_QOS_DEADLINE_DEFAULT,
+      {2u, 0u},
       RMW_QOS_LIFESPAN_DEFAULT,
       RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC,
       RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
@@ -852,6 +852,7 @@ TEST(test_qos, test_qos_profile_get_most_compatible_for_subscription)
     EXPECT_EQ(ret, RMW_RET_OK);
     EXPECT_EQ(subscription_profile.reliability, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
     EXPECT_EQ(subscription_profile.durability, RMW_QOS_POLICY_DURABILITY_VOLATILE);
+    EXPECT_TRUE(rmw_time_equal(subscription_profile.deadline, {3u, 0u}));
     EXPECT_EQ(incompatible_info.size, 0u);
   }
 }

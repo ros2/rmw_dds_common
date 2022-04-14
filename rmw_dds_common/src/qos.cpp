@@ -402,11 +402,15 @@ qos_profile_get_most_compatible_for_subscription(
       allocator, "allocator is not valid", return RMW_RET_INVALID_ARGUMENT);
   }
 
-  // We only care about reliability and durability for QoS compatibility
+  const rmw_time_t deadline_default = RMW_QOS_DEADLINE_DEFAULT;
+
   // Only use "reliable" reliability if all publisher profiles are reliable
   // Only use "transient local" durability if all publisher profiles are transient local
+  // Use default deadline if all publishers have default deadline, otherwise use largest deadline
   size_t number_of_reliable = 0u;
   size_t number_of_transient_local = 0u;
+  bool default_deadline = true;
+  rmw_time_t largest_deadline = {0u, 0u};
   for (size_t i = 0u; i < publishers_info->size; ++i) {
     const rmw_qos_profile_t & profile = publishers_info->info_array[i].qos_profile;
     if (RMW_QOS_POLICY_RELIABILITY_RELIABLE == profile.reliability) {
@@ -414,6 +418,12 @@ qos_profile_get_most_compatible_for_subscription(
     }
     if (RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL == profile.durability) {
       number_of_transient_local++;
+    }
+    if (profile.deadline != deadline_default) {
+      default_deadline = false;
+      if (largest_deadline < profile.deadline) {
+        largest_deadline = profile.deadline;
+      }
     }
   }
 
@@ -427,6 +437,12 @@ qos_profile_get_most_compatible_for_subscription(
     subscription_profile->durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
   } else {
     subscription_profile->durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+  }
+
+  if (default_deadline) {
+    subscription_profile->deadline = RMW_QOS_DEADLINE_DEFAULT;
+  } else {
+    subscription_profile->deadline = largest_deadline;
   }
 
   // The above logic for selecting reliability and durability should ensure the resultant
