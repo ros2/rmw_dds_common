@@ -796,6 +796,11 @@ TEST(test_qos, test_qos_profile_get_most_compatible_for_subscription)
     const rmw_qos_profile_t & publisher_profile = publishers_info.info_array[0].qos_profile;
     EXPECT_EQ(subscription_profile.reliability, publisher_profile.reliability);
     EXPECT_EQ(subscription_profile.durability, publisher_profile.durability);
+    EXPECT_EQ(subscription_profile.liveliness, publisher_profile.liveliness);
+    EXPECT_TRUE(
+      rmw_time_equal(
+        subscription_profile.liveliness_lease_duration,
+        publisher_profile.liveliness_lease_duration));
     EXPECT_TRUE(rmw_time_equal(subscription_profile.deadline, publisher_profile.deadline));
   }
   // More than one publisher profile
@@ -817,8 +822,8 @@ TEST(test_qos, test_qos_profile_get_most_compatible_for_subscription)
       RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
       RMW_QOS_DEADLINE_DEFAULT,
       RMW_QOS_LIFESPAN_DEFAULT,
-      RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC,
-      RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
+      RMW_QOS_POLICY_LIVELINESS_AUTOMATIC,  // should result in "automatic" for subscription
+      {1u, 0u},
       false
     };
     publishers_info.info_array[1].qos_profile = {
@@ -840,7 +845,7 @@ TEST(test_qos, test_qos_profile_get_most_compatible_for_subscription)
       {2u, 0u},
       RMW_QOS_LIFESPAN_DEFAULT,
       RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC,
-      RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
+      {2u, 0u},  // should appear in subscription QoS because it is largest
       false
     };
     rmw_qos_profile_t subscription_profile = get_qos_profile_fixture();
@@ -852,6 +857,8 @@ TEST(test_qos, test_qos_profile_get_most_compatible_for_subscription)
     EXPECT_EQ(ret, RMW_RET_OK);
     EXPECT_EQ(subscription_profile.reliability, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
     EXPECT_EQ(subscription_profile.durability, RMW_QOS_POLICY_DURABILITY_VOLATILE);
+    EXPECT_EQ(subscription_profile.liveliness, RMW_QOS_POLICY_LIVELINESS_AUTOMATIC);
+    EXPECT_TRUE(rmw_time_equal(subscription_profile.liveliness_lease_duration, {2u, 0u}));
     EXPECT_TRUE(rmw_time_equal(subscription_profile.deadline, {3u, 0u}));
     EXPECT_EQ(incompatible_info.size, 0u);
   }

@@ -403,14 +403,20 @@ qos_profile_get_most_compatible_for_subscription(
   }
 
   const rmw_time_t deadline_default = RMW_QOS_DEADLINE_DEFAULT;
+  const rmw_time_t liveliness_lease_duration_default = RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT;
 
   // Only use "reliable" reliability if all publisher profiles are reliable
   // Only use "transient local" durability if all publisher profiles are transient local
+  // Only use "manual by topic" liveliness if all publisher profiles are manual by topic
   // Use default deadline if all publishers have default deadline, otherwise use largest deadline
+  // Use default lease duration if all publishers have default lease, otherwise use largest lease
   size_t number_of_reliable = 0u;
   size_t number_of_transient_local = 0u;
+  size_t number_of_manual_by_topic = 0u;
   bool default_deadline = true;
   rmw_time_t largest_deadline = {0u, 0u};
+  bool default_liveliness_lease_duration = true;
+  rmw_time_t largest_liveliness_lease_duration = {0u, 0u};
   for (size_t i = 0u; i < publishers_info->size; ++i) {
     const rmw_qos_profile_t & profile = publishers_info->info_array[i].qos_profile;
     if (RMW_QOS_POLICY_RELIABILITY_RELIABLE == profile.reliability) {
@@ -419,10 +425,19 @@ qos_profile_get_most_compatible_for_subscription(
     if (RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL == profile.durability) {
       number_of_transient_local++;
     }
+    if (RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC == profile.liveliness) {
+      number_of_manual_by_topic++;
+    }
     if (profile.deadline != deadline_default) {
       default_deadline = false;
       if (largest_deadline < profile.deadline) {
         largest_deadline = profile.deadline;
+      }
+    }
+    if (profile.liveliness_lease_duration != liveliness_lease_duration_default) {
+      default_liveliness_lease_duration = false;
+      if (largest_liveliness_lease_duration < profile.liveliness_lease_duration) {
+        largest_liveliness_lease_duration = profile.liveliness_lease_duration;
       }
     }
   }
@@ -439,10 +454,22 @@ qos_profile_get_most_compatible_for_subscription(
     subscription_profile->durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
   }
 
+  if (number_of_manual_by_topic == publishers_info->size) {
+    subscription_profile->liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
+  } else {
+    subscription_profile->liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+  }
+
   if (default_deadline) {
     subscription_profile->deadline = RMW_QOS_DEADLINE_DEFAULT;
   } else {
     subscription_profile->deadline = largest_deadline;
+  }
+
+  if (default_liveliness_lease_duration) {
+    subscription_profile->liveliness_lease_duration = RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT;
+  } else {
+    subscription_profile->liveliness_lease_duration = largest_liveliness_lease_duration;
   }
 
   // The above logic for selecting reliability and durability should ensure the resultant
