@@ -376,22 +376,30 @@ qos_profile_check_compatible(
 
 rmw_ret_t
 qos_profile_get_most_compatible_for_subscription(
-  const rmw_qos_profile_t * publisher_profiles,
-  size_t publisher_profiles_length,
+  const rmw_topic_endpoint_info_array_t * publishers_info,
   rmw_qos_profile_t * subscription_profile,
-  bool * compatible_publisher_profiles)
+  rmw_topic_endpoint_info_array_t * incompatible_publishers,
+  rcutils_allocator_t * allocator)
 {
-  if (!publisher_profiles) {
-    RMW_SET_ERROR_MSG("publisher_profiles parameter is null");
+  if (!publishers_info) {
+    RMW_SET_ERROR_MSG("publishers_info parameter is null");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+  if (0u == publishers_info->size) {
+    RMW_SET_ERROR_MSG("publishers_info.size is zero");
     return RMW_RET_INVALID_ARGUMENT;
   }
   if (!subscription_profile) {
     RMW_SET_ERROR_MSG("subscription_profile parameter is null");
     return RMW_RET_INVALID_ARGUMENT;
   }
-  if (0u == publisher_profiles_length) {
-    RMW_SET_ERROR_MSG("publisher_profiles_length parameter is zero");
-    return RMW_RET_INVALID_ARGUMENT;
+  if (incompatible_publishers) {
+    rmw_ret_t ret = rmw_topic_endpoint_info_array_check_zero(incompatible_publishers);
+    if (RMW_RET_OK != ret) {
+      return RMW_RET_INVALID_ARGUMENT;
+    }
+    RCUTILS_CHECK_ALLOCATOR_WITH_MSG(
+      allocator, "allocator is not valid", return RMW_RET_INVALID_ARGUMENT);
   }
 
   // We only care about reliability and durability for QoS compatibility
@@ -399,8 +407,8 @@ qos_profile_get_most_compatible_for_subscription(
   // Only use "transient local" durability if all publisher profiles are transient local
   size_t number_of_reliable = 0u;
   size_t number_of_transient_local = 0u;
-  for (size_t i = 0u; i < publisher_profiles_length; ++i) {
-    const rmw_qos_profile_t & profile = publisher_profiles[i];
+  for (size_t i = 0u; i < publishers_info->size; ++i) {
+    const rmw_qos_profile_t & profile = publishers_info->info_array[i].qos_profile;
     if (RMW_QOS_POLICY_RELIABILITY_RELIABLE == profile.reliability) {
       number_of_reliable++;
     }
@@ -409,25 +417,21 @@ qos_profile_get_most_compatible_for_subscription(
     }
   }
 
-  if (number_of_reliable == publisher_profiles_length) {
+  if (number_of_reliable == publishers_info->size) {
     subscription_profile->reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
   } else {
     subscription_profile->reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
   }
 
-  if (number_of_transient_local == publisher_profiles_length) {
+  if (number_of_transient_local == publishers_info->size) {
     subscription_profile->durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
   } else {
     subscription_profile->durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
   }
 
   // The above logic for selecting reliability and durability should ensure the resultant
-  // QoS profile is compatible with all publishers QoS profiles in the input
-  if (compatible_publisher_profiles) {
-    for (size_t i = 0u; i < publisher_profiles_length; ++i) {
-      compatible_publisher_profiles[i] = true;
-    }
-  }
+  // QoS profile is compatible with all publishers in the input, so there is nothing to add
+  // to incompatible_publishers if it is provided.
 
   return RMW_RET_OK;
 }

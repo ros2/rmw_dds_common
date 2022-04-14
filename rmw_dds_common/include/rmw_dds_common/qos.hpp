@@ -16,6 +16,7 @@
 #define RMW_DDS_COMMON__QOS_HPP_
 
 #include "rmw/qos_profiles.h"
+#include "rmw/topic_endpoint_info_array.h"
 #include "rmw/types.h"
 
 #include "rmw_dds_common/visibility_control.h"
@@ -58,34 +59,40 @@ qos_profile_check_compatible(
 
 /// Get compatible QoS policies for a subscription.
 /**
- * Given one or more publisher QoS profiles, return a QoS profile for a subscirption
- * that is compatible with the majority of the publisher profiles while maintaining the highest
+ * Given one or more publisher endpoints, return a QoS profile for a subscription
+ * that is compatible with the majority of the publishers while maintaining the highest
  * level of service possible.
  *
  * This implements the rmw API \ref rmw_qos_profile_get_most_compatible_for_subscription().
  * See \ref rmw_qos_profile_get_most_compatible_for_subscription() for more information.
  *
- * \param[in] publisher_profiles: An array of QoS profiles used for publishers.
- * \param[out] subscription_profile: QoS policies that are compatible with the majorty of
- *   the input publisher profiles.
- * \param[out] compatible_publisher_profiles: An array of boolean values indicating if the
- *   corresponding QoS profile at the same index in the publisher profiles array is compatible
- *   with the resultant subscription QoS profile or not.
+ * \param[in] publishers_info: Endpoint information for publishers.
+ * \param[out] subscription_profile: QoS profile that is compatible with the majority of
+ *   the input publishers.
+ * \param[out] incompatible_publishers: Publisher endpoints that are incompatible with the output
+ *   subscription QoS profile.
  *   This parameter is optional and may be `nullptr`.
- *   If provided, it must be the same length as the publisher profiles array.
+ *   If provided, it must be zero initialized and you must also provide a valid allocator.
+ * \param[in] allocator: Used allocate memory for `incompatible_publishers`.
+ *   May be `nullptr` if `incompatible_publishers` is also `nullptr`.
  * \return `RMW_RET_OK` if the operation was successful, or
- * \return `RMW_RET_INVALID_ARGUMENT` if `publisher_profiles` is `nullptr`, or
- * \return `RMW_RET_INVALID_ARGUMENT` if `publisher_profiles_length` is 0, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `publishers_info` is `nullptr`, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `publishers_info.size` is 0, or
  * \return `RMW_RET_INVALID_ARGUMENT` if `subscription_profile` is `nullptr`, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `incompatible_publishers` is not `nullptr` and
+ *   is not zero initialized, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `incompatible_publishers` is not `nullptr` and
+ *   `allocator` is invalid, or
+ * \returns `RMW_RET_BAD_ALLOC` if memory allocation fails, or
  * \return `RMW_RET_ERROR` if there is an unexpected error.
  */
 RMW_DDS_COMMON_PUBLIC
 rmw_ret_t
 qos_profile_get_most_compatible_for_subscription(
-  const rmw_qos_profile_t * publisher_profiles,
-  size_t publisher_profiles_length,
+  const rmw_topic_endpoint_info_array_t * publishers_info,
   rmw_qos_profile_t * subscription_profile,
-  bool * compatible_publisher_profiles);
+  rmw_topic_endpoint_info_array_t * incompatible_publishers,
+  rcutils_allocator_t * allocator);
 
 }  // namespace rmw_dds_common
 
