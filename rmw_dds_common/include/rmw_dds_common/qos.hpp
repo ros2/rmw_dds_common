@@ -151,12 +151,22 @@ using GetEndpointInfoByTopicFunction = std::function<rmw_ret_t(
  * For rules related to adapting 'best available' policies, see
  * \ref `qos_profile_get_best_available_for_subscription`.
  *
+ * This function allocates memory with the node's context allocator.
+ *
  * \param[in] node: Node used to query the graph.
  * \param[in] topic_name: Query info for publishers on this topic name.
  * \param[inout] qos_profile: Any policies that are set to 'best available' will by updated based
  *   on publisher endpoint QoS policies.
  * \param[in] get_endpoint_info: The function used to query for publisher endpoint information.
  *   I.e. an implementation of `rmw_get_publishers_info_by_topic`.
+ * \return `RMW_RET_OK` if the operation was successful, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `node` is `nullptr`, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `topic_name` is `nullptr`, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `qos_profile` is `nullptr`, or
+ * \return `RMW_RET_INCORRECT_RMW_IMPLEMENTATION` if the `node` implementation
+ *   identifier does not match this implementation, or
+ * \return `RMW_RET_BAD_ALLOC` if memory allocation fails, or
+ * \return `RMW_RET_ERROR` if there is an unexpected error.
  */
 RMW_DDS_COMMON_PUBLIC
 rmw_ret_t
@@ -174,12 +184,22 @@ qos_profile_get_best_available_for_topic_subscription(
  * For rules related to adapting 'best available' policies, see
  * \ref `qos_profile_get_best_available_for_publisher`.
  *
+ * This function allocates memory with the node's context allocator.
+ *
  * \param[in] node: Node used to query the graph.
  * \param[in] topic_name: Query info for subscriptions on this topic name.
  * \param[inout] qos_profile: Any policies that are set to 'best available' will by updated based
  *   on subscription endpoint QoS policies.
  * \param[in] get_endpoint_info: The function used to query for subscription endpoint information.
  *   I.e. an implementation of `rmw_get_subscriptions_info_by_topic`.
+ * \return `RMW_RET_OK` if the operation was successful, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `node` is `nullptr`, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `topic_name` is `nullptr`, or
+ * \return `RMW_RET_INVALID_ARGUMENT` if `qos_profile` is `nullptr`, or
+ * \return `RMW_RET_INCORRECT_RMW_IMPLEMENTATION` if the `node` implementation
+ *   identifier does not match this implementation, or
+ * \return `RMW_RET_BAD_ALLOC` if memory allocation fails, or
+ * \return `RMW_RET_ERROR` if there is an unexpected error.
  */
 RMW_DDS_COMMON_PUBLIC
 rmw_ret_t
