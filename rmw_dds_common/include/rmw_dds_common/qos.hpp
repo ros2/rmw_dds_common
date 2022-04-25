@@ -174,7 +174,7 @@ qos_profile_get_best_available_for_topic_subscription(
   const rmw_node_t * node,
   const char * topic_name,
   rmw_qos_profile_t * qos_profile,
-  GetEndpointInfoByTopicFunction get_endpoint_info);
+  const GetEndpointInfoByTopicFunction & get_endpoint_info);
 
 /// Update a publisher QoS profile so that it is compatible with discovered subscriptions.
 /**
@@ -207,7 +207,7 @@ qos_profile_get_best_available_for_topic_publisher(
   const rmw_node_t * node,
   const char * topic_name,
   rmw_qos_profile_t * qos_profile,
-  GetEndpointInfoByTopicFunction get_endpoint_info);
+  const GetEndpointInfoByTopicFunction & get_endpoint_info);
 
 }  // namespace rmw_dds_common
 

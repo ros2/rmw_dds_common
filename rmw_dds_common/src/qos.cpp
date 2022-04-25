@@ -581,7 +581,7 @@ qos_profile_get_best_available_for_topic_subscription(
   const rmw_node_t * node,
   const char * topic_name,
   rmw_qos_profile_t * qos_profile,
-  GetEndpointInfoByTopicFunction get_endpoint_info)
+  const GetEndpointInfoByTopicFunction & get_endpoint_info)
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_ARGUMENT_FOR_NULL(topic_name, RMW_RET_INVALID_ARGUMENT);
@@ -614,7 +614,7 @@ qos_profile_get_best_available_for_topic_publisher(
   const rmw_node_t * node,
   const char * topic_name,
   rmw_qos_profile_t * qos_profile,
-  GetEndpointInfoByTopicFunction get_endpoint_info)
+  const GetEndpointInfoByTopicFunction & get_endpoint_info)
 {
   RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
   RMW_CHECK_ARGUMENT_FOR_NULL(topic_name, RMW_RET_INVALID_ARGUMENT);
