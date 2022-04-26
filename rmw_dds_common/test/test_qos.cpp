@@ -1042,3 +1042,18 @@ TEST(test_qos, test_qos_profile_get_best_available_for_publisher_invalid_argumen
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
   }
 }
+
+TEST(test_qos, test_qos_profile_update_best_available_for_services)
+{
+  rmw_qos_profile_t input_profile = rmw_qos_profile_best_available;
+  rmw_qos_profile_t output_profile =
+    rmw_dds_common::qos_profile_update_best_available_for_services(input_profile);
+  EXPECT_EQ(rmw_qos_profile_services_default.reliability, output_profile.reliability);
+  EXPECT_EQ(rmw_qos_profile_services_default.durability, output_profile.durability);
+  EXPECT_EQ(rmw_qos_profile_services_default.liveliness, output_profile.liveliness);
+  EXPECT_TRUE(rmw_time_equal(rmw_qos_profile_services_default.deadline, output_profile.deadline));
+  EXPECT_TRUE(
+    rmw_time_equal(
+      rmw_qos_profile_services_default.liveliness_lease_duration,
+      output_profile.liveliness_lease_duration));
+}

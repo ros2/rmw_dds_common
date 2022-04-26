@@ -209,6 +209,21 @@ qos_profile_get_best_available_for_topic_publisher(
   rmw_qos_profile_t * qos_profile,
   const GetEndpointInfoByTopicFunction & get_endpoint_info);
 
+/// Update best available QoS policies for services and clients.
+/**
+ * Give QoS policies, return a new set of policies that have any BEST_AVAILABLE policies replaced
+ * with default policies for services.
+ *
+ * See `rmw_qos_profile_services_default` for default policy values.
+ *
+ * \param[in] qos_profile: QoS profile to copy and update.
+ * \return A copy of the input QoS profile with any BEST_AVAILABLE policies overwritten with
+ *   default service policies.
+ */
+RMW_DDS_COMMON_PUBLIC
+rmw_qos_profile_t
+qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_profile);
+
 }  // namespace rmw_dds_common
 
 #endif  // RMW_DDS_COMMON__QOS_HPP_

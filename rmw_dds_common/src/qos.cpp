@@ -642,4 +642,26 @@ qos_profile_get_best_available_for_topic_publisher(
   return RMW_RET_OK;
 }
 
+rmw_qos_profile_t
+qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_profile)
+{
+  rmw_qos_profile_t result = qos_profile;
+  if (RMW_QOS_POLICY_RELIABILITY_BEST_AVAILABLE == result.reliability) {
+    result.reliability = rmw_qos_profile_services_default.reliability;
+  }
+  if (RMW_QOS_POLICY_DURABILITY_BEST_AVAILABLE == result.durability) {
+    result.durability = rmw_qos_profile_services_default.durability;
+  }
+  if (RMW_QOS_POLICY_LIVELINESS_BEST_AVAILABLE == result.liveliness) {
+    result.liveliness = rmw_qos_profile_services_default.liveliness;
+  }
+  if (deadline_best_available == result.deadline) {
+    result.deadline = rmw_qos_profile_services_default.deadline;
+  }
+  if (liveliness_lease_duration_best_available == result.liveliness_lease_duration) {
+    result.liveliness_lease_duration = rmw_qos_profile_services_default.liveliness_lease_duration;
+  }
+  return result;
+}
+
 }  // namespace rmw_dds_common
