@@ -16,7 +16,9 @@
 
 #include <cstring>
 
+#include "osrf_testing_tools_cpp/scope_exit.hpp"
 #include "rmw/types.h"
+#include "rmw/qos_profiles.h"
 
 #include "rmw_dds_common/qos.hpp"
 
@@ -755,4 +757,303 @@ TEST(test_qos, test_qos_profile_check_compatible_invalid)
       pub_qos, sub_qos, &compatible, nullptr, 3u);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
   }
+}
+
+TEST(test_qos, test_qos_profile_get_best_available_for_subscription)
+{
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+
+  // Zero publisher endpoints
+  {
+    rmw_topic_endpoint_info_array_t zeroed_publishers_info =
+      rmw_get_zero_initialized_topic_endpoint_info_array();
+    rmw_qos_profile_t subscription_profile = rmw_qos_profile_best_available;
+    rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_subscription(
+      &zeroed_publishers_info, &subscription_profile);
+    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(subscription_profile.reliability, RMW_QOS_POLICY_RELIABILITY_RELIABLE);
+    EXPECT_EQ(subscription_profile.durability, RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
+    EXPECT_EQ(subscription_profile.liveliness, RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC);
+    EXPECT_TRUE(
+      rmw_time_equal(
+        subscription_profile.liveliness_lease_duration,
+        RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT));
+    EXPECT_TRUE(rmw_time_equal(subscription_profile.deadline, RMW_QOS_DEADLINE_DEFAULT));
+  }
+  // One publisher endpoint
+  {
+    rmw_topic_endpoint_info_array_t publishers_info =
+      rmw_get_zero_initialized_topic_endpoint_info_array();
+    rmw_ret_t init_ret = rmw_topic_endpoint_info_array_init_with_size(
+      &publishers_info, 1u, &allocator);
+    ASSERT_EQ(init_ret, RMW_RET_OK);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      EXPECT_EQ(rmw_topic_endpoint_info_array_fini(&publishers_info, &allocator), RMW_RET_OK);
+    });
+
+    publishers_info.info_array[0].qos_profile = {
+      RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+      1,
+      RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+      RMW_QOS_DEADLINE_DEFAULT,
+      RMW_QOS_LIFESPAN_DEFAULT,
+      RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC,
+      RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
+      false
+    };
+    rmw_qos_profile_t subscription_profile = rmw_qos_profile_best_available;
+    rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_subscription(
+      &publishers_info, &subscription_profile);
+
+    EXPECT_EQ(ret, RMW_RET_OK);
+    // Expect changes to match publisher QoS
+    const rmw_qos_profile_t & publisher_profile = publishers_info.info_array[0].qos_profile;
+    EXPECT_EQ(subscription_profile.reliability, publisher_profile.reliability);
+    EXPECT_EQ(subscription_profile.durability, publisher_profile.durability);
+    EXPECT_EQ(subscription_profile.liveliness, publisher_profile.liveliness);
+    EXPECT_TRUE(
+      rmw_time_equal(
+        subscription_profile.liveliness_lease_duration,
+        publisher_profile.liveliness_lease_duration));
+    EXPECT_TRUE(rmw_time_equal(subscription_profile.deadline, publisher_profile.deadline));
+  }
+  // More than one publisher endpoint
+  {
+    rmw_topic_endpoint_info_array_t publishers_info =
+      rmw_get_zero_initialized_topic_endpoint_info_array();
+    rmw_ret_t init_ret = rmw_topic_endpoint_info_array_init_with_size(
+      &publishers_info, 3u, &allocator);
+    ASSERT_EQ(init_ret, RMW_RET_OK);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      EXPECT_EQ(rmw_topic_endpoint_info_array_fini(&publishers_info, &allocator), RMW_RET_OK);
+    });
+
+    publishers_info.info_array[0].qos_profile = {
+      RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+      1,
+      RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+      RMW_QOS_DEADLINE_DEFAULT,
+      RMW_QOS_LIFESPAN_DEFAULT,
+      RMW_QOS_POLICY_LIVELINESS_AUTOMATIC,  // should result in "automatic" for subscription
+      {1u, 0u},
+      false
+    };
+    publishers_info.info_array[1].qos_profile = {
+      RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+      1,
+      RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,  // should result in "best effort" for subscription
+      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+      {3u, 0u},  // this deadline should appear in subscription QoS because it is the largest
+      RMW_QOS_LIFESPAN_DEFAULT,
+      RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC,
+      RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
+      false
+    };
+    publishers_info.info_array[2].qos_profile = {
+      RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+      1,
+      RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+      RMW_QOS_POLICY_DURABILITY_VOLATILE,  // should result in "volatile" for subscription
+      {2u, 0u},
+      RMW_QOS_LIFESPAN_DEFAULT,
+      RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC,
+      {2u, 0u},  // should appear in subscription QoS because it is the largest
+      false
+    };
+    rmw_qos_profile_t subscription_profile = rmw_qos_profile_best_available;
+    rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_subscription(
+      &publishers_info, &subscription_profile);
+
+    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(subscription_profile.reliability, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
+    EXPECT_EQ(subscription_profile.durability, RMW_QOS_POLICY_DURABILITY_VOLATILE);
+    EXPECT_EQ(subscription_profile.liveliness, RMW_QOS_POLICY_LIVELINESS_AUTOMATIC);
+    EXPECT_TRUE(rmw_time_equal(subscription_profile.liveliness_lease_duration, {2u, 0u}));
+    EXPECT_TRUE(rmw_time_equal(subscription_profile.deadline, {3u, 0u}));
+  }
+}
+
+TEST(test_qos, test_qos_profile_get_best_available_for_subscription_invalid_arguments)
+{
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  rmw_topic_endpoint_info_array_t publishers_info =
+    rmw_get_zero_initialized_topic_endpoint_info_array();
+  rmw_ret_t init_ret = rmw_topic_endpoint_info_array_init_with_size(
+    &publishers_info, 1u, &allocator);
+  ASSERT_EQ(init_ret, RMW_RET_OK);
+  rmw_qos_profile_t subscription_profile = rmw_qos_profile_best_available;
+
+  // NULL publishers_info
+  {
+    rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_subscription(
+      nullptr, &subscription_profile);
+    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+  }
+  // NULL subscription profile
+  {
+    rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_subscription(
+      &publishers_info, nullptr);
+    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+  }
+}
+
+TEST(test_qos, test_qos_profile_get_best_available_for_publisher)
+{
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+
+  // Zero subscription endpoints
+  {
+    rmw_topic_endpoint_info_array_t zeroed_subscriptions_info =
+      rmw_get_zero_initialized_topic_endpoint_info_array();
+    rmw_qos_profile_t publisher_profile = rmw_qos_profile_best_available;
+    rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_publisher(
+      &zeroed_subscriptions_info, &publisher_profile);
+    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(publisher_profile.reliability, RMW_QOS_POLICY_RELIABILITY_RELIABLE);
+    EXPECT_EQ(publisher_profile.durability, RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
+    EXPECT_EQ(publisher_profile.liveliness, RMW_QOS_POLICY_LIVELINESS_AUTOMATIC);
+    EXPECT_TRUE(
+      rmw_time_equal(
+        publisher_profile.liveliness_lease_duration,
+        RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT));
+    EXPECT_TRUE(rmw_time_equal(publisher_profile.deadline, RMW_QOS_DEADLINE_DEFAULT));
+  }
+  // One subscription endpoint
+  {
+    rmw_topic_endpoint_info_array_t subscriptions_info =
+      rmw_get_zero_initialized_topic_endpoint_info_array();
+    rmw_ret_t init_ret = rmw_topic_endpoint_info_array_init_with_size(
+      &subscriptions_info, 1u, &allocator);
+    ASSERT_EQ(init_ret, RMW_RET_OK);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      EXPECT_EQ(rmw_topic_endpoint_info_array_fini(&subscriptions_info, &allocator), RMW_RET_OK);
+    });
+
+    subscriptions_info.info_array[0].qos_profile = {
+      RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+      1,
+      RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+      RMW_QOS_DEADLINE_DEFAULT,
+      RMW_QOS_LIFESPAN_DEFAULT,
+      RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC,
+      RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
+      false
+    };
+    rmw_qos_profile_t publisher_profile = rmw_qos_profile_best_available;
+    rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_publisher(
+      &subscriptions_info, &publisher_profile);
+
+    EXPECT_EQ(ret, RMW_RET_OK);
+    // Expect changes to match subscription QoS
+    const rmw_qos_profile_t & subscription_profile = subscriptions_info.info_array[0].qos_profile;
+    EXPECT_EQ(publisher_profile.reliability, subscription_profile.reliability);
+    EXPECT_EQ(publisher_profile.durability, subscription_profile.durability);
+    EXPECT_EQ(publisher_profile.liveliness, subscription_profile.liveliness);
+    EXPECT_TRUE(
+      rmw_time_equal(
+        publisher_profile.liveliness_lease_duration,
+        subscription_profile.liveliness_lease_duration));
+    EXPECT_TRUE(rmw_time_equal(publisher_profile.deadline, subscription_profile.deadline));
+  }
+  // More than one subscription endpoint
+  {
+    rmw_topic_endpoint_info_array_t subscriptions_info =
+      rmw_get_zero_initialized_topic_endpoint_info_array();
+    rmw_ret_t init_ret = rmw_topic_endpoint_info_array_init_with_size(
+      &subscriptions_info, 3u, &allocator);
+    ASSERT_EQ(init_ret, RMW_RET_OK);
+    OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+    {
+      EXPECT_EQ(rmw_topic_endpoint_info_array_fini(&subscriptions_info, &allocator), RMW_RET_OK);
+    });
+
+    subscriptions_info.info_array[0].qos_profile = {
+      RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+      1,
+      RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
+      RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,  // should result in "transient local" for pub
+      RMW_QOS_DEADLINE_DEFAULT,
+      RMW_QOS_LIFESPAN_DEFAULT,
+      RMW_QOS_POLICY_LIVELINESS_AUTOMATIC,
+      {1u, 0u},  // should appear in publisher QoS because it is the smallest
+      false
+    };
+    subscriptions_info.info_array[1].qos_profile = {
+      RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+      1,
+      RMW_QOS_POLICY_RELIABILITY_RELIABLE,  // should result in "reliable" for publisher
+      RMW_QOS_POLICY_DURABILITY_VOLATILE,
+      {3u, 0u},
+      RMW_QOS_LIFESPAN_DEFAULT,
+      RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC,  // should result in "manual by topic" for pub
+      RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
+      false
+    };
+    subscriptions_info.info_array[2].qos_profile = {
+      RMW_QOS_POLICY_HISTORY_KEEP_ALL,
+      1,
+      RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
+      RMW_QOS_POLICY_DURABILITY_VOLATILE,
+      {2u, 0u},  // this deadline should appear in publisher QoS because it is the smallest
+      RMW_QOS_LIFESPAN_DEFAULT,
+      RMW_QOS_POLICY_LIVELINESS_AUTOMATIC,
+      {2u, 0u},
+      false
+    };
+    rmw_qos_profile_t publisher_profile = rmw_qos_profile_best_available;
+    rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_publisher(
+      &subscriptions_info, &publisher_profile);
+
+    EXPECT_EQ(ret, RMW_RET_OK);
+    EXPECT_EQ(publisher_profile.reliability, RMW_QOS_POLICY_RELIABILITY_RELIABLE);
+    EXPECT_EQ(publisher_profile.durability, RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
+    EXPECT_EQ(publisher_profile.liveliness, RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC);
+    EXPECT_TRUE(rmw_time_equal(publisher_profile.liveliness_lease_duration, {1u, 0u}));
+    EXPECT_TRUE(rmw_time_equal(publisher_profile.deadline, {2u, 0u}));
+  }
+}
+
+TEST(test_qos, test_qos_profile_get_best_available_for_publisher_invalid_arguments)
+{
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  rmw_topic_endpoint_info_array_t subscriptions_info =
+    rmw_get_zero_initialized_topic_endpoint_info_array();
+  rmw_ret_t init_ret = rmw_topic_endpoint_info_array_init_with_size(
+    &subscriptions_info, 1u, &allocator);
+  ASSERT_EQ(init_ret, RMW_RET_OK);
+  rmw_qos_profile_t publisher_profile = rmw_qos_profile_best_available;
+
+  // NULL subscriptions_info
+  {
+    rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_publisher(
+      nullptr, &publisher_profile);
+    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+  }
+  // NULL publisher profile
+  {
+    rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_subscription(
+      &subscriptions_info, nullptr);
+    EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+  }
+}
+
+TEST(test_qos, test_qos_profile_update_best_available_for_services)
+{
+  rmw_qos_profile_t input_profile = rmw_qos_profile_best_available;
+  rmw_qos_profile_t output_profile =
+    rmw_dds_common::qos_profile_update_best_available_for_services(input_profile);
+  EXPECT_EQ(rmw_qos_profile_services_default.reliability, output_profile.reliability);
+  EXPECT_EQ(rmw_qos_profile_services_default.durability, output_profile.durability);
+  EXPECT_EQ(rmw_qos_profile_services_default.liveliness, output_profile.liveliness);
+  EXPECT_TRUE(rmw_time_equal(rmw_qos_profile_services_default.deadline, output_profile.deadline));
+  EXPECT_TRUE(
+    rmw_time_equal(
+      rmw_qos_profile_services_default.liveliness_lease_duration,
+      output_profile.liveliness_lease_duration));
 }

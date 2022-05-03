@@ -19,6 +19,7 @@
 
 #include "rcutils/snprintf.h"
 #include "rmw/error_handling.h"
+#include "rmw/get_topic_endpoint_info.h"
 #include "rmw/qos_profiles.h"
 #include "rmw/qos_string_conversions.h"
 
@@ -47,6 +48,13 @@ operator<(rmw_time_t t1, rmw_time_t t2)
   }
   return false;
 }
+
+static const rmw_time_t deadline_default = RMW_QOS_DEADLINE_DEFAULT;
+static const rmw_time_t deadline_best_available = RMW_QOS_DEADLINE_BEST_AVAILABLE;
+static const rmw_time_t liveliness_lease_duration_default =
+  RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT;
+static const rmw_time_t liveliness_lease_duration_best_available =
+  RMW_QOS_LIVELINESS_LEASE_DURATION_BEST_AVAILABLE;
 
 // Returns RMW_RET_OK if successful or no buffer was provided
 // Returns RMW_RET_ERROR if there as an error copying the message to the buffer
@@ -127,7 +135,6 @@ qos_profile_check_compatible(
 
   const rmw_time_t & pub_deadline = publisher_qos.deadline;
   const rmw_time_t & sub_deadline = subscription_qos.deadline;
-  const rmw_time_t deadline_default = RMW_QOS_DEADLINE_DEFAULT;
 
   // No deadline for publisher and deadline for subscription
   if (pub_deadline == deadline_default && sub_deadline != deadline_default) {
@@ -171,10 +178,11 @@ qos_profile_check_compatible(
 
   const rmw_time_t & pub_lease = publisher_qos.liveliness_lease_duration;
   const rmw_time_t & sub_lease = subscription_qos.liveliness_lease_duration;
-  const rmw_time_t lease_default = RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT;
 
   // No lease duration for publisher and lease duration for subscription
-  if (pub_lease == lease_default && sub_lease != lease_default) {
+  if (pub_lease == liveliness_lease_duration_default &&
+    sub_lease != liveliness_lease_duration_default)
+  {
     *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
     rmw_ret_t append_ret = _append_to_buffer(
       reason,
@@ -186,7 +194,9 @@ qos_profile_check_compatible(
   }
 
   // Subscription lease duration is less than publisher lease duration
-  if (pub_lease != lease_default && sub_lease != lease_default) {
+  if (pub_lease != liveliness_lease_duration_default &&
+    sub_lease != liveliness_lease_duration_default)
+  {
     if (sub_lease < pub_lease) {
       *compatibility = RMW_QOS_COMPATIBILITY_ERROR;
       rmw_ret_t append_ret = _append_to_buffer(
@@ -372,6 +382,286 @@ qos_profile_check_compatible(
   }
 
   return RMW_RET_OK;
+}
+
+rmw_ret_t
+qos_profile_get_best_available_for_subscription(
+  const rmw_topic_endpoint_info_array_t * publishers_info,
+  rmw_qos_profile_t * subscription_profile)
+{
+  if (!publishers_info) {
+    RMW_SET_ERROR_MSG("publishers_info parameter is null");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+  if (!subscription_profile) {
+    RMW_SET_ERROR_MSG("subscription_profile parameter is null");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+
+  // Only use "reliable" reliability if all publisher profiles are reliable
+  // Only use "transient local" durability if all publisher profiles are transient local
+  // Only use "manual by topic" liveliness if all publisher profiles are manual by topic
+  // Use default deadline if all publishers have default deadline, otherwise use largest deadline
+  // Use default lease duration if all publishers have default lease, otherwise use largest lease
+  size_t number_of_reliable = 0u;
+  size_t number_of_transient_local = 0u;
+  size_t number_of_manual_by_topic = 0u;
+  bool use_default_deadline = true;
+  rmw_time_t largest_deadline = {0u, 0u};
+  bool use_default_liveliness_lease_duration = true;
+  rmw_time_t largest_liveliness_lease_duration = {0u, 0u};
+  for (size_t i = 0u; i < publishers_info->size; ++i) {
+    const rmw_qos_profile_t & profile = publishers_info->info_array[i].qos_profile;
+    if (RMW_QOS_POLICY_RELIABILITY_RELIABLE == profile.reliability) {
+      number_of_reliable++;
+    }
+    if (RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL == profile.durability) {
+      number_of_transient_local++;
+    }
+    if (RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC == profile.liveliness) {
+      number_of_manual_by_topic++;
+    }
+    if (profile.deadline != deadline_default) {
+      use_default_deadline = false;
+      if (largest_deadline < profile.deadline) {
+        largest_deadline = profile.deadline;
+      }
+    }
+    if (profile.liveliness_lease_duration != liveliness_lease_duration_default) {
+      use_default_liveliness_lease_duration = false;
+      if (largest_liveliness_lease_duration < profile.liveliness_lease_duration) {
+        largest_liveliness_lease_duration = profile.liveliness_lease_duration;
+      }
+    }
+  }
+
+  if (RMW_QOS_POLICY_RELIABILITY_BEST_AVAILABLE == subscription_profile->reliability) {
+    if (number_of_reliable == publishers_info->size) {
+      subscription_profile->reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+    } else {
+      subscription_profile->reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
+    }
+  }
+
+  if (RMW_QOS_POLICY_DURABILITY_BEST_AVAILABLE == subscription_profile->durability) {
+    if (number_of_transient_local == publishers_info->size) {
+      subscription_profile->durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+    } else {
+      subscription_profile->durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
+    }
+  }
+
+  if (RMW_QOS_POLICY_LIVELINESS_BEST_AVAILABLE == subscription_profile->liveliness) {
+    if (number_of_manual_by_topic == publishers_info->size) {
+      subscription_profile->liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
+    } else {
+      subscription_profile->liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+    }
+  }
+
+  if (deadline_best_available == subscription_profile->deadline) {
+    if (use_default_deadline) {
+      subscription_profile->deadline = RMW_QOS_DEADLINE_DEFAULT;
+    } else {
+      subscription_profile->deadline = largest_deadline;
+    }
+  }
+
+  if (liveliness_lease_duration_best_available == subscription_profile->liveliness_lease_duration) {
+    if (use_default_liveliness_lease_duration) {
+      subscription_profile->liveliness_lease_duration = RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT;
+    } else {
+      subscription_profile->liveliness_lease_duration = largest_liveliness_lease_duration;
+    }
+  }
+
+  return RMW_RET_OK;
+}
+
+rmw_ret_t
+qos_profile_get_best_available_for_publisher(
+  const rmw_topic_endpoint_info_array_t * subscriptions_info,
+  rmw_qos_profile_t * publisher_profile)
+{
+  if (!subscriptions_info) {
+    RMW_SET_ERROR_MSG("subscriptions_info parameter is null");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+  if (!publisher_profile) {
+    RMW_SET_ERROR_MSG("publisher_profile parameter is null");
+    return RMW_RET_INVALID_ARGUMENT;
+  }
+
+  // Always use "reliable" reliability and "transient_local" durability since both policies
+  // are compatible with all subscriptions and have highest level of service
+  if (RMW_QOS_POLICY_RELIABILITY_BEST_AVAILABLE == publisher_profile->reliability) {
+    publisher_profile->reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  }
+  if (RMW_QOS_POLICY_DURABILITY_BEST_AVAILABLE == publisher_profile->durability) {
+    publisher_profile->durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+  }
+
+  // Only use "manual by topic" liveliness if at least one  subscription is using manual by topic
+  // Use default deadline if all subscriptions have default deadline, otherwise use smallest
+  // Use default lease duration if all subscriptions have default lease, otherwise use smallest
+  bool use_manual_by_topic = false;
+  bool use_default_deadline = true;
+  rmw_time_t smallest_deadline = RMW_DURATION_INFINITE;
+  bool use_default_liveliness_lease_duration = true;
+  rmw_time_t smallest_liveliness_lease_duration = RMW_DURATION_INFINITE;
+  for (size_t i = 0u; i < subscriptions_info->size; ++i) {
+    const rmw_qos_profile_t & profile = subscriptions_info->info_array[i].qos_profile;
+    if (RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC == profile.liveliness) {
+      use_manual_by_topic = true;
+    }
+    if (profile.deadline != deadline_default) {
+      use_default_deadline = false;
+      if (profile.deadline < smallest_deadline) {
+        smallest_deadline = profile.deadline;
+      }
+    }
+    if (profile.liveliness_lease_duration != liveliness_lease_duration_default) {
+      use_default_liveliness_lease_duration = false;
+      if (profile.liveliness_lease_duration < smallest_liveliness_lease_duration) {
+        smallest_liveliness_lease_duration = profile.liveliness_lease_duration;
+      }
+    }
+  }
+
+  if (RMW_QOS_POLICY_LIVELINESS_BEST_AVAILABLE == publisher_profile->liveliness) {
+    if (use_manual_by_topic) {
+      publisher_profile->liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
+    } else {
+      publisher_profile->liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
+    }
+  }
+
+  if (deadline_best_available == publisher_profile->deadline) {
+    if (use_default_deadline) {
+      publisher_profile->deadline = RMW_QOS_DEADLINE_DEFAULT;
+    } else {
+      publisher_profile->deadline = smallest_deadline;
+    }
+  }
+
+  if (liveliness_lease_duration_best_available == publisher_profile->liveliness_lease_duration) {
+    if (use_default_liveliness_lease_duration) {
+      publisher_profile->liveliness_lease_duration = RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT;
+    } else {
+      publisher_profile->liveliness_lease_duration = smallest_liveliness_lease_duration;
+    }
+  }
+
+  return RMW_RET_OK;
+}
+
+static bool
+_qos_profile_has_best_available_policy(const rmw_qos_profile_t & qos_profile)
+{
+  if (RMW_QOS_POLICY_RELIABILITY_BEST_AVAILABLE == qos_profile.reliability) {
+    return true;
+  }
+  if (RMW_QOS_POLICY_DURABILITY_BEST_AVAILABLE == qos_profile.durability) {
+    return true;
+  }
+  if (RMW_QOS_POLICY_LIVELINESS_BEST_AVAILABLE == qos_profile.liveliness) {
+    return true;
+  }
+  if (deadline_best_available == qos_profile.deadline) {
+    return true;
+  }
+  if (liveliness_lease_duration_best_available == qos_profile.liveliness_lease_duration) {
+    return true;
+  }
+  return false;
+}
+
+rmw_ret_t
+qos_profile_get_best_available_for_topic_subscription(
+  const rmw_node_t * node,
+  const char * topic_name,
+  rmw_qos_profile_t * qos_profile,
+  const GetEndpointInfoByTopicFunction & get_endpoint_info)
+{
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(topic_name, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(qos_profile, RMW_RET_INVALID_ARGUMENT);
+
+  if (_qos_profile_has_best_available_policy(*qos_profile)) {
+    rcutils_allocator_t & allocator = node->context->options.allocator;
+    rmw_topic_endpoint_info_array_t publishers_info =
+      rmw_get_zero_initialized_topic_endpoint_info_array();
+    rmw_ret_t ret = get_endpoint_info(
+      node, &allocator, topic_name, false, &publishers_info);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+    ret = qos_profile_get_best_available_for_subscription(
+      &publishers_info, qos_profile);
+    rmw_ret_t fini_ret = rmw_topic_endpoint_info_array_fini(&publishers_info, &allocator);
+    if (RMW_RET_OK != fini_ret) {
+      return fini_ret;
+    }
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+  }
+  return RMW_RET_OK;
+}
+
+rmw_ret_t
+qos_profile_get_best_available_for_topic_publisher(
+  const rmw_node_t * node,
+  const char * topic_name,
+  rmw_qos_profile_t * qos_profile,
+  const GetEndpointInfoByTopicFunction & get_endpoint_info)
+{
+  RMW_CHECK_ARGUMENT_FOR_NULL(node, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(topic_name, RMW_RET_INVALID_ARGUMENT);
+  RMW_CHECK_ARGUMENT_FOR_NULL(qos_profile, RMW_RET_INVALID_ARGUMENT);
+
+  if (_qos_profile_has_best_available_policy(*qos_profile)) {
+    rcutils_allocator_t & allocator = node->context->options.allocator;
+    rmw_topic_endpoint_info_array_t subscriptions_info =
+      rmw_get_zero_initialized_topic_endpoint_info_array();
+    rmw_ret_t ret = get_endpoint_info(
+      node, &allocator, topic_name, false, &subscriptions_info);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+    ret = qos_profile_get_best_available_for_publisher(
+      &subscriptions_info, qos_profile);
+    rmw_ret_t fini_ret = rmw_topic_endpoint_info_array_fini(&subscriptions_info, &allocator);
+    if (RMW_RET_OK != fini_ret) {
+      return fini_ret;
+    }
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+  }
+  return RMW_RET_OK;
+}
+
+rmw_qos_profile_t
+qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_profile)
+{
+  rmw_qos_profile_t result = qos_profile;
+  if (RMW_QOS_POLICY_RELIABILITY_BEST_AVAILABLE == result.reliability) {
+    result.reliability = rmw_qos_profile_services_default.reliability;
+  }
+  if (RMW_QOS_POLICY_DURABILITY_BEST_AVAILABLE == result.durability) {
+    result.durability = rmw_qos_profile_services_default.durability;
+  }
+  if (RMW_QOS_POLICY_LIVELINESS_BEST_AVAILABLE == result.liveliness) {
+    result.liveliness = rmw_qos_profile_services_default.liveliness;
+  }
+  if (deadline_best_available == result.deadline) {
+    result.deadline = rmw_qos_profile_services_default.deadline;
+  }
+  if (liveliness_lease_duration_best_available == result.liveliness_lease_duration) {
+    result.liveliness_lease_duration = rmw_qos_profile_services_default.liveliness_lease_duration;
+  }
+  return result;
 }
 
 }  // namespace rmw_dds_common
