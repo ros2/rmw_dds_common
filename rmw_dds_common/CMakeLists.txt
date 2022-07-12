@@ -17,6 +17,7 @@ find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
+ament_add_default_options()
 ament_export_dependencies(ament_cmake_core)
 ament_export_dependencies(rcpputils)
 ament_export_dependencies(rcutils)
@@ -29,7 +30,7 @@ rosidl_generate_interfaces(
   "msg/ParticipantEntitiesInfo.msg"
 )
 
-add_library(${PROJECT_NAME}_library SHARED
+add_library(${PROJECT_NAME}_library
   src/gid_utils.cpp
   src/graph_cache.cpp
   src/qos.cpp
