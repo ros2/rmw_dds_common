@@ -2,8 +2,8 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.7.1 (2022-09-13)
+------------------
 * build shared lib only if BUILD_SHARED_LIBS is set (`#62 <https://github.com/ros2/rmw_dds_common/issues/62>`_)
 * Update maintainers (`#61 <https://github.com/ros2/rmw_dds_common/issues/61>`_)
 * Contributors: hannes09, methylDragon
