@@ -4,9 +4,12 @@
   <name>rmw_dds_common</name>
   <version>1.7.1</version>
   <description>Define a common interface between DDS implementations of ROS middleware.</description>
+
   <maintainer email="ivanpauno@ekumenlabs.com">Ivan Paunovic</maintainer>
-  <maintainer email="brandon@openrobotics.org">Brandon Ong</maintainer>
+
   <license>Apache License 2.0</license>
+
+  <author email="brandon@openrobotics.org">Brandon Ong</author>
   <author email="michel@ekumenlabs.com">Michel Hidalgo</author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
