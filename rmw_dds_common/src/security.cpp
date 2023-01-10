@@ -26,6 +26,14 @@ bool get_security_files(
   const std::string & prefix, const std::string & secure_root,
   std::unordered_map<std::string, std::string> & result)
 {
+  return get_security_files(false, prefix, secure_root, result);
+}
+
+bool get_security_files(
+  bool /* supports_pkcs11 */,
+  const std::string & prefix, const std::string & secure_root,
+  std::unordered_map<std::string, std::string> & result)
+{
   const std::unordered_map<std::string, std::string> required_files{
     {"IDENTITY_CA", "identity_ca.cert.pem"},
     {"CERTIFICATE", "cert.pem"},
