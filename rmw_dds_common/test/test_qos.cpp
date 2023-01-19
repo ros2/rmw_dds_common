@@ -17,8 +17,9 @@
 #include <cstring>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
-#include "rmw/types.h"
+#include "rmw/error_handling.h"
 #include "rmw/qos_profiles.h"
+#include "rmw/types.h"
 
 #include "rmw_dds_common/qos.hpp"
 
@@ -747,6 +748,7 @@ TEST(test_qos, test_qos_profile_check_compatible_invalid)
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, nullptr, reason, reason_size);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    rmw_reset_error();
   }
   // Null reason, but non-zero reason_size
   {
@@ -756,6 +758,7 @@ TEST(test_qos, test_qos_profile_check_compatible_invalid)
     rmw_ret_t ret = rmw_dds_common::qos_profile_check_compatible(
       pub_qos, sub_qos, &compatible, nullptr, 3u);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    rmw_reset_error();
   }
 }
 
@@ -885,6 +888,10 @@ TEST(test_qos, test_qos_profile_get_best_available_for_subscription_invalid_argu
   rmw_ret_t init_ret = rmw_topic_endpoint_info_array_init_with_size(
     &publishers_info, 1u, &allocator);
   ASSERT_EQ(init_ret, RMW_RET_OK);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(rmw_topic_endpoint_info_array_fini(&publishers_info, &allocator), RMW_RET_OK);
+  });
   rmw_qos_profile_t subscription_profile = rmw_qos_profile_best_available;
 
   // NULL publishers_info
@@ -892,12 +899,14 @@ TEST(test_qos, test_qos_profile_get_best_available_for_subscription_invalid_argu
     rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_subscription(
       nullptr, &subscription_profile);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    rmw_reset_error();
   }
   // NULL subscription profile
   {
     rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_subscription(
       &publishers_info, nullptr);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    rmw_reset_error();
   }
 }
 
@@ -1027,6 +1036,10 @@ TEST(test_qos, test_qos_profile_get_best_available_for_publisher_invalid_argumen
   rmw_ret_t init_ret = rmw_topic_endpoint_info_array_init_with_size(
     &subscriptions_info, 1u, &allocator);
   ASSERT_EQ(init_ret, RMW_RET_OK);
+  OSRF_TESTING_TOOLS_CPP_SCOPE_EXIT(
+  {
+    EXPECT_EQ(rmw_topic_endpoint_info_array_fini(&subscriptions_info, &allocator), RMW_RET_OK);
+  });
   rmw_qos_profile_t publisher_profile = rmw_qos_profile_best_available;
 
   // NULL subscriptions_info
@@ -1034,12 +1047,14 @@ TEST(test_qos, test_qos_profile_get_best_available_for_publisher_invalid_argumen
     rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_publisher(
       nullptr, &publisher_profile);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    rmw_reset_error();
   }
   // NULL publisher profile
   {
     rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_subscription(
       &subscriptions_info, nullptr);
     EXPECT_EQ(ret, RMW_RET_INVALID_ARGUMENT);
+    rmw_reset_error();
   }
 }
 
