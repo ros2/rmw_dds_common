@@ -34,5 +34,5 @@ TEST(test_gid_utils, test_gid_operators)
 
   std::ostringstream stream;
   stream << gid_3;
-  ASSERT_STREQ(stream.str().c_str(), "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0");
+  ASSERT_STREQ(stream.str().c_str(), "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0");
 }

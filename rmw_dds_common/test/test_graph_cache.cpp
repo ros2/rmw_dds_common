@@ -891,19 +891,19 @@ TEST(test_graph_cache, normal_usage)
     graph_cache,
   {
     // topic1
-    {"reader6", "remote_participant", "topic1", "Str", true},
-    {"reader7", "remote_participant", "topic1", "Custom", true},
+    {"reader6", "remote_part", "topic1", "Str", true},
+    {"reader7", "remote_part", "topic1", "Custom", true},
     // topic2
-    {"writer4", "remote_participant", "topic2", "Str", false},
+    {"writer4", "remote_part", "topic2", "Str", false},
     // topic4
-    {"writer5", "remote_participant", "topic4", "Custom", false},
-    {"writer6", "remote_participant", "topic4", "Bool", false},
+    {"writer5", "remote_part", "topic4", "Custom", false},
+    {"writer6", "remote_part", "topic4", "Bool", false},
   });
 
   // Associate them with a remote participant.
   auto msg = get_participant_entities_info_msg(
   {
-    "remote_participant",
+    "remote_part",
     {
       {
         "ns3",
@@ -986,12 +986,12 @@ TEST(test_graph_cache, normal_usage)
     graph_cache,
   {
     // topic1
-    {"reader6", "remote_participant", "topic1", "Str", true},
+    {"reader6", "remote_part", "topic1", "Str", true},
     // topic2
-    {"writer4", "remote_participant", "topic2", "Str", false},
+    {"writer4", "remote_part", "topic2", "Str", false},
     // topic4
-    {"writer5", "remote_participant", "topic4", "Custom", false},
-    {"writer6", "remote_participant", "topic4", "Bool", false},
+    {"writer5", "remote_part", "topic4", "Custom", false},
+    {"writer6", "remote_part", "topic4", "Bool", false},
   });
 
   // Check state.
@@ -1043,7 +1043,7 @@ TEST(test_graph_cache, normal_usage)
   // Associate them with a remote participant.
   msg = get_participant_entities_info_msg(
   {
-    "remote_participant",
+    "remote_part",
     {
       {
         "ns4",
@@ -1103,19 +1103,19 @@ TEST(test_graph_cache, normal_usage)
   // Remove remote participant
   msg = get_participant_entities_info_msg(
   {
-    "remote_participant",
+    "remote_part",
     {}
   });
   graph_cache.update_participant_entities(msg);
 
-  remove_participants(graph_cache, {"remote_participant"});
+  remove_participants(graph_cache, {"remote_part"});
 
   // Remove remaining entities
   remove_entities(
     graph_cache,
   {
     // topic1
-    {"reader7", "remote_participant", "topic1", "Custom", true},
+    {"reader7", "remote_part", "topic1", "Custom", true},
   });
 
   // Check state.
@@ -1261,7 +1261,7 @@ TEST(test_graph_cache, test_operator)
     "  Discovered data writers:\n"
     "  Discovered data readers:\n"
     "  Discovered participants:\n"
-    "    gid: '70.61.72.74.69.63.69.70.61.6e.74.31.0.0.0.0.0.0.0.0.0.0.0.0\n"
+    "    gid: '70.61.72.74.69.63.69.70.61.6e.74.31.0.0.0.0\n"
     "    enclave name '\n"
     "    nodes:\n"
     "---------------------------------\n";
@@ -1275,7 +1275,7 @@ TEST(test_graph_cache, test_operator)
     "  Discovered data writers:\n"
     "  Discovered data readers:\n"
     "  Discovered participants:\n"
-    "    gid: '70.61.72.74.69.63.69.70.61.6e.74.31.0.0.0.0.0.0.0.0.0.0.0.0\n"
+    "    gid: '70.61.72.74.69.63.69.70.61.6e.74.31.0.0.0.0\n"
     "    enclave name '\n"
     "    nodes:\n"
     "      namespace: 'ns1' name: 'node1'\n"
@@ -1311,23 +1311,23 @@ TEST(test_graph_cache, test_operator)
   std::string graph_cache_case3_str = "---------------------------------\n"
     "Graph cache:\n"
     "  Discovered data writers:\n"
-    "    gid: '77.72.69.74.65.72.31.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0',"
+    "    gid: '77.72.69.74.65.72.31.0.0.0.0.0.0.0.0.0',"
     " topic name: 'topic1', topic_type: 'Str'\n"
     "  Discovered data readers:\n"
-    "    gid: '72.65.61.64.65.72.31.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0',"
+    "    gid: '72.65.61.64.65.72.31.0.0.0.0.0.0.0.0.0',"
     " topic name: 'topic1', topic_type: 'Str'\n"
     "  Discovered participants:\n"
-    "    gid: '70.61.72.74.69.63.69.70.61.6e.74.31.0.0.0.0.0.0.0.0.0.0.0.0\n"
+    "    gid: '70.61.72.74.69.63.69.70.61.6e.74.31.0.0.0.0\n"
     "    enclave name '\n"
     "    nodes:\n"
     "      namespace: 'ns1' name: 'node1'\n"
     "      associated data readers gids:\n"
-    "        72.65.61.64.65.72.31.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0\n"
+    "        72.65.61.64.65.72.31.0.0.0.0.0.0.0.0.0\n"
     "      associated data writers gids:\n"
     "      namespace: 'ns1' name: 'node2'\n"
     "      associated data readers gids:\n"
     "      associated data writers gids:\n"
-    "        77.72.69.74.65.72.31.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0\n"
+    "        77.72.69.74.65.72.31.0.0.0.0.0.0.0.0.0\n"
     "      namespace: 'ns2' name: 'node1'\n"
     "      associated data readers gids:\n"
     "      associated data writers gids:\n"
@@ -1472,8 +1472,8 @@ TEST(test_graph_cache, bad_arguments)
     graph_cache,
   {
     // topic1
-    {"reader1", "some_participant", "topic1", "Str", true},
-    {"writer1", "some_participant", "topic1", "Str", false},
+    {"reader1", "some_part", "topic1", "Str", true},
+    {"writer1", "some_part", "topic1", "Str", false},
   });
 
   // Associate entities

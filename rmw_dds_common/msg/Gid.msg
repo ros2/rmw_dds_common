@@ -1,1 +1,1 @@
-char[24] data
+char[16] data
