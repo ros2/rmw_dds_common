@@ -2,8 +2,8 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.0 (2023-02-13)
+------------------
 * Update rmw_dds_common to C++17. (`#69 <https://github.com/ros2/rmw_dds_common/issues/69>`_)
 * Change Gid.msg to be 16 bytes. (`#68 <https://github.com/ros2/rmw_dds_common/issues/68>`_)
 * Minor cleanups of test_qos. (`#67 <https://github.com/ros2/rmw_dds_common/issues/67>`_)
