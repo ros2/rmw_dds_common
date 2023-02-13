@@ -2,6 +2,14 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update rmw_dds_common to C++17. (`#69 <https://github.com/ros2/rmw_dds_common/issues/69>`_)
+* Change Gid.msg to be 16 bytes. (`#68 <https://github.com/ros2/rmw_dds_common/issues/68>`_)
+* Minor cleanups of test_qos. (`#67 <https://github.com/ros2/rmw_dds_common/issues/67>`_)
+* [rolling] Update maintainers - 2022-11-07 (`#65 <https://github.com/ros2/rmw_dds_common/issues/65>`_)
+* Contributors: Audrow Nash, Chris Lalancette
+
 1.7.1 (2022-09-13)
 ------------------
 * build shared lib only if BUILD_SHARED_LIBS is set (`#62 <https://github.com/ros2/rmw_dds_common/issues/62>`_)
