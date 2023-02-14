@@ -67,6 +67,7 @@ GraphCache::add_writer(
   const rmw_gid_t & gid,
   const std::string & topic_name,
   const std::string & type_name,
+  const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
   const rmw_gid_t & participant_gid,
   const rmw_qos_profile_t & qos)
 {
@@ -74,7 +75,7 @@ GraphCache::add_writer(
   auto pair = data_writers_.emplace(
     std::piecewise_construct,
     std::forward_as_tuple(gid),
-    std::forward_as_tuple(topic_name, type_name, participant_gid, qos));
+    std::forward_as_tuple(topic_name, type_name, type_hash, participant_gid, qos));
   GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, pair.second);
   return pair.second;
 }
@@ -84,6 +85,7 @@ GraphCache::add_reader(
   const rmw_gid_t & gid,
   const std::string & topic_name,
   const std::string & type_name,
+  const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
   const rmw_gid_t & participant_gid,
   const rmw_qos_profile_t & qos)
 {
@@ -91,7 +93,7 @@ GraphCache::add_reader(
   auto pair = data_readers_.emplace(
     std::piecewise_construct,
     std::forward_as_tuple(gid),
-    std::forward_as_tuple(topic_name, type_name, participant_gid, qos));
+    std::forward_as_tuple(topic_name, type_name, type_hash, participant_gid, qos));
   GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, pair.second);
   return pair.second;
 }
@@ -101,6 +103,7 @@ GraphCache::add_entity(
   const rmw_gid_t & gid,
   const std::string & topic_name,
   const std::string & type_name,
+  const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
   const rmw_gid_t & participant_gid,
   const rmw_qos_profile_t & qos,
   bool is_reader)
@@ -110,6 +113,7 @@ GraphCache::add_entity(
       gid,
       topic_name,
       type_name,
+      type_hash,
       participant_gid,
       qos);
   }
@@ -117,6 +121,7 @@ GraphCache::add_entity(
     gid,
     topic_name,
     type_name,
+    type_hash,
     participant_gid,
     qos);
 }

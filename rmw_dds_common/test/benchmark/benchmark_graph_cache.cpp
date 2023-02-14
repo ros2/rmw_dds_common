@@ -120,6 +120,7 @@ add_entities(
       gid_from_string(elem.gid),
       elem.name,
       elem.type,
+      nullptr,
       gid_from_string(elem.participant_gid),
       rmw_qos_profile_default,
       elem.is_reader);
