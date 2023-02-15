@@ -575,6 +575,13 @@ __get_entities_info_by_topic(
       return ret;
     }
 
+    ret = rmw_topic_endpoint_info_set_topic_type_hash(
+      &endpoint_info,
+      entity_pair.second.topic_type_hash);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+
     ret = rmw_topic_endpoint_info_set_endpoint_type(
       &endpoint_info,
       is_reader ? RMW_ENDPOINT_SUBSCRIPTION : RMW_ENDPOINT_PUBLISHER);
