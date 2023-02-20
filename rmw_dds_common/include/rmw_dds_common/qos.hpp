@@ -16,6 +16,7 @@
 #define RMW_DDS_COMMON__QOS_HPP_
 
 #include <functional>
+#include <vector>
 
 #include "rmw/qos_profiles.h"
 #include "rmw/topic_endpoint_info_array.h"
@@ -223,6 +224,27 @@ qos_profile_get_best_available_for_topic_publisher(
 RMW_DDS_COMMON_PUBLIC
 rmw_qos_profile_t
 qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_profile);
+
+/// TODO(emersonknapp)
+/**
+ * TODO(emersonknapp)
+ */
+RMW_DDS_COMMON_PUBLIC
+rmw_ret_t
+parse_type_hash_from_user_data_qos(
+  const uint8_t * user_data,
+  size_t user_data_size,
+  uint8_t out_type_hash[RCUTILS_SHA256_BLOCK_SIZE]);
+
+/// TODO(emersonknapp)
+/**
+ * TODO(emersonknapp)
+ */
+RMW_DDS_COMMON_PUBLIC
+rmw_ret_t
+encode_type_hash_for_user_data_qos(
+  const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
+  std::vector<uint8_t> & out_data);
 
 }  // namespace rmw_dds_common
 

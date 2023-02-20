@@ -16,7 +16,12 @@
 
 #include <cstdarg>
 #include <cstring>
+#include <iomanip>
+#include <string>
+#include <sstream>
 
+#include "rcutils/error_handling.h"
+#include "rcutils/logging_macros.h"
 #include "rcutils/snprintf.h"
 #include "rmw/error_handling.h"
 #include "rmw/get_topic_endpoint_info.h"
@@ -662,6 +667,66 @@ qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_pro
     result.liveliness_lease_duration = rmw_qos_profile_services_default.liveliness_lease_duration;
   }
   return result;
+}
+
+rmw_ret_t
+parse_type_hash_from_user_data_qos(
+  const uint8_t * user_data,
+  size_t user_data_size,
+  uint8_t out_type_hash[RCUTILS_SHA256_BLOCK_SIZE])
+{
+  const std::string prefix = "type_hash=";
+  const std::string suffix = ";";
+  const size_t expected_size = prefix.size() + RCUTILS_SHA256_BLOCK_SIZE + suffix.size();
+  const uint8_t * hash_data = user_data + prefix.size();
+  const uint8_t * suffix_data = hash_data + RCUTILS_SHA256_BLOCK_SIZE;
+
+  if (user_data_size < expected_size) {
+    // Not the right size to be type hash user data
+    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("NOT RIGHT SIZE %zu", user_data_size);
+    RCUTILS_LOG_ERROR("NOT RIGHT SIZE %zu", user_data_size);
+    return RMW_RET_ERROR;
+  }
+  if (memcmp(user_data, prefix.data(), prefix.size()) != 0) {
+    // Key is not "type_hash="
+    RCUTILS_SET_ERROR_MSG("Wrong key!");
+    RCUTILS_LOG_ERROR("WRONG KEY");
+    return RMW_RET_ERROR;
+  }
+  if (memcmp(suffix_data, suffix.data(), suffix.size()) != 0) {
+    // No final semicolon
+    RCUTILS_SET_ERROR_MSG("No final ;");
+    RCUTILS_LOG_ERROR("No final ;");
+    return RMW_RET_ERROR;
+  }
+  memcpy(out_type_hash, hash_data, RCUTILS_SHA256_BLOCK_SIZE);
+  {
+    // Just debugging output TODO(emersonknapp) remove
+    std::stringstream ss;
+    ss << std::setw(2) << std::setfill('0');
+    for (size_t i = 0; i < RCUTILS_SHA256_BLOCK_SIZE; i++) {
+      ss << std::hex << static_cast<int>(out_type_hash[i]);
+    }
+    RCUTILS_LOG_ERROR("  --- %s", ss.str().c_str());
+  }
+  return RMW_RET_OK;
+}
+
+rmw_ret_t
+encode_type_hash_for_user_data_qos(
+  const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
+  std::vector<uint8_t> & out_data)
+{
+  static const std::string prefix = "type_hash=";
+  static const std::string suffix = ";";
+  static const size_t data_size = prefix.size() + RCUTILS_SHA256_BLOCK_SIZE + suffix.size();
+  assert(type_hash != nullptr);
+  out_data.clear();
+  out_data.reserve(data_size);
+  out_data.insert(out_data.end(), prefix.begin(), prefix.end());
+  out_data.insert(out_data.end(), type_hash, type_hash + RCUTILS_SHA256_BLOCK_SIZE);
+  out_data.insert(out_data.end(), suffix.begin(), suffix.end());
+  return RMW_RET_OK;
 }
 
 }  // namespace rmw_dds_common
