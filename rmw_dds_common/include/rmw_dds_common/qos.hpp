@@ -16,6 +16,7 @@
 #define RMW_DDS_COMMON__QOS_HPP_
 
 #include <functional>
+#include <string>
 #include <vector>
 
 #include "rmw/qos_profiles.h"
@@ -241,10 +242,8 @@ parse_type_hash_from_user_data_qos(
  * TODO(emersonknapp)
  */
 RMW_DDS_COMMON_PUBLIC
-rmw_ret_t
-encode_type_hash_for_user_data_qos(
-  const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
-  std::vector<uint8_t> & out_data);
+std::string
+encode_type_hash_for_user_data_qos(const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE]);
 
 }  // namespace rmw_dds_common
 

@@ -570,7 +570,6 @@ struct EntityInfo
       topic_type_hash_,
       "Type hash cannot be null",
       throw std::runtime_error("Type hash cannot be null."));
-    RCUTILS_LOG_WARN("EntityInfo ctor, type hash %p", topic_type_hash_);
     memcpy(topic_type_hash, topic_type_hash_, RCUTILS_SHA256_BLOCK_SIZE);
   }
 };

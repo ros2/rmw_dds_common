@@ -24,6 +24,7 @@
 #include "rcutils/logging_macros.h"
 #include "rcutils/snprintf.h"
 #include "rmw/error_handling.h"
+#include "rmw/impl/cpp/key_value.hpp"
 #include "rmw/get_topic_endpoint_info.h"
 #include "rmw/qos_profiles.h"
 #include "rmw/qos_string_conversions.h"
@@ -675,58 +676,30 @@ parse_type_hash_from_user_data_qos(
   size_t user_data_size,
   uint8_t out_type_hash[RCUTILS_SHA256_BLOCK_SIZE])
 {
-  const std::string prefix = "type_hash=";
-  const std::string suffix = ";";
-  const size_t expected_size = prefix.size() + RCUTILS_SHA256_BLOCK_SIZE + suffix.size();
-  const uint8_t * hash_data = user_data + prefix.size();
-  const uint8_t * suffix_data = hash_data + RCUTILS_SHA256_BLOCK_SIZE;
+  std::vector<uint8_t> udvec(user_data, user_data + user_data_size);
+  auto key_value = rmw::impl::cpp::parse_key_value(udvec);
+  auto type_hash_value = key_value.at("typehash");
 
-  if (user_data_size < expected_size) {
-    // Not the right size to be type hash user data
-    RCUTILS_SET_ERROR_MSG_WITH_FORMAT_STRING("NOT RIGHT SIZE %zu", user_data_size);
-    RCUTILS_LOG_ERROR("NOT RIGHT SIZE %zu", user_data_size);
-    return RMW_RET_ERROR;
-  }
-  if (memcmp(user_data, prefix.data(), prefix.size()) != 0) {
-    // Key is not "type_hash="
-    RCUTILS_SET_ERROR_MSG("Wrong key!");
-    RCUTILS_LOG_ERROR("WRONG KEY");
-    return RMW_RET_ERROR;
-  }
-  if (memcmp(suffix_data, suffix.data(), suffix.size()) != 0) {
-    // No final semicolon
-    RCUTILS_SET_ERROR_MSG("No final ;");
-    RCUTILS_LOG_ERROR("No final ;");
-    return RMW_RET_ERROR;
-  }
-  memcpy(out_type_hash, hash_data, RCUTILS_SHA256_BLOCK_SIZE);
-  {
-    // Just debugging output TODO(emersonknapp) remove
-    std::stringstream ss;
-    ss << std::setw(2) << std::setfill('0');
-    for (size_t i = 0; i < RCUTILS_SHA256_BLOCK_SIZE; i++) {
-      ss << std::hex << static_cast<int>(out_type_hash[i]);
-    }
-    RCUTILS_LOG_ERROR("  --- %s", ss.str().c_str());
+  std::string type_hash_str(type_hash_value.begin(), type_hash_value.end());
+  assert(type_hash_str.size() == RCUTILS_SHA256_BLOCK_SIZE * 2);
+  RCUTILS_LOG_ERROR("  - %s", type_hash_str.c_str());
+  std::istringstream iss(type_hash_str);
+  for (size_t i = 0; i < RCUTILS_SHA256_BLOCK_SIZE; i++) {
+    iss >> std::hex >> out_type_hash[i];
   }
   return RMW_RET_OK;
 }
 
-rmw_ret_t
-encode_type_hash_for_user_data_qos(
-  const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
-  std::vector<uint8_t> & out_data)
+std::string
+encode_type_hash_for_user_data_qos(const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE])
 {
-  static const std::string prefix = "type_hash=";
-  static const std::string suffix = ";";
-  static const size_t data_size = prefix.size() + RCUTILS_SHA256_BLOCK_SIZE + suffix.size();
-  assert(type_hash != nullptr);
-  out_data.clear();
-  out_data.reserve(data_size);
-  out_data.insert(out_data.end(), prefix.begin(), prefix.end());
-  out_data.insert(out_data.end(), type_hash, type_hash + RCUTILS_SHA256_BLOCK_SIZE);
-  out_data.insert(out_data.end(), suffix.begin(), suffix.end());
-  return RMW_RET_OK;
+  std::ostringstream os;
+  os << "typehash=";
+  for (size_t i = 0; i < RCUTILS_SHA256_BLOCK_SIZE; i++) {
+    os << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(type_hash[i]);
+  }
+  os << ";";
+  return os.str();
 }
 
 }  // namespace rmw_dds_common
