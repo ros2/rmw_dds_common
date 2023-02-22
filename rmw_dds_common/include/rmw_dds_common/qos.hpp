@@ -231,11 +231,10 @@ qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_pro
  * TODO(emersonknapp)
  */
 RMW_DDS_COMMON_PUBLIC
-rmw_ret_t
+rosidl_type_hash_t
 parse_type_hash_from_user_data_qos(
   const uint8_t * user_data,
-  size_t user_data_size,
-  uint8_t out_type_hash[RCUTILS_SHA256_BLOCK_SIZE]);
+  size_t user_data_size);
 
 /// TODO(emersonknapp)
 /**
@@ -243,7 +242,7 @@ parse_type_hash_from_user_data_qos(
  */
 RMW_DDS_COMMON_PUBLIC
 std::string
-encode_type_hash_for_user_data_qos(const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE]);
+encode_type_hash_for_user_data_qos(const rosidl_type_hash_t & type_hash);
 
 }  // namespace rmw_dds_common
 

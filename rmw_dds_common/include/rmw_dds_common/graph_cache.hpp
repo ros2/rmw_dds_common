@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "rcutils/logging_macros.h"
-#include "rcutils/sha256.h"
 
 #include "rmw/names_and_types.h"
 #include "rmw/topic_endpoint_info.h"
@@ -95,7 +94,7 @@ public:
     const rmw_gid_t & writer_gid,
     const std::string & topic_name,
     const std::string & type_name,
-    const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
+    const rosidl_type_hash_t & type_hash,
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos);
 
@@ -115,7 +114,7 @@ public:
     const rmw_gid_t & reader_gid,
     const std::string & topic_name,
     const std::string & type_name,
-    const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
+    const rosidl_type_hash_t & type_hash,
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos);
 
@@ -136,7 +135,7 @@ public:
     const rmw_gid_t & gid,
     const std::string & topic_name,
     const std::string & type_name,
-    const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
+    const rosidl_type_hash_t & type_hash,
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos,
     bool is_reader);
@@ -545,10 +544,10 @@ struct EntityInfo
 {
   /// Topic name.
   std::string topic_name;
-  /// Topic type.
+  /// Topic type name.
   std::string topic_type;
   /// Topic type hash.
-  uint8_t topic_type_hash[RCUTILS_SHA256_BLOCK_SIZE];
+  rosidl_type_hash_t topic_type_hash;
   /// Participant gid.
   rmw_gid_t participant_gid;
   /// Quality of service of the topic.
@@ -558,20 +557,15 @@ struct EntityInfo
   EntityInfo(
     const std::string & topic_name,
     const std::string & topic_type,
-    const uint8_t topic_type_hash_[RCUTILS_SHA256_BLOCK_SIZE],
+    const rosidl_type_hash_t & topic_type_hash,
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos)
   : topic_name(topic_name),
     topic_type(topic_type),
+    topic_type_hash(topic_type_hash),
     participant_gid(participant_gid),
     qos(qos)
-  {
-    RCUTILS_CHECK_FOR_NULL_WITH_MSG(
-      topic_type_hash_,
-      "Type hash cannot be null",
-      throw std::runtime_error("Type hash cannot be null."));
-    memcpy(topic_type_hash, topic_type_hash_, RCUTILS_SHA256_BLOCK_SIZE);
-  }
+  {}
 };
 
 }  // namespace rmw_dds_common

@@ -670,33 +670,40 @@ qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_pro
   return result;
 }
 
-rmw_ret_t
+rosidl_type_hash_t
 parse_type_hash_from_user_data_qos(
   const uint8_t * user_data,
-  size_t user_data_size,
-  uint8_t out_type_hash[RCUTILS_SHA256_BLOCK_SIZE])
+  size_t user_data_size)
 {
   std::vector<uint8_t> udvec(user_data, user_data + user_data_size);
   auto key_value = rmw::impl::cpp::parse_key_value(udvec);
-  auto type_hash_value = key_value.at("typehash");
+  auto typehash_it = key_value.find("typehash");
+  if (typehash_it == key_value.end()) {
+    return rosidl_get_zero_initialized_type_hash();
+  }
+  auto type_hash_value = typehash_it->second;
 
   std::string type_hash_str(type_hash_value.begin(), type_hash_value.end());
   assert(type_hash_str.size() == RCUTILS_SHA256_BLOCK_SIZE * 2);
   RCUTILS_LOG_ERROR("  - %s", type_hash_str.c_str());
+
+  rosidl_type_hash_t type_hash;
+  // TODO(emersonknapp) type_hash.version!
   std::istringstream iss(type_hash_str);
   for (size_t i = 0; i < RCUTILS_SHA256_BLOCK_SIZE; i++) {
-    iss >> std::hex >> out_type_hash[i];
+    iss >> std::hex >> type_hash.value[i];
   }
-  return RMW_RET_OK;
+  return type_hash;
 }
 
 std::string
-encode_type_hash_for_user_data_qos(const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE])
+encode_type_hash_for_user_data_qos(const rosidl_type_hash_t & type_hash)
 {
   std::ostringstream os;
   os << "typehash=";
+  // TODO(emersonknapp) version prefix
   for (size_t i = 0; i < RCUTILS_SHA256_BLOCK_SIZE; i++) {
-    os << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(type_hash[i]);
+    os << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(type_hash.value[i]);
   }
   os << ";";
   return os.str();

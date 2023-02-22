@@ -67,7 +67,7 @@ GraphCache::add_writer(
   const rmw_gid_t & gid,
   const std::string & topic_name,
   const std::string & type_name,
-  const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
+  const rosidl_type_hash_t & type_hash,
   const rmw_gid_t & participant_gid,
   const rmw_qos_profile_t & qos)
 {
@@ -85,7 +85,7 @@ GraphCache::add_reader(
   const rmw_gid_t & gid,
   const std::string & topic_name,
   const std::string & type_name,
-  const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
+  const rosidl_type_hash_t & type_hash,
   const rmw_gid_t & participant_gid,
   const rmw_qos_profile_t & qos)
 {
@@ -103,7 +103,7 @@ GraphCache::add_entity(
   const rmw_gid_t & gid,
   const std::string & topic_name,
   const std::string & type_name,
-  const uint8_t type_hash[RCUTILS_SHA256_BLOCK_SIZE],
+  const rosidl_type_hash_t & type_hash,
   const rmw_gid_t & participant_gid,
   const rmw_qos_profile_t & qos,
   bool is_reader)
@@ -577,7 +577,7 @@ __get_entities_info_by_topic(
 
     ret = rmw_topic_endpoint_info_set_topic_type_hash(
       &endpoint_info,
-      entity_pair.second.topic_type_hash);
+      &entity_pair.second.topic_type_hash);
     if (RMW_RET_OK != ret) {
       return ret;
     }
