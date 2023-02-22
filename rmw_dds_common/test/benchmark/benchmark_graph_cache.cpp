@@ -24,6 +24,8 @@
 #include "rmw_dds_common/gid_utils.hpp"
 #include "rmw_dds_common/graph_cache.hpp"
 
+#include "rosidl_runtime_c/type_hash.h"
+
 using performance_test_fixture::PerformanceTest;
 using rmw_dds_common::GraphCache;
 
