@@ -676,23 +676,20 @@ parse_type_hash_from_user_data_qos(
   size_t user_data_size)
 {
   std::vector<uint8_t> udvec(user_data, user_data + user_data_size);
+  rosidl_type_hash_t type_hash;
+
+
   auto key_value = rmw::impl::cpp::parse_key_value(udvec);
   auto typehash_it = key_value.find("typehash");
   if (typehash_it == key_value.end()) {
     return rosidl_get_zero_initialized_type_hash();
   }
-  auto type_hash_value = typehash_it->second;
-
-  std::string type_hash_str(type_hash_value.begin(), type_hash_value.end());
-  assert(type_hash_str.size() == ROSIDL_TYPE_HASH_SIZE * 2);
-  RCUTILS_LOG_ERROR("  - %s", type_hash_str.c_str());
-
-  rosidl_type_hash_t type_hash;
-  // TODO(emersonknapp) type_hash.version!
-  std::istringstream iss(type_hash_str);
-  for (size_t i = 0; i < ROSIDL_TYPE_HASH_SIZE; i++) {
-    iss >> std::hex >> type_hash.value[i];
-  }
+  std::string type_hash_str(typehash_it->second.begin(), typehash_it->second.end());
+  rosidl_parse_type_hash_string(
+    type_hash_str.data(),
+    type_hash_str.size(),
+    &type_hash);
+  // RCUTILS_LOG_WARN("Hi am smashy");
   return type_hash;
 }
 
@@ -702,16 +699,12 @@ encode_type_hash_for_user_data_qos(const rosidl_type_hash_t & type_hash)
   if (type_hash.version == ROSIDL_TYPE_HASH_VERSION_UNSET) {
     return "";
   }
-
-  std::ostringstream os;
-  os << "typehash=";
-  // os << "RIHS" << type_hash.version << "_";
-  // TODO(emersonknapp) version prefix
-  for (size_t i = 0; i < ROSIDL_TYPE_HASH_SIZE; i++) {
-    os << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(type_hash.value[i]);
+  auto allocator = rcutils_get_default_allocator();
+  char * type_hash_c_str = nullptr;
+  if (RCUTILS_RET_OK != rosidl_stringify_type_hash(&type_hash, allocator, &type_hash_c_str)) {
+    return "";
   }
-  os << ";";
-  return os.str();
+  return "typehash=" + std::string(type_hash_c_str) + ";";
 }
 
 }  // namespace rmw_dds_common
