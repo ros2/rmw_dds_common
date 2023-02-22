@@ -684,13 +684,13 @@ parse_type_hash_from_user_data_qos(
   auto type_hash_value = typehash_it->second;
 
   std::string type_hash_str(type_hash_value.begin(), type_hash_value.end());
-  assert(type_hash_str.size() == RCUTILS_SHA256_BLOCK_SIZE * 2);
+  assert(type_hash_str.size() == ROSIDL_TYPE_HASH_SIZE * 2);
   RCUTILS_LOG_ERROR("  - %s", type_hash_str.c_str());
 
   rosidl_type_hash_t type_hash;
   // TODO(emersonknapp) type_hash.version!
   std::istringstream iss(type_hash_str);
-  for (size_t i = 0; i < RCUTILS_SHA256_BLOCK_SIZE; i++) {
+  for (size_t i = 0; i < ROSIDL_TYPE_HASH_SIZE; i++) {
     iss >> std::hex >> type_hash.value[i];
   }
   return type_hash;
@@ -699,10 +699,15 @@ parse_type_hash_from_user_data_qos(
 std::string
 encode_type_hash_for_user_data_qos(const rosidl_type_hash_t & type_hash)
 {
+  if (type_hash.version == ROSIDL_TYPE_HASH_VERSION_UNSET) {
+    return "";
+  }
+
   std::ostringstream os;
   os << "typehash=";
+  // os << "RIHS" << type_hash.version << "_";
   // TODO(emersonknapp) version prefix
-  for (size_t i = 0; i < RCUTILS_SHA256_BLOCK_SIZE; i++) {
+  for (size_t i = 0; i < ROSIDL_TYPE_HASH_SIZE; i++) {
     os << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(type_hash.value[i]);
   }
   os << ";";
