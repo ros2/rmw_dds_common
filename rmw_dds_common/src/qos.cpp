@@ -678,7 +678,6 @@ parse_type_hash_from_user_data_qos(
   std::vector<uint8_t> udvec(user_data, user_data + user_data_size);
   rosidl_type_hash_t type_hash;
 
-
   auto key_value = rmw::impl::cpp::parse_key_value(udvec);
   auto typehash_it = key_value.find("typehash");
   if (typehash_it == key_value.end()) {
@@ -686,10 +685,8 @@ parse_type_hash_from_user_data_qos(
   }
   std::string type_hash_str(typehash_it->second.begin(), typehash_it->second.end());
   rosidl_parse_type_hash_string(
-    type_hash_str.data(),
-    type_hash_str.size(),
+    type_hash_str.c_str(),
     &type_hash);
-  // RCUTILS_LOG_WARN("Hi am smashy");
   return type_hash;
 }
 
