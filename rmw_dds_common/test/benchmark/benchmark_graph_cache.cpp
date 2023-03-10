@@ -17,6 +17,8 @@
 
 #include "performance_test_fixture/performance_test_fixture.hpp"
 
+#include "rcutils/macros.h"
+
 #include "rmw/qos_profiles.h"
 
 #include "rmw_dds_common/gid_utils.hpp"
@@ -235,6 +237,7 @@ BENCHMARK_F(PerformanceTest, add_remove_participant_benchmark)(benchmark::State 
   GraphCache graph_cache;
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     add_participants(graph_cache, {"participant1"});
     remove_participants(graph_cache, {"participant1"});
   }
@@ -247,6 +250,7 @@ BENCHMARK_F(PerformanceTest, add_remove_participant_and_node_benchmark)(benchmar
   reset_heap_counters();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     add_participants(graph_cache, {"participant1"});
     add_nodes(graph_cache, {{"participant1", "ns1", "node"}});
     remove_nodes(graph_cache, {{"participant1", "ns1", "node"}});
@@ -260,6 +264,7 @@ BENCHMARK_F(TestGraphCache, get_writers_info_by_topic_benchmark)(benchmark::Stat
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     rmw_ret_t ret = graph_cache.get_writers_info_by_topic(
       "topic1",
       identity_demangle,
@@ -281,6 +286,7 @@ BENCHMARK_F(TestGraphCache, get_readers_info_by_topic_benchmark)(benchmark::Stat
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     rmw_ret_t ret = graph_cache.get_readers_info_by_topic(
       "topic1",
       identity_demangle,
@@ -301,6 +307,7 @@ BENCHMARK_F(TestGraphCache, get_names_and_types_benchmark)(benchmark::State & st
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     rmw_names_and_types_t names_and_types = rmw_get_zero_initialized_names_and_types();
     rmw_ret_t ret = graph_cache.get_names_and_types(
       identity_demangle,
@@ -322,6 +329,7 @@ BENCHMARK_F(TestGraphCache, get_reader_names_and_types_by_node)(benchmark::State
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     rmw_names_and_types_t names_and_types = rmw_get_zero_initialized_names_and_types();
     rmw_ret_t ret = graph_cache.get_reader_names_and_types_by_node(
       "node1",
@@ -345,6 +353,7 @@ BENCHMARK_F(TestGraphCache, get_writer_names_and_types_by_node)(benchmark::State
   rcutils_allocator_t allocator = rcutils_get_default_allocator();
 
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     rmw_names_and_types_t names_and_types = rmw_get_zero_initialized_names_and_types();
     rmw_ret_t ret = graph_cache.get_writer_names_and_types_by_node(
       "node1",
@@ -367,6 +376,7 @@ BENCHMARK_F(TestGraphCache, get_reader_count_benchmark)(benchmark::State & st)
 {
   size_t count;
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     rmw_ret_t ret = graph_cache.get_reader_count("reader1", &count);
     if (ret != RMW_RET_OK) {
       st.SkipWithError("get_reader_count failed");
@@ -378,6 +388,7 @@ BENCHMARK_F(TestGraphCache, get_writer_count_benchmark)(benchmark::State & st)
 {
   size_t count;
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     rmw_ret_t ret = graph_cache.get_writer_count("writer1", &count);
     if (ret != RMW_RET_OK) {
       st.SkipWithError("get_reader_count failed");
@@ -388,6 +399,7 @@ BENCHMARK_F(TestGraphCache, get_writer_count_benchmark)(benchmark::State & st)
 BENCHMARK_F(TestGraphCache, associate_entities_benchmark)(benchmark::State & st)
 {
   for (auto _ : st) {
+    RCUTILS_UNUSED(_);
     // Associate entities
     associate_entities(
       graph_cache,
