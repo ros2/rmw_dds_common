@@ -226,19 +226,20 @@ RMW_DDS_COMMON_PUBLIC
 rmw_qos_profile_t
 qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_profile);
 
-/// Parse the standard USER_DATA key=value;key=value; encoding, and find typehash
+/// Parse USER_DATA key=value;key=value; encoding, find value of key "typehash"
 /**
  * \param[in] user_data USER_DATA qos raw bytes
  * \param[in] user_data_size Length of user_data
- * \return Parsed type hash, may be zero-initialized unset value if data couldn't be parsed
+ * \return Parsed type hash
+ * \return zero-initialized value if data unparseable or key not found
  */
 RMW_DDS_COMMON_PUBLIC
 rosidl_type_hash_t
-parse_type_hash_from_user_data_qos(
+parse_type_hash_from_user_data(
   const uint8_t * user_data,
   size_t user_data_size);
 
-/// Encode a type hash as standardized USER_DATA key=value; substring
+/// Encode type hash as "typehash=hash_string;"
 /**
  * \param[in] type_hash Type hash value to encode
  * \return A substring in key=value; format that can be appended to QoS USER_DATA

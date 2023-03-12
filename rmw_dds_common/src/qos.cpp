@@ -671,7 +671,7 @@ qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_pro
 }
 
 rosidl_type_hash_t
-parse_type_hash_from_user_data_qos(
+parse_type_hash_from_user_data(
   const uint8_t * user_data,
   size_t user_data_size)
 {

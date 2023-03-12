@@ -1072,3 +1072,51 @@ TEST(test_qos, test_qos_profile_update_best_available_for_services)
       rmw_qos_profile_services_default.liveliness_lease_duration,
       output_profile.liveliness_lease_duration));
 }
+
+TEST(test_qos, test_parse_type_hash_from_user_data)
+{
+  const auto zero_val = rosidl_get_zero_initialized_type_hash();
+
+  std::string bad_value = "something that isn't key equals value semicolon";
+  rosidl_type_hash_t result_type_hash = rmw_dds_common::parse_type_hash_from_user_data(
+    reinterpret_cast<uint8_t *>(bad_value.data()), bad_value.size());
+  EXPECT_EQ(0, memcmp(&result_type_hash, &zero_val, sizeof(rosidl_type_hash_t)))
+    << "Malformed user_data should result in zero hash struct.";
+
+  std::string no_key = "key1=value1;key2=value2;key3=value3;";
+  result_type_hash = rmw_dds_common::parse_type_hash_from_user_data(
+    reinterpret_cast<uint8_t *>(no_key.data()), no_key.size());
+  EXPECT_EQ(0, memcmp(&result_type_hash, &zero_val, sizeof(rosidl_type_hash_t)))
+    << "No typehash key should result in zero hash struct.";
+
+  rosidl_type_hash_t input_type_hash;
+  input_type_hash.version = 1;
+  for (uint8_t i = 0; i < ROSIDL_TYPE_HASH_SIZE; i++) {
+    input_type_hash.value[i] = i;
+  }
+  char * type_hash_c_str;
+  auto allocator = rcutils_get_default_allocator();
+  rmw_ret_t ret = rosidl_stringify_type_hash(&input_type_hash, allocator, &type_hash_c_str);
+  ASSERT_EQ(ret, RCUTILS_RET_OK);
+  std::string type_hash_string(type_hash_c_str);
+  allocator.deallocate(type_hash_c_str, &allocator.state);
+  std::string good_data = "foo=bar;typehash=" + type_hash_string + ";key=value;";
+  result_type_hash = rmw_dds_common::parse_type_hash_from_user_data(
+    reinterpret_cast<uint8_t *>(good_data.data()), good_data.size());
+  EXPECT_EQ(0, memcmp(&result_type_hash, &input_type_hash, sizeof(rosidl_type_hash_t)));
+}
+
+TEST(test_qos, test_encode_type_hash_for_user_data_qos)
+{
+  rosidl_type_hash_t test_hash = rosidl_get_zero_initialized_type_hash();
+  EXPECT_EQ(rmw_dds_common::encode_type_hash_for_user_data_qos(test_hash), "");
+
+  test_hash.version = 1;
+  for (uint8_t i = 0; i < ROSIDL_TYPE_HASH_SIZE; i++) {
+    test_hash.value[i] = i;
+  }
+  std::string result = rmw_dds_common::encode_type_hash_for_user_data_qos(test_hash);
+  EXPECT_EQ(
+    result,
+    "typehash=RIHS01_000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f;");
+}
