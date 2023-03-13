@@ -83,6 +83,7 @@ public:
    * \param writer_gid GUID of the data writer.
    * \param topic_name Name of the DDS topic for this data writer.
    * \param type_name Type name of the DDS topic for this data writer.
+   * \param type_hash Hash of the description of the topic type.
    * \param participant_gid GUID of the participant.
    * \param qos QoS profile of the data writer.
    * \return `true` if the cache was updated, `false` if the data writer
@@ -103,6 +104,7 @@ public:
    * \param reader_gid GUID of the The data reader.
    * \param topic_name Name of the DDS topic for this data reader.
    * \param type_name Type name of the DDS topic for this data reader.
+   * \param type_hash Hash of the description of the topic type.
    * \param participant_gid GUID of the participant.
    * \param qos QoS profile of the data reader.
    * \return `true` if the cache was updated, `false` if the data reader
@@ -123,6 +125,7 @@ public:
    * \param gid GUID of the entity.
    * \param topic_name Name of the DDS topic for this data reader.
    * \param type_name Type name of the DDS topic for this entity
+   * \param type_hash Hash of the description of the topic type.
    * \param participant_gid GUID of the participant.
    * \param qos QoS profile of the entity.
    * \param is_reader Whether the entity is a data reader or a writer.
