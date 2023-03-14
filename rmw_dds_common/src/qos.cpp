@@ -18,7 +18,7 @@
 #include <cstring>
 #include <iomanip>
 #include <string>
-#include <sstream>
+#include <vector>
 
 #include "rcutils/error_handling.h"
 #include "rcutils/logging_macros.h"
@@ -670,38 +670,44 @@ qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_pro
   return result;
 }
 
-rosidl_type_hash_t
+rmw_ret_t
 parse_type_hash_from_user_data(
   const uint8_t * user_data,
-  size_t user_data_size)
+  size_t user_data_size,
+  rosidl_type_hash_t & type_hash_out)
 {
   std::vector<uint8_t> udvec(user_data, user_data + user_data_size);
-  rosidl_type_hash_t type_hash;
-
   auto key_value = rmw::impl::cpp::parse_key_value(udvec);
   auto typehash_it = key_value.find("typehash");
   if (typehash_it == key_value.end()) {
-    return rosidl_get_zero_initialized_type_hash();
+    type_hash_out = rosidl_get_zero_initialized_type_hash();
+    return RMW_RET_OK;
   }
   std::string type_hash_str(typehash_it->second.begin(), typehash_it->second.end());
-  rosidl_parse_type_hash_string(
-    type_hash_str.c_str(),
-    &type_hash);
-  return type_hash;
+  if (RMW_RET_OK != rosidl_parse_type_hash_string(type_hash_str.c_str(), &type_hash_out)) {
+    return RMW_RET_ERROR;
+  }
+  return RMW_RET_OK;
 }
 
-std::string
-encode_type_hash_for_user_data_qos(const rosidl_type_hash_t & type_hash)
+rmw_ret_t
+encode_type_hash_for_user_data_qos(
+  const rosidl_type_hash_t & type_hash,
+  std::string & string_out)
 {
   if (type_hash.version == ROSIDL_TYPE_HASH_VERSION_UNSET) {
-    return "";
+    string_out.clear();
+    return RMW_RET_OK;
   }
   auto allocator = rcutils_get_default_allocator();
   char * type_hash_c_str = nullptr;
-  if (RCUTILS_RET_OK != rosidl_stringify_type_hash(&type_hash, allocator, &type_hash_c_str)) {
-    return "";
+  rmw_ret_t stringify_ret = rosidl_stringify_type_hash(&type_hash, allocator, &type_hash_c_str);
+  if (RCUTILS_RET_OK != stringify_ret) {
+    return stringify_ret;
   }
-  return "typehash=" + std::string(type_hash_c_str) + ";";
+  string_out = "typehash=" + std::string(type_hash_c_str) + ";";
+  allocator.deallocate(type_hash_c_str, &allocator.state);
+  return RMW_RET_OK;
 }
 
 }  // namespace rmw_dds_common
