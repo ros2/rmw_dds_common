@@ -16,12 +16,10 @@
 
 #include <cstdarg>
 #include <cstring>
-#include <iomanip>
 #include <string>
 #include <vector>
 
 #include "rcutils/error_handling.h"
-#include "rcutils/logging_macros.h"
 #include "rcutils/snprintf.h"
 #include "rmw/error_handling.h"
 #include "rmw/impl/cpp/key_value.hpp"
@@ -676,6 +674,7 @@ parse_type_hash_from_user_data(
   size_t user_data_size,
   rosidl_type_hash_t & type_hash_out)
 {
+  RMW_CHECK_ARGUMENT_FOR_NULL(user_data, RMW_RET_INVALID_ARGUMENT);
   std::vector<uint8_t> udvec(user_data, user_data + user_data_size);
   auto key_value = rmw::impl::cpp::parse_key_value(udvec);
   auto typehash_it = key_value.find("typehash");

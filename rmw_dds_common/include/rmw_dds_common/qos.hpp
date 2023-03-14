@@ -231,6 +231,7 @@ qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_pro
  * \param[in] user_data_size Length of user_data
  * \param[out] type_hash_out Filled with type hash data if found, or to zero value if key not found
  * \return RMW_RET_OK if key parsed successfully, or if key not found
+ * \return RMW_RET_INVALID_ARGUMENT if user_data is null
  * \return RMW_RET_ERROR if typehash key found, but value could not be parsed
  */
 RMW_DDS_COMMON_PUBLIC
