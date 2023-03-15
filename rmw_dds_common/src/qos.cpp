@@ -683,7 +683,7 @@ parse_type_hash_from_user_data(
     return RMW_RET_OK;
   }
   std::string type_hash_str(typehash_it->second.begin(), typehash_it->second.end());
-  if (RMW_RET_OK != rosidl_parse_type_hash_string(type_hash_str.c_str(), &type_hash_out)) {
+  if (RCUTILS_RET_OK != rosidl_parse_type_hash_string(type_hash_str.c_str(), &type_hash_out)) {
     return RMW_RET_ERROR;
   }
   return RMW_RET_OK;
@@ -700,9 +700,11 @@ encode_type_hash_for_user_data_qos(
   }
   auto allocator = rcutils_get_default_allocator();
   char * type_hash_c_str = nullptr;
-  rmw_ret_t stringify_ret = rosidl_stringify_type_hash(&type_hash, allocator, &type_hash_c_str);
-  if (RCUTILS_RET_OK != stringify_ret) {
-    return stringify_ret;
+  rcutils_ret_t stringify_ret = rosidl_stringify_type_hash(&type_hash, allocator, &type_hash_c_str);
+  if (RCUTILS_RET_BAD_ALLOC == stringify_ret) {
+    return RMW_RET_BAD_ALLOC;
+  } else if (RCUTILS_RET_OK != stringify_ret) {
+    return RMW_RET_ERROR;
   }
   string_out = "typehash=" + std::string(type_hash_c_str) + ";";
   allocator.deallocate(type_hash_c_str, &allocator.state);
