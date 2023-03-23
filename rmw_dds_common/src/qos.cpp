@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 
+#include "rcpputils/scope_exit.hpp"
 #include "rcutils/error_handling.h"
 #include "rcutils/snprintf.h"
 #include "rmw/error_handling.h"
@@ -703,11 +704,12 @@ encode_type_hash_for_user_data_qos(
   rcutils_ret_t stringify_ret = rosidl_stringify_type_hash(&type_hash, allocator, &type_hash_c_str);
   if (RCUTILS_RET_BAD_ALLOC == stringify_ret) {
     return RMW_RET_BAD_ALLOC;
-  } else if (RCUTILS_RET_OK != stringify_ret) {
+  }
+  RCPPUTILS_SCOPE_EXIT(allocator.deallocate(type_hash_c_str, &allocator.state));
+  if (RCUTILS_RET_OK != stringify_ret) {
     return RMW_RET_ERROR;
   }
   string_out = "typehash=" + std::string(type_hash_c_str) + ";";
-  allocator.deallocate(type_hash_c_str, &allocator.state);
   return RMW_RET_OK;
 }
 

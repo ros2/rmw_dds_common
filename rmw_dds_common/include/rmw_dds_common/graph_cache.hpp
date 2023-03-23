@@ -189,7 +189,6 @@ public:
     const rmw_qos_profile_t & qos,
     bool is_reader);
 
-
   /// Remove a data writer.
   /**
    * \param gid GUID of the data writer.
