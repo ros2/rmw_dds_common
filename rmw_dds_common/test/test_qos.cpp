@@ -1101,9 +1101,8 @@ TEST(test_qos, test_parse_type_hash_from_user_data)
   char * type_hash_c_str;
   auto allocator = rcutils_get_default_allocator();
   ret = rosidl_stringify_type_hash(&input_type_hash, allocator, &type_hash_c_str);
-  ASSERT_NE(ret, RCUTILS_RET_BAD_ALLOC);
-  RCPPUTILS_SCOPE_EXIT(allocator.deallocate(type_hash_c_str, &allocator.state));
   ASSERT_EQ(ret, RCUTILS_RET_OK);
+  RCPPUTILS_SCOPE_EXIT(allocator.deallocate(type_hash_c_str, &allocator.state));
   std::string type_hash_string(type_hash_c_str);
   std::string good_data = "foo=bar;typehash=" + type_hash_string + ";key=value;";
   ret = rmw_dds_common::parse_type_hash_from_user_data(

@@ -705,10 +705,10 @@ encode_type_hash_for_user_data_qos(
   if (RCUTILS_RET_BAD_ALLOC == stringify_ret) {
     return RMW_RET_BAD_ALLOC;
   }
-  RCPPUTILS_SCOPE_EXIT(allocator.deallocate(type_hash_c_str, &allocator.state));
   if (RCUTILS_RET_OK != stringify_ret) {
     return RMW_RET_ERROR;
   }
+  RCPPUTILS_SCOPE_EXIT(allocator.deallocate(type_hash_c_str, &allocator.state));
   string_out = "typehash=" + std::string(type_hash_c_str) + ";";
   return RMW_RET_OK;
 }
