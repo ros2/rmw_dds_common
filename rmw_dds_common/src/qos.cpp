@@ -16,9 +16,14 @@
 
 #include <cstdarg>
 #include <cstring>
+#include <string>
+#include <vector>
 
+#include "rcpputils/scope_exit.hpp"
+#include "rcutils/error_handling.h"
 #include "rcutils/snprintf.h"
 #include "rmw/error_handling.h"
+#include "rmw/impl/cpp/key_value.hpp"
 #include "rmw/get_topic_endpoint_info.h"
 #include "rmw/qos_profiles.h"
 #include "rmw/qos_string_conversions.h"
@@ -662,6 +667,50 @@ qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_pro
     result.liveliness_lease_duration = rmw_qos_profile_services_default.liveliness_lease_duration;
   }
   return result;
+}
+
+rmw_ret_t
+parse_type_hash_from_user_data(
+  const uint8_t * user_data,
+  size_t user_data_size,
+  rosidl_type_hash_t & type_hash_out)
+{
+  RMW_CHECK_ARGUMENT_FOR_NULL(user_data, RMW_RET_INVALID_ARGUMENT);
+  std::vector<uint8_t> udvec(user_data, user_data + user_data_size);
+  auto key_value = rmw::impl::cpp::parse_key_value(udvec);
+  auto typehash_it = key_value.find("typehash");
+  if (typehash_it == key_value.end()) {
+    type_hash_out = rosidl_get_zero_initialized_type_hash();
+    return RMW_RET_OK;
+  }
+  std::string type_hash_str(typehash_it->second.begin(), typehash_it->second.end());
+  if (RCUTILS_RET_OK != rosidl_parse_type_hash_string(type_hash_str.c_str(), &type_hash_out)) {
+    return RMW_RET_ERROR;
+  }
+  return RMW_RET_OK;
+}
+
+rmw_ret_t
+encode_type_hash_for_user_data_qos(
+  const rosidl_type_hash_t & type_hash,
+  std::string & string_out)
+{
+  if (type_hash.version == ROSIDL_TYPE_HASH_VERSION_UNSET) {
+    string_out.clear();
+    return RMW_RET_OK;
+  }
+  auto allocator = rcutils_get_default_allocator();
+  char * type_hash_c_str = nullptr;
+  rcutils_ret_t stringify_ret = rosidl_stringify_type_hash(&type_hash, allocator, &type_hash_c_str);
+  if (RCUTILS_RET_BAD_ALLOC == stringify_ret) {
+    return RMW_RET_BAD_ALLOC;
+  }
+  if (RCUTILS_RET_OK != stringify_ret) {
+    return RMW_RET_ERROR;
+  }
+  RCPPUTILS_SCOPE_EXIT(allocator.deallocate(type_hash_c_str, &allocator.state));
+  string_out = "typehash=" + std::string(type_hash_c_str) + ";";
+  return RMW_RET_OK;
 }
 
 }  // namespace rmw_dds_common

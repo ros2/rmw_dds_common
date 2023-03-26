@@ -17,6 +17,7 @@ find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(rosidl_runtime_c REQUIRED)
 
 ament_add_default_options()
 ament_export_dependencies(ament_cmake_core)
@@ -44,7 +45,8 @@ target_link_libraries(${PROJECT_NAME}_library PUBLIC
   rcutils::rcutils
   rmw::rmw)
 target_link_libraries(${PROJECT_NAME}_library PRIVATE
-  rcpputils::rcpputils)
+  rcpputils::rcpputils
+  rosidl_runtime_c::rosidl_runtime_c)
 target_include_directories(${PROJECT_NAME}_library
   PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
@@ -95,7 +97,8 @@ if(BUILD_TESTING)
 
   ament_add_gmock(test_graph_cache test/test_graph_cache.cpp)
   if(TARGET test_graph_cache)
-    target_link_libraries(test_graph_cache ${PROJECT_NAME}_library osrf_testing_tools_cpp::memory_tools)
+    target_link_libraries(test_graph_cache
+      ${PROJECT_NAME}_library osrf_testing_tools_cpp::memory_tools rosidl_runtime_c::rosidl_runtime_c)
     target_compile_definitions(test_graph_cache PUBLIC RCUTILS_ENABLE_FAULT_INJECTION)
   endif()
 
@@ -106,7 +109,7 @@ if(BUILD_TESTING)
 
   ament_add_gmock(test_qos test/test_qos.cpp)
   if(TARGET test_qos)
-    target_link_libraries(test_qos ${PROJECT_NAME}_library osrf_testing_tools_cpp::memory_tools)
+    target_link_libraries(test_qos ${PROJECT_NAME}_library osrf_testing_tools_cpp::memory_tools rcpputils::rcpputils)
   endif()
 
   ament_add_gmock(test_time_utils test/test_time_utils.cpp)
@@ -123,7 +126,7 @@ if(BUILD_TESTING)
 
   add_performance_test(benchmark_graph_cache test/benchmark/benchmark_graph_cache.cpp)
   if(TARGET benchmark_graph_cache)
-    target_link_libraries(benchmark_graph_cache ${PROJECT_NAME}_library)
+    target_link_libraries(benchmark_graph_cache ${PROJECT_NAME}_library rosidl_runtime_c::rosidl_runtime_c)
   endif()
 endif()
 

@@ -20,6 +20,7 @@
   <depend>rcutils</depend>
   <depend>rcpputils</depend>
   <depend>rmw</depend>
+  <depend>rosidl_runtime_c</depend>
   <depend>rosidl_runtime_cpp</depend>
 
   <test_depend>ament_cmake_gmock</test_depend>

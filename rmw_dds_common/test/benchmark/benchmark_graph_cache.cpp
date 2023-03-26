@@ -24,6 +24,8 @@
 #include "rmw_dds_common/gid_utils.hpp"
 #include "rmw_dds_common/graph_cache.hpp"
 
+#include "rosidl_runtime_c/type_hash.h"
+
 using performance_test_fixture::PerformanceTest;
 using rmw_dds_common::GraphCache;
 
@@ -120,6 +122,7 @@ add_entities(
       gid_from_string(elem.gid),
       elem.name,
       elem.type,
+      rosidl_get_zero_initialized_type_hash(),
       gid_from_string(elem.participant_gid),
       rmw_qos_profile_default,
       elem.is_reader);

@@ -16,6 +16,7 @@
 #define RMW_DDS_COMMON__QOS_HPP_
 
 #include <functional>
+#include <string>
 
 #include "rmw/qos_profiles.h"
 #include "rmw/topic_endpoint_info_array.h"
@@ -223,6 +224,36 @@ qos_profile_get_best_available_for_topic_publisher(
 RMW_DDS_COMMON_PUBLIC
 rmw_qos_profile_t
 qos_profile_update_best_available_for_services(const rmw_qos_profile_t & qos_profile);
+
+/// Parse USER_DATA "key=value;key=value;"" encoding, finding value of key "typehash"
+/**
+ * \param[in] user_data USER_DATA qos raw bytes
+ * \param[in] user_data_size Length of user_data
+ * \param[out] type_hash_out Filled with type hash data if found, or to zero value if key not found
+ * \return RMW_RET_OK if key parsed successfully, or if key not found
+ * \return RMW_RET_INVALID_ARGUMENT if user_data is null
+ * \return RMW_RET_ERROR if typehash key found, but value could not be parsed
+ */
+RMW_DDS_COMMON_PUBLIC
+rmw_ret_t
+parse_type_hash_from_user_data(
+  const uint8_t * user_data,
+  size_t user_data_size,
+  rosidl_type_hash_t & type_hash_out);
+
+/// Encode type hash as "typehash=hash_string;" for use in USER_DATA QoS
+/**
+ * \param[in] type_hash Type hash value to encode
+ * \param[out] string_out On success, will be set to "typehash=stringified_type_hash;"
+ *   If type_hash's version is 0, string_out will be set to empty
+ * \return RMW_RET_OK on success, including empty string for unset version
+ * \return RMW_RET_BAD_ALLOC if memory allocation fails
+ */
+RMW_DDS_COMMON_PUBLIC
+rmw_ret_t
+encode_type_hash_for_user_data_qos(
+  const rosidl_type_hash_t & type_hash,
+  std::string & string_out);
 
 }  // namespace rmw_dds_common
 

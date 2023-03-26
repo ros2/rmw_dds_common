@@ -17,6 +17,7 @@
 #include <cstring>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
+#include "rcpputils/scope_exit.hpp"
 #include "rmw/error_handling.h"
 #include "rmw/qos_profiles.h"
 #include "rmw/types.h"
@@ -1071,4 +1072,61 @@ TEST(test_qos, test_qos_profile_update_best_available_for_services)
     rmw_time_equal(
       rmw_qos_profile_services_default.liveliness_lease_duration,
       output_profile.liveliness_lease_duration));
+}
+
+TEST(test_qos, test_parse_type_hash_from_user_data)
+{
+  const auto zero_val = rosidl_get_zero_initialized_type_hash();
+
+  std::string bad_value = "something that isn't key equals value semicolon";
+  rosidl_type_hash_t result_type_hash;
+  rmw_ret_t ret = rmw_dds_common::parse_type_hash_from_user_data(
+    reinterpret_cast<uint8_t *>(bad_value.data()), bad_value.size(), result_type_hash);
+  EXPECT_EQ(ret, RMW_RET_OK);
+  EXPECT_EQ(0, memcmp(&result_type_hash, &zero_val, sizeof(rosidl_type_hash_t)))
+    << "Non-ros 2 user_data should result in zero hash struct.";
+
+  std::string no_key = "key1=value1;key2=value2;key3=value3;";
+  ret = rmw_dds_common::parse_type_hash_from_user_data(
+    reinterpret_cast<uint8_t *>(no_key.data()), no_key.size(), result_type_hash);
+  EXPECT_EQ(ret, RMW_RET_OK);
+  EXPECT_EQ(0, memcmp(&result_type_hash, &zero_val, sizeof(rosidl_type_hash_t)))
+    << "No typehash key should result in zero hash struct.";
+
+  rosidl_type_hash_t input_type_hash;
+  input_type_hash.version = 1;
+  for (uint8_t i = 0; i < ROSIDL_TYPE_HASH_SIZE; i++) {
+    input_type_hash.value[i] = i;
+  }
+  char * type_hash_c_str;
+  auto allocator = rcutils_get_default_allocator();
+  ret = rosidl_stringify_type_hash(&input_type_hash, allocator, &type_hash_c_str);
+  ASSERT_EQ(ret, RCUTILS_RET_OK);
+  RCPPUTILS_SCOPE_EXIT(allocator.deallocate(type_hash_c_str, &allocator.state));
+  std::string type_hash_string(type_hash_c_str);
+  std::string good_data = "foo=bar;typehash=" + type_hash_string + ";key=value;";
+  ret = rmw_dds_common::parse_type_hash_from_user_data(
+    reinterpret_cast<uint8_t *>(good_data.data()), good_data.size(), result_type_hash);
+  EXPECT_EQ(ret, RMW_RET_OK);
+  EXPECT_EQ(0, memcmp(&result_type_hash, &input_type_hash, sizeof(rosidl_type_hash_t)));
+}
+
+TEST(test_qos, test_encode_type_hash_for_user_data_qos)
+{
+  rosidl_type_hash_t test_hash = rosidl_get_zero_initialized_type_hash();
+  std::string hash_string;
+  rmw_ret_t ret = rmw_dds_common::encode_type_hash_for_user_data_qos(test_hash, hash_string);
+  EXPECT_EQ(ret, RMW_RET_OK);
+  EXPECT_EQ(hash_string, "");
+
+  test_hash.version = 1;
+  for (uint8_t i = 0; i < ROSIDL_TYPE_HASH_SIZE; i++) {
+    test_hash.value[i] = i;
+  }
+  hash_string.clear();
+  ret = rmw_dds_common::encode_type_hash_for_user_data_qos(test_hash, hash_string);
+  EXPECT_EQ(ret, RMW_RET_OK);
+  EXPECT_EQ(
+    hash_string,
+    "typehash=RIHS01_000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f;");
 }

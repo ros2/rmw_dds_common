@@ -67,6 +67,7 @@ GraphCache::add_writer(
   const rmw_gid_t & gid,
   const std::string & topic_name,
   const std::string & type_name,
+  const rosidl_type_hash_t & type_hash,
   const rmw_gid_t & participant_gid,
   const rmw_qos_profile_t & qos)
 {
@@ -74,7 +75,42 @@ GraphCache::add_writer(
   auto pair = data_writers_.emplace(
     std::piecewise_construct,
     std::forward_as_tuple(gid),
-    std::forward_as_tuple(topic_name, type_name, participant_gid, qos));
+    std::forward_as_tuple(topic_name, type_name, type_hash, participant_gid, qos));
+  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, pair.second);
+  return pair.second;
+}
+
+bool
+GraphCache::add_writer(
+  const rmw_gid_t & gid,
+  const std::string & topic_name,
+  const std::string & type_name,
+  const rmw_gid_t & participant_gid,
+  const rmw_qos_profile_t & qos)
+{
+  return this->add_writer(
+    gid,
+    topic_name,
+    type_name,
+    rosidl_get_zero_initialized_type_hash(),
+    participant_gid,
+    qos);
+}
+
+bool
+GraphCache::add_reader(
+  const rmw_gid_t & gid,
+  const std::string & topic_name,
+  const std::string & type_name,
+  const rosidl_type_hash_t & type_hash,
+  const rmw_gid_t & participant_gid,
+  const rmw_qos_profile_t & qos)
+{
+  std::lock_guard<std::mutex> guard(mutex_);
+  auto pair = data_readers_.emplace(
+    std::piecewise_construct,
+    std::forward_as_tuple(gid),
+    std::forward_as_tuple(topic_name, type_name, type_hash, participant_gid, qos));
   GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, pair.second);
   return pair.second;
 }
@@ -87,13 +123,41 @@ GraphCache::add_reader(
   const rmw_gid_t & participant_gid,
   const rmw_qos_profile_t & qos)
 {
-  std::lock_guard<std::mutex> guard(mutex_);
-  auto pair = data_readers_.emplace(
-    std::piecewise_construct,
-    std::forward_as_tuple(gid),
-    std::forward_as_tuple(topic_name, type_name, participant_gid, qos));
-  GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, pair.second);
-  return pair.second;
+  return this->add_reader(
+    gid,
+    topic_name,
+    type_name,
+    rosidl_get_zero_initialized_type_hash(),
+    participant_gid,
+    qos);
+}
+
+bool
+GraphCache::add_entity(
+  const rmw_gid_t & gid,
+  const std::string & topic_name,
+  const std::string & type_name,
+  const rosidl_type_hash_t & type_hash,
+  const rmw_gid_t & participant_gid,
+  const rmw_qos_profile_t & qos,
+  bool is_reader)
+{
+  if (is_reader) {
+    return this->add_reader(
+      gid,
+      topic_name,
+      type_name,
+      type_hash,
+      participant_gid,
+      qos);
+  }
+  return this->add_writer(
+    gid,
+    topic_name,
+    type_name,
+    type_hash,
+    participant_gid,
+    qos);
 }
 
 bool
@@ -105,20 +169,14 @@ GraphCache::add_entity(
   const rmw_qos_profile_t & qos,
   bool is_reader)
 {
-  if (is_reader) {
-    return this->add_reader(
-      gid,
-      topic_name,
-      type_name,
-      participant_gid,
-      qos);
-  }
-  return this->add_writer(
+  return this->add_entity(
     gid,
     topic_name,
     type_name,
+    rosidl_get_zero_initialized_type_hash(),
     participant_gid,
-    qos);
+    qos,
+    is_reader);
 }
 
 bool
@@ -566,6 +624,13 @@ __get_entities_info_by_topic(
       &endpoint_info,
       demangle_type(entity_pair.second.topic_type).c_str(),
       allocator);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+
+    ret = rmw_topic_endpoint_info_set_topic_type_hash(
+      &endpoint_info,
+      &entity_pair.second.topic_type_hash);
     if (RMW_RET_OK != ret) {
       return ret;
     }
