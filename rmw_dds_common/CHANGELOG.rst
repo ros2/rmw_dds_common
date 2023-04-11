@@ -2,8 +2,8 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.1 (2023-04-11)
+------------------
 * Type hash in GraphCache, user_data encoding tools (`#70 <https://github.com/ros2/rmw_dds_common/issues/70>`_)
 * Mark benchmark _ as unused. (`#71 <https://github.com/ros2/rmw_dds_common/issues/71>`_)
 * Contributors: Chris Lalancette, Emerson Knapp
