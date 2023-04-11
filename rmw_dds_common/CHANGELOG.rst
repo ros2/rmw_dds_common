@@ -2,6 +2,12 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Type hash in GraphCache, user_data encoding tools (`#70 <https://github.com/ros2/rmw_dds_common/issues/70>`_)
+* Mark benchmark _ as unused. (`#71 <https://github.com/ros2/rmw_dds_common/issues/71>`_)
+* Contributors: Chris Lalancette, Emerson Knapp
+
 2.0.0 (2023-02-13)
 ------------------
 * Update rmw_dds_common to C++17. (`#69 <https://github.com/ros2/rmw_dds_common/issues/69>`_)
