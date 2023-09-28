@@ -42,7 +42,8 @@ bool get_security_files(
   for (const std::pair<const std::string, std::string> & el : required_files) {
     std::filesystem::path full_path(secure_root);
     full_path /= el.second;
-    if (!full_path.has_filename()) {
+    std::filesystem::directory_entry target(full_path);
+    if (!target.is_regular_file()) {
       result.clear();
       return false;
     }
@@ -50,10 +51,16 @@ bool get_security_files(
     result[el.first] = prefix + full_path.string();
   }
 
+  // Check all required files are exists
+  if (result.size() != required_files.size()) {
+    return false;
+  }
+
   for (const std::pair<const std::string, std::string> & el : optional_files) {
     std::filesystem::path full_path(secure_root);
     full_path /= el.second;
-    if (full_path.has_filename()) {
+    std::filesystem::directory_entry target(full_path);
+    if (target.is_regular_file()) {
       result[el.first] = prefix + full_path.string();
     }
   }
