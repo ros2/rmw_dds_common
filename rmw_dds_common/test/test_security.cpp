@@ -13,32 +13,32 @@
 // limitations under the License.
 
 #include <array>
+#include <filesystem>
 #include <fstream>
 #include <string>
 #include <unordered_map>
 
 #include "gtest/gtest.h"
 
-#include "rcpputils/filesystem_helper.hpp"
 #include "rmw_dds_common/security.hpp"
 
 TEST(test_security, files_exist_no_prefix)
 {
-  rcpputils::fs::path dir = rcpputils::fs::path("./test_folder");
-  rcpputils::fs::remove_all(dir);
-  EXPECT_TRUE(rcpputils::fs::create_directories(dir));
-  EXPECT_TRUE(rcpputils::fs::exists(dir));
-  EXPECT_TRUE(rcpputils::fs::is_directory(dir));
+  std::filesystem::path dir = std::filesystem::path("./test_folder");
+  std::filesystem::remove_all(dir);
+  EXPECT_TRUE(std::filesystem::create_directories(dir));
+  EXPECT_TRUE(std::filesystem::exists(dir));
+  EXPECT_TRUE(std::filesystem::is_directory(dir));
 
   std::array<std::string, 6> required_files = {
     "identity_ca.cert.pem", "cert.pem", "key.pem",
     "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s"
   };
   for (const std::string & filename : required_files) {
-    rcpputils::fs::path full_path = dir / filename;
+    std::filesystem::path full_path = dir / filename;
     std::ofstream output_buffer{full_path.string()};
     output_buffer << "test";
-    ASSERT_TRUE(rcpputils::fs::exists(full_path));
+    ASSERT_TRUE(std::filesystem::exists(full_path));
   }
 
   std::unordered_map<std::string, std::string> security_files;
@@ -46,41 +46,41 @@ TEST(test_security, files_exist_no_prefix)
 
   EXPECT_EQ(
     security_files["IDENTITY_CA"],
-    rcpputils::fs::path("./test_folder/identity_ca.cert.pem").string());
+    std::filesystem::path("./test_folder/identity_ca.cert.pem").string());
   EXPECT_EQ(
     security_files["CERTIFICATE"],
-    rcpputils::fs::path("./test_folder/cert.pem").string());
+    std::filesystem::path("./test_folder/cert.pem").string());
   EXPECT_EQ(
     security_files["PRIVATE_KEY"],
-    rcpputils::fs::path("./test_folder/key.pem").string());
+    std::filesystem::path("./test_folder/key.pem").string());
   EXPECT_EQ(
     security_files["PERMISSIONS_CA"],
-    rcpputils::fs::path("./test_folder/permissions_ca.cert.pem").string());
+    std::filesystem::path("./test_folder/permissions_ca.cert.pem").string());
   EXPECT_EQ(
     security_files["GOVERNANCE"],
-    rcpputils::fs::path("./test_folder/governance.p7s").string());
+    std::filesystem::path("./test_folder/governance.p7s").string());
   EXPECT_EQ(
     security_files["PERMISSIONS"],
-    rcpputils::fs::path("./test_folder/permissions.p7s").string());
+    std::filesystem::path("./test_folder/permissions.p7s").string());
 }
 
 TEST(test_security, files_exist_with_prefix)
 {
-  rcpputils::fs::path dir = rcpputils::fs::path("./test_folder");
-  rcpputils::fs::remove_all(dir);
-  EXPECT_TRUE(rcpputils::fs::create_directories(dir));
-  EXPECT_TRUE(rcpputils::fs::exists(dir));
-  EXPECT_TRUE(rcpputils::fs::is_directory(dir));
+  std::filesystem::path dir = std::filesystem::path("./test_folder");
+  std::filesystem::remove_all(dir);
+  EXPECT_TRUE(std::filesystem::create_directories(dir));
+  EXPECT_TRUE(std::filesystem::exists(dir));
+  EXPECT_TRUE(std::filesystem::is_directory(dir));
 
   std::array<std::string, 6> required_files = {
     "identity_ca.cert.pem", "cert.pem", "key.pem",
     "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s"
   };
   for (const std::string & filename : required_files) {
-    rcpputils::fs::path full_path = dir / filename;
+    std::filesystem::path full_path = dir / filename;
     std::ofstream output_buffer{full_path.string()};
     output_buffer << "test";
-    ASSERT_TRUE(rcpputils::fs::exists(full_path));
+    ASSERT_TRUE(std::filesystem::exists(full_path));
   }
 
   std::unordered_map<std::string, std::string> security_files;
@@ -88,41 +88,41 @@ TEST(test_security, files_exist_with_prefix)
 
   EXPECT_EQ(
     security_files["IDENTITY_CA"],
-    "file://" + rcpputils::fs::path("./test_folder/identity_ca.cert.pem").string());
+    "file://" + std::filesystem::path("./test_folder/identity_ca.cert.pem").string());
   EXPECT_EQ(
     security_files["CERTIFICATE"],
-    "file://" + rcpputils::fs::path("./test_folder/cert.pem").string());
+    "file://" + std::filesystem::path("./test_folder/cert.pem").string());
   EXPECT_EQ(
     security_files["PRIVATE_KEY"],
-    "file://" + rcpputils::fs::path("./test_folder/key.pem").string());
+    "file://" + std::filesystem::path("./test_folder/key.pem").string());
   EXPECT_EQ(
     security_files["PERMISSIONS_CA"],
-    "file://" + rcpputils::fs::path("./test_folder/permissions_ca.cert.pem").string());
+    "file://" + std::filesystem::path("./test_folder/permissions_ca.cert.pem").string());
   EXPECT_EQ(
     security_files["GOVERNANCE"],
-    "file://" + rcpputils::fs::path("./test_folder/governance.p7s").string());
+    "file://" + std::filesystem::path("./test_folder/governance.p7s").string());
   EXPECT_EQ(
     security_files["PERMISSIONS"],
-    "file://" + rcpputils::fs::path("./test_folder/permissions.p7s").string());
+    "file://" + std::filesystem::path("./test_folder/permissions.p7s").string());
 }
 
 TEST(test_security, file_missing)
 {
-  rcpputils::fs::path dir = rcpputils::fs::path("./test_folder");
-  rcpputils::fs::remove_all(dir);
-  EXPECT_TRUE(rcpputils::fs::create_directories(dir));
-  EXPECT_TRUE(rcpputils::fs::exists(dir));
-  EXPECT_TRUE(rcpputils::fs::is_directory(dir));
+  std::filesystem::path dir = std::filesystem::path("./test_folder");
+  std::filesystem::remove_all(dir);
+  EXPECT_TRUE(std::filesystem::create_directories(dir));
+  EXPECT_TRUE(std::filesystem::exists(dir));
+  EXPECT_TRUE(std::filesystem::is_directory(dir));
 
   std::array<std::string, 5> required_files = {
     "identity_ca.cert.pem", "cert.pem", "key.pem",
     "permissions_ca.cert.pem", "governance.p7s"
   };
   for (const std::string & filename : required_files) {
-    rcpputils::fs::path full_path = dir / filename;
+    std::filesystem::path full_path = dir / filename;
     std::ofstream output_buffer{full_path.string()};
     output_buffer << "test";
-    ASSERT_TRUE(rcpputils::fs::exists(full_path));
+    ASSERT_TRUE(std::filesystem::exists(full_path));
   }
 
   std::unordered_map<std::string, std::string> security_files;
@@ -132,21 +132,21 @@ TEST(test_security, file_missing)
 
 TEST(test_security, optional_file_exist)
 {
-  rcpputils::fs::path dir = rcpputils::fs::path("./test_folder");
-  rcpputils::fs::remove_all(dir);
-  EXPECT_TRUE(rcpputils::fs::create_directories(dir));
-  EXPECT_TRUE(rcpputils::fs::exists(dir));
-  EXPECT_TRUE(rcpputils::fs::is_directory(dir));
+  std::filesystem::path dir = std::filesystem::path("./test_folder");
+  std::filesystem::remove_all(dir);
+  EXPECT_TRUE(std::filesystem::create_directories(dir));
+  EXPECT_TRUE(std::filesystem::exists(dir));
+  EXPECT_TRUE(std::filesystem::is_directory(dir));
 
   std::array<std::string, 7> required_files = {
     "identity_ca.cert.pem", "cert.pem", "key.pem",
     "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s", "crl.pem",
   };
   for (const std::string & filename : required_files) {
-    rcpputils::fs::path full_path = dir / filename;
+    std::filesystem::path full_path = dir / filename;
     std::ofstream output_buffer{full_path.string()};
     output_buffer << "test";
-    ASSERT_TRUE(rcpputils::fs::exists(full_path));
+    ASSERT_TRUE(std::filesystem::exists(full_path));
   }
 
   std::unordered_map<std::string, std::string> security_files;
@@ -154,24 +154,24 @@ TEST(test_security, optional_file_exist)
 
   EXPECT_EQ(
     security_files["IDENTITY_CA"],
-    rcpputils::fs::path("./test_folder/identity_ca.cert.pem").string());
+    std::filesystem::path("./test_folder/identity_ca.cert.pem").string());
   EXPECT_EQ(
     security_files["CERTIFICATE"],
-    rcpputils::fs::path("./test_folder/cert.pem").string());
+    std::filesystem::path("./test_folder/cert.pem").string());
   EXPECT_EQ(
     security_files["PRIVATE_KEY"],
-    rcpputils::fs::path("./test_folder/key.pem").string());
+    std::filesystem::path("./test_folder/key.pem").string());
   EXPECT_EQ(
     security_files["PERMISSIONS_CA"],
-    rcpputils::fs::path("./test_folder/permissions_ca.cert.pem").string());
+    std::filesystem::path("./test_folder/permissions_ca.cert.pem").string());
   EXPECT_EQ(
     security_files["GOVERNANCE"],
-    rcpputils::fs::path("./test_folder/governance.p7s").string());
+    std::filesystem::path("./test_folder/governance.p7s").string());
   EXPECT_EQ(
     security_files["PERMISSIONS"],
-    rcpputils::fs::path("./test_folder/permissions.p7s").string());
+    std::filesystem::path("./test_folder/permissions.p7s").string());
 
   EXPECT_EQ(
     security_files["CRL"],
-    rcpputils::fs::path("./test_folder/crl.pem").string());
+    std::filesystem::path("./test_folder/crl.pem").string());
 }
