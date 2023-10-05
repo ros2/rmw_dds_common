@@ -36,32 +36,32 @@ TEST(test_security, files_exist_no_prefix)
   };
   for (const std::string & filename : required_files) {
     std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.string()};
+    std::ofstream output_buffer{full_path.generic_string()};
     output_buffer << "test";
     ASSERT_TRUE(std::filesystem::exists(full_path));
   }
 
   std::unordered_map<std::string, std::string> security_files;
-  ASSERT_TRUE(rmw_dds_common::get_security_files("", dir.string(), security_files));
+  ASSERT_TRUE(rmw_dds_common::get_security_files("", dir.generic_string(), security_files));
 
   EXPECT_EQ(
     security_files["IDENTITY_CA"],
-    std::filesystem::path("./test_folder/identity_ca.cert.pem").string());
+    std::filesystem::path("./test_folder/identity_ca.cert.pem").generic_string());
   EXPECT_EQ(
     security_files["CERTIFICATE"],
-    std::filesystem::path("./test_folder/cert.pem").string());
+    std::filesystem::path("./test_folder/cert.pem").generic_string());
   EXPECT_EQ(
     security_files["PRIVATE_KEY"],
-    std::filesystem::path("./test_folder/key.pem").string());
+    std::filesystem::path("./test_folder/key.pem").generic_string());
   EXPECT_EQ(
     security_files["PERMISSIONS_CA"],
-    std::filesystem::path("./test_folder/permissions_ca.cert.pem").string());
+    std::filesystem::path("./test_folder/permissions_ca.cert.pem").generic_string());
   EXPECT_EQ(
     security_files["GOVERNANCE"],
-    std::filesystem::path("./test_folder/governance.p7s").string());
+    std::filesystem::path("./test_folder/governance.p7s").generic_string());
   EXPECT_EQ(
     security_files["PERMISSIONS"],
-    std::filesystem::path("./test_folder/permissions.p7s").string());
+    std::filesystem::path("./test_folder/permissions.p7s").generic_string());
 }
 
 TEST(test_security, files_exist_with_prefix)
@@ -78,32 +78,32 @@ TEST(test_security, files_exist_with_prefix)
   };
   for (const std::string & filename : required_files) {
     std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.string()};
+    std::ofstream output_buffer{full_path.generic_string()};
     output_buffer << "test";
     ASSERT_TRUE(std::filesystem::exists(full_path));
   }
 
   std::unordered_map<std::string, std::string> security_files;
-  ASSERT_TRUE(rmw_dds_common::get_security_files("file://", dir.string(), security_files));
+  ASSERT_TRUE(rmw_dds_common::get_security_files("file://", dir.generic_string(), security_files));
 
   EXPECT_EQ(
     security_files["IDENTITY_CA"],
-    "file://" + std::filesystem::path("./test_folder/identity_ca.cert.pem").string());
+    "file://" + std::filesystem::path("./test_folder/identity_ca.cert.pem").generic_string());
   EXPECT_EQ(
     security_files["CERTIFICATE"],
-    "file://" + std::filesystem::path("./test_folder/cert.pem").string());
+    "file://" + std::filesystem::path("./test_folder/cert.pem").generic_string());
   EXPECT_EQ(
     security_files["PRIVATE_KEY"],
-    "file://" + std::filesystem::path("./test_folder/key.pem").string());
+    "file://" + std::filesystem::path("./test_folder/key.pem").generic_string());
   EXPECT_EQ(
     security_files["PERMISSIONS_CA"],
-    "file://" + std::filesystem::path("./test_folder/permissions_ca.cert.pem").string());
+    "file://" + std::filesystem::path("./test_folder/permissions_ca.cert.pem").generic_string());
   EXPECT_EQ(
     security_files["GOVERNANCE"],
-    "file://" + std::filesystem::path("./test_folder/governance.p7s").string());
+    "file://" + std::filesystem::path("./test_folder/governance.p7s").generic_string());
   EXPECT_EQ(
     security_files["PERMISSIONS"],
-    "file://" + std::filesystem::path("./test_folder/permissions.p7s").string());
+    "file://" + std::filesystem::path("./test_folder/permissions.p7s").generic_string());
 }
 
 TEST(test_security, file_missing)
@@ -120,13 +120,13 @@ TEST(test_security, file_missing)
   };
   for (const std::string & filename : required_files) {
     std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.string()};
+    std::ofstream output_buffer{full_path.generic_string()};
     output_buffer << "test";
     ASSERT_TRUE(std::filesystem::exists(full_path));
   }
 
   std::unordered_map<std::string, std::string> security_files;
-  ASSERT_FALSE(rmw_dds_common::get_security_files("", dir.string(), security_files));
+  ASSERT_FALSE(rmw_dds_common::get_security_files("", dir.generic_string(), security_files));
   ASSERT_EQ(security_files.size(), 0UL);
 }
 
@@ -144,34 +144,34 @@ TEST(test_security, optional_file_exist)
   };
   for (const std::string & filename : required_files) {
     std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.string()};
+    std::ofstream output_buffer{full_path.generic_string()};
     output_buffer << "test";
     ASSERT_TRUE(std::filesystem::exists(full_path));
   }
 
   std::unordered_map<std::string, std::string> security_files;
-  ASSERT_TRUE(rmw_dds_common::get_security_files("", dir.string(), security_files));
+  ASSERT_TRUE(rmw_dds_common::get_security_files("", dir.generic_string(), security_files));
 
   EXPECT_EQ(
     security_files["IDENTITY_CA"],
-    std::filesystem::path("./test_folder/identity_ca.cert.pem").string());
+    std::filesystem::path("./test_folder/identity_ca.cert.pem").generic_string());
   EXPECT_EQ(
     security_files["CERTIFICATE"],
-    std::filesystem::path("./test_folder/cert.pem").string());
+    std::filesystem::path("./test_folder/cert.pem").generic_string());
   EXPECT_EQ(
     security_files["PRIVATE_KEY"],
-    std::filesystem::path("./test_folder/key.pem").string());
+    std::filesystem::path("./test_folder/key.pem").generic_string());
   EXPECT_EQ(
     security_files["PERMISSIONS_CA"],
-    std::filesystem::path("./test_folder/permissions_ca.cert.pem").string());
+    std::filesystem::path("./test_folder/permissions_ca.cert.pem").generic_string());
   EXPECT_EQ(
     security_files["GOVERNANCE"],
-    std::filesystem::path("./test_folder/governance.p7s").string());
+    std::filesystem::path("./test_folder/governance.p7s").generic_string());
   EXPECT_EQ(
     security_files["PERMISSIONS"],
-    std::filesystem::path("./test_folder/permissions.p7s").string());
+    std::filesystem::path("./test_folder/permissions.p7s").generic_string());
 
   EXPECT_EQ(
     security_files["CRL"],
-    std::filesystem::path("./test_folder/crl.pem").string());
+    std::filesystem::path("./test_folder/crl.pem").generic_string());
 }

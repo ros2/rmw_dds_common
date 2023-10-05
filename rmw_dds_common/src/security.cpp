@@ -47,14 +47,14 @@ bool get_security_files(
       return false;
     }
 
-    result[el.first] = prefix + full_path.string();
+    result[el.first] = prefix + full_path.generic_string();
   }
 
   for (const std::pair<const std::string, std::string> & el : optional_files) {
     std::filesystem::path full_path(secure_root);
     full_path /= el.second;
     if (std::filesystem::is_regular_file(full_path)) {
-      result[el.first] = prefix + full_path.string();
+      result[el.first] = prefix + full_path.generic_string();
     }
   }
 
