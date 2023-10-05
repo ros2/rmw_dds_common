@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <filesystem>
 #include <string>
 #include <utility>
 #include <unordered_map>
 
-#include "rcpputils/filesystem_helper.hpp"
 #include "rmw_dds_common/security.hpp"
 
 namespace rmw_dds_common
@@ -40,21 +40,21 @@ bool get_security_files(
   };
 
   for (const std::pair<const std::string, std::string> & el : required_files) {
-    rcpputils::fs::path full_path(secure_root);
+    std::filesystem::path full_path(secure_root);
     full_path /= el.second;
-    if (!full_path.is_regular_file()) {
+    if (!std::filesystem::is_regular_file(full_path)) {
       result.clear();
       return false;
     }
 
-    result[el.first] = prefix + full_path.string();
+    result[el.first] = prefix + full_path.generic_string();
   }
 
   for (const std::pair<const std::string, std::string> & el : optional_files) {
-    rcpputils::fs::path full_path(secure_root);
+    std::filesystem::path full_path(secure_root);
     full_path /= el.second;
-    if (full_path.is_regular_file()) {
-      result[el.first] = prefix + full_path.string();
+    if (std::filesystem::is_regular_file(full_path)) {
+      result[el.first] = prefix + full_path.generic_string();
     }
   }
 

@@ -21,7 +21,6 @@ find_package(rosidl_runtime_c REQUIRED)
 
 ament_add_default_options()
 ament_export_dependencies(ament_cmake_core)
-ament_export_dependencies(rcpputils)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw)
 
