@@ -2,6 +2,11 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Just remove rcpputils::fs dependency (`#72 <https://github.com/ros2/rmw_dds_common/issues/72>`_)
+* Contributors: Kenta Yonekura
+
 2.1.0 (2023-04-27)
 ------------------
 
