@@ -54,46 +54,66 @@ struct Context
 
   using publish_callback_t = std::function<rmw_ret_t(rmw_publisher_t * pub, void * msg)>;
 
-  rmw_ret_t update_node_graph(
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  update_node_graph(
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
-  rmw_ret_t destroy_node_graph(
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  destroy_node_graph(
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
-  rmw_ret_t update_subscriber_graph(
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  update_subscriber_graph(
     rmw_gid_t subscription_gid, const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
-  rmw_ret_t destroy_subscriber_graph(
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  destroy_subscriber_graph(
     rmw_gid_t subscription_gid, const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
-  rmw_ret_t update_publisher_graph(
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  update_publisher_graph(
     rmw_gid_t publisher_gid, const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
-  rmw_ret_t destroy_publisher_graph(
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  destroy_publisher_graph(
     rmw_gid_t publisher_gid, const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
-  rmw_ret_t update_client_graph(
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  update_client_graph(
     rmw_gid_t request_publisher_gid, rmw_gid_t response_subscriber_gid,
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
-  rmw_ret_t destroy_client_graph(
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  destroy_client_graph(
     rmw_gid_t request_publisher_gid, rmw_gid_t response_subscriber_gid,
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
-  rmw_ret_t update_service_graph(
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  update_service_graph(
     rmw_gid_t request_subscriber_gid, rmw_gid_t response_publisher_gid,
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
-  rmw_ret_t destroy_service_graph(
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  destroy_service_graph(
     rmw_gid_t request_subscriber_gid, rmw_gid_t response_publisher_gid,
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
