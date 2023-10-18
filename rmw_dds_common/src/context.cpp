@@ -25,7 +25,12 @@ rmw_ret_t Context::update_node_graph(
   rmw_dds_common::msg::ParticipantEntitiesInfo msg =
     graph_cache.add_node(gid, name, namespace_);
 
-  return publish_callback(pub, static_cast<void *>(&msg));
+  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+    graph_cache.remove_node(gid, name, namespace_);
+    return RMW_RET_ERROR;
+  }
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t Context::destroy_node_graph(
@@ -36,7 +41,11 @@ rmw_ret_t Context::destroy_node_graph(
   rmw_dds_common::msg::ParticipantEntitiesInfo msg =
     graph_cache.remove_node(gid, name, namespace_);
 
-  return publish_callback(pub, static_cast<void *>(&msg));
+  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+    return RMW_RET_ERROR;
+  }
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t Context::update_subscriber_graph(
@@ -48,12 +57,10 @@ rmw_ret_t Context::update_subscriber_graph(
     graph_cache.associate_reader(
     subscription_gid, gid, name, namespace_);
 
-  rmw_ret_t rmw_ret = publish_callback(pub, static_cast<void *>(&msg));
-
-  if (RMW_RET_OK != rmw_ret) {
+  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
     static_cast<void>(graph_cache.dissociate_reader(
       subscription_gid, gid, name, namespace_));
-    return rmw_ret;
+    return RMW_RET_ERROR;
   }
 
   return RMW_RET_OK;
@@ -68,7 +75,11 @@ rmw_ret_t Context::destroy_subscriber_graph(
     graph_cache.dissociate_reader(
     subscription_gid, gid, name, namespace_);
 
-  return publish_callback(pub, static_cast<void *>(&msg));
+  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+    return RMW_RET_ERROR;
+  }
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t Context::update_publisher_graph(
@@ -80,12 +91,10 @@ rmw_ret_t Context::update_publisher_graph(
     graph_cache.associate_writer(
     publisher_gid, gid, name, namespace_);
 
-  rmw_ret_t rmw_ret = publish_callback(pub, static_cast<void *>(&msg));
-
-  if (RMW_RET_OK != rmw_ret) {
+  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
     static_cast<void>(graph_cache.dissociate_writer(
       publisher_gid, gid, name, namespace_));
-    return rmw_ret;
+    return RMW_RET_ERROR;
   }
 
   return RMW_RET_OK;
@@ -100,7 +109,11 @@ rmw_ret_t Context::destroy_publisher_graph(
     graph_cache.dissociate_writer(
     publisher_gid, gid, name, namespace_);
 
-  return publish_callback(pub, static_cast<void *>(&msg));
+  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+    return RMW_RET_ERROR;
+  }
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t Context::update_client_graph(
@@ -116,14 +129,12 @@ rmw_ret_t Context::update_client_graph(
     graph_cache.associate_reader(
     response_subscriber_gid, gid, name, namespace_);
 
-  rmw_ret_t rmw_ret = publish_callback(pub, static_cast<void *>(&msg));
-
-  if (RMW_RET_OK != rmw_ret) {
+  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
     static_cast<void>(graph_cache.dissociate_reader(
       response_subscriber_gid, gid, name, namespace_));
     static_cast<void>(graph_cache.dissociate_writer(
       request_publisher_gid, gid, name, namespace_));
-    return rmw_ret;
+    return RMW_RET_ERROR;
   }
 
   return RMW_RET_OK;
@@ -142,7 +153,11 @@ rmw_ret_t Context::destroy_client_graph(
     graph_cache.dissociate_reader(
     response_subscriber_gid, gid, name, namespace_);
 
-  return publish_callback(pub, static_cast<void *>(&msg));
+  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+    return RMW_RET_ERROR;
+  }
+
+  return RMW_RET_OK;
 }
 
 rmw_ret_t Context::update_service_graph(
@@ -158,14 +173,12 @@ rmw_ret_t Context::update_service_graph(
     graph_cache.associate_writer(
     response_publisher_gid, gid, name, namespace_);
 
-  rmw_ret_t rmw_ret = publish_callback(pub, static_cast<void *>(&msg));
-
-  if (RMW_RET_OK != rmw_ret) {
+  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
     static_cast<void>(graph_cache.dissociate_writer(
       response_publisher_gid, gid, name, namespace_));
     static_cast<void>(graph_cache.dissociate_reader(
       request_subscriber_gid, gid, name, namespace_));
-    return rmw_ret;
+    return RMW_RET_ERROR;
   }
 
   return RMW_RET_OK;
@@ -184,7 +197,11 @@ rmw_ret_t Context::destroy_service_graph(
     graph_cache.dissociate_writer(
     response_publisher_gid, gid, name, namespace_);
 
-  return publish_callback(pub, static_cast<void *>(&msg));
+  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+    return RMW_RET_ERROR;
+  }
+
+  return RMW_RET_OK;
 }
 
 }  // namespace rmw_dds_common

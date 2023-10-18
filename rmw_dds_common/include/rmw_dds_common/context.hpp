@@ -54,42 +54,104 @@ struct Context
 
   using publish_callback_t = std::function<rmw_ret_t(rmw_publisher_t * pub, void * msg)>;
 
+  /// Update graph for creating a node.
+  /**
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \param publish_callback a publish message callback.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   update_node_graph(
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
+  /// Update graph for destroying a node.
+  /**
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \param publish_callback a publish message callback.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   destroy_node_graph(
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
+  /// Update graph for creating a subscription.
+  /**
+   * \param subscription_gid subscription gid.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \param publish_callback a publish message callback.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   update_subscriber_graph(
     rmw_gid_t subscription_gid, const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
+  /// Update graph for destroying a subscription.
+  /**
+   * \param subscription_gid subscription gid.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \param publish_callback a publish message callback.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   destroy_subscriber_graph(
     rmw_gid_t subscription_gid, const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
+  /// Update graph for creating a publisher.
+  /**
+   * \param publisher_gid publisher gid.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \param publish_callback a publish message callback.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   update_publisher_graph(
     rmw_gid_t publisher_gid, const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
+  /// Update graph for destroying a publisher.
+  /**
+   * \param publisher_gid publisher gid.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \param publish_callback a publish message callback.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   destroy_publisher_graph(
     rmw_gid_t publisher_gid, const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
+  /// Update graph for creating a client.
+  /**
+   * \param request_publisher_gid request publisher gid of the client.
+   * \param response_subscriber_gid response subscriber gid of the client.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \param publish_callback a publish message callback.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   update_client_graph(
@@ -97,6 +159,16 @@ struct Context
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
+  /// Update graph for destroying a client.
+  /**
+   * \param request_publisher_gid request publisher gid of the client.
+   * \param response_subscriber_gid response subscriber gid of the client.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \param publish_callback a publish message callback.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   destroy_client_graph(
@@ -104,6 +176,16 @@ struct Context
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
+  /// Update graph for creating a service.
+  /**
+   * \param request_subscriber_gid request subscriber gid of the client.
+   * \param response_publisher_gid response publisher gid of the client.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \param publish_callback a publish message callback.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   update_service_graph(
@@ -111,6 +193,16 @@ struct Context
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
+  /// Update graph for destroying a service.
+  /**
+   * \param request_subscriber_gid request subscriber gid of the client.
+   * \param response_publisher_gid response publisher gid of the client.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \param publish_callback a publish message callback.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   destroy_service_graph(
@@ -119,7 +211,8 @@ struct Context
     publish_callback_t publish_callback);
 
 private:
-  /// After all rmw are fixed, rename it with `node_update_mutex` and
+  /// Mutex that should be locked when updating graph cache and publishing a graph message.
+  /// Todo: After all rmw are fixed, rename it with `node_update_mutex` and
   /// remove the original `node_update_mutex` above
   std::mutex node_update_mutex_new;
 };
