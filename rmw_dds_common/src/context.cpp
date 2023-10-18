@@ -21,7 +21,7 @@ rmw_ret_t Context::update_node_graph(
   const std::string & name, const std::string & namespace_,
   publish_callback_t publish_callback)
 {
-  std::lock_guard<std::mutex> guard(node_update_mutex_new);
+  std::lock_guard<std::mutex> guard(node_update_mutex);
   rmw_dds_common::msg::ParticipantEntitiesInfo msg =
     graph_cache.add_node(gid, name, namespace_);
 
@@ -37,7 +37,7 @@ rmw_ret_t Context::destroy_node_graph(
   const std::string & name, const std::string & namespace_,
   publish_callback_t publish_callback)
 {
-  std::lock_guard<std::mutex> guard(node_update_mutex_new);
+  std::lock_guard<std::mutex> guard(node_update_mutex);
   rmw_dds_common::msg::ParticipantEntitiesInfo msg =
     graph_cache.remove_node(gid, name, namespace_);
 
@@ -49,10 +49,10 @@ rmw_ret_t Context::destroy_node_graph(
 }
 
 rmw_ret_t Context::update_subscriber_graph(
-  rmw_gid_t subscription_gid, const std::string & name, const std::string & namespace_,
+  const rmw_gid_t & subscription_gid, const std::string & name, const std::string & namespace_,
   publish_callback_t publish_callback)
 {
-  std::lock_guard<std::mutex> guard(node_update_mutex_new);
+  std::lock_guard<std::mutex> guard(node_update_mutex);
   rmw_dds_common::msg::ParticipantEntitiesInfo msg =
     graph_cache.associate_reader(
     subscription_gid, gid, name, namespace_);
@@ -67,10 +67,10 @@ rmw_ret_t Context::update_subscriber_graph(
 }
 
 rmw_ret_t Context::destroy_subscriber_graph(
-  rmw_gid_t subscription_gid, const std::string & name, const std::string & namespace_,
+  const rmw_gid_t & subscription_gid, const std::string & name, const std::string & namespace_,
   publish_callback_t publish_callback)
 {
-  std::lock_guard<std::mutex> guard(node_update_mutex_new);
+  std::lock_guard<std::mutex> guard(node_update_mutex);
   rmw_dds_common::msg::ParticipantEntitiesInfo msg =
     graph_cache.dissociate_reader(
     subscription_gid, gid, name, namespace_);
@@ -83,10 +83,10 @@ rmw_ret_t Context::destroy_subscriber_graph(
 }
 
 rmw_ret_t Context::update_publisher_graph(
-  rmw_gid_t publisher_gid, const std::string & name, const std::string & namespace_,
+  const rmw_gid_t & publisher_gid, const std::string & name, const std::string & namespace_,
   publish_callback_t publish_callback)
 {
-  std::lock_guard<std::mutex> guard(node_update_mutex_new);
+  std::lock_guard<std::mutex> guard(node_update_mutex);
   rmw_dds_common::msg::ParticipantEntitiesInfo msg =
     graph_cache.associate_writer(
     publisher_gid, gid, name, namespace_);
@@ -101,10 +101,10 @@ rmw_ret_t Context::update_publisher_graph(
 }
 
 rmw_ret_t Context::destroy_publisher_graph(
-  rmw_gid_t publisher_gid, const std::string & name, const std::string & namespace_,
+  const rmw_gid_t & publisher_gid, const std::string & name, const std::string & namespace_,
   publish_callback_t publish_callback)
 {
-  std::lock_guard<std::mutex> guard(node_update_mutex_new);
+  std::lock_guard<std::mutex> guard(node_update_mutex);
   rmw_dds_common::msg::ParticipantEntitiesInfo msg =
     graph_cache.dissociate_writer(
     publisher_gid, gid, name, namespace_);
@@ -117,11 +117,11 @@ rmw_ret_t Context::destroy_publisher_graph(
 }
 
 rmw_ret_t Context::update_client_graph(
-  rmw_gid_t request_publisher_gid, rmw_gid_t response_subscriber_gid,
+  const rmw_gid_t & request_publisher_gid, const rmw_gid_t & response_subscriber_gid,
   const std::string & name, const std::string & namespace_,
   publish_callback_t publish_callback)
 {
-  std::lock_guard<std::mutex> guard(node_update_mutex_new);
+  std::lock_guard<std::mutex> guard(node_update_mutex);
   graph_cache.associate_writer(
     request_publisher_gid, gid, name, namespace_);
 
@@ -141,11 +141,11 @@ rmw_ret_t Context::update_client_graph(
 }
 
 rmw_ret_t Context::destroy_client_graph(
-  rmw_gid_t request_publisher_gid, rmw_gid_t response_subscriber_gid,
+  const rmw_gid_t & request_publisher_gid, const rmw_gid_t & response_subscriber_gid,
   const std::string & name, const std::string & namespace_,
   publish_callback_t publish_callback)
 {
-  std::lock_guard<std::mutex> guard(node_update_mutex_new);
+  std::lock_guard<std::mutex> guard(node_update_mutex);
   graph_cache.dissociate_writer(
     request_publisher_gid, gid, name, namespace_);
 
@@ -161,11 +161,11 @@ rmw_ret_t Context::destroy_client_graph(
 }
 
 rmw_ret_t Context::update_service_graph(
-  rmw_gid_t request_subscriber_gid, rmw_gid_t response_publisher_gid,
+  const rmw_gid_t & request_subscriber_gid, const rmw_gid_t & response_publisher_gid,
   const std::string & name, const std::string & namespace_,
   publish_callback_t publish_callback)
 {
-  std::lock_guard<std::mutex> guard(node_update_mutex_new);
+  std::lock_guard<std::mutex> guard(node_update_mutex);
   graph_cache.associate_reader(
     request_subscriber_gid, gid, name, namespace_);
 
@@ -185,11 +185,11 @@ rmw_ret_t Context::update_service_graph(
 }
 
 rmw_ret_t Context::destroy_service_graph(
-  rmw_gid_t request_subscriber_gid, rmw_gid_t response_publisher_gid,
+  const rmw_gid_t & request_subscriber_gid, const rmw_gid_t & response_publisher_gid,
   const std::string & name, const std::string & namespace_,
   publish_callback_t publish_callback)
 {
-  std::lock_guard<std::mutex> guard(node_update_mutex_new);
+  std::lock_guard<std::mutex> guard(node_update_mutex);
   graph_cache.dissociate_reader(
     request_subscriber_gid, gid, name, namespace_);
 

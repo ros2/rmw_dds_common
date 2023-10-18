@@ -41,8 +41,6 @@ struct Context
   rmw_subscription_t * sub;
   /// Cached graph from discovery data.
   GraphCache graph_cache;
-  /// Mutex that should be locked when updating graph cache and publishing a graph message.
-  std::mutex node_update_mutex;
   /// Thread to listen to discovery data.
   std::thread listener_thread;
   /// Indicates if the listener thread is running.
@@ -94,7 +92,7 @@ struct Context
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   update_subscriber_graph(
-    rmw_gid_t subscription_gid, const std::string & name, const std::string & namespace_,
+    const rmw_gid_t & subscription_gid, const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
   /// Update graph for destroying a subscription.
@@ -109,7 +107,7 @@ struct Context
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   destroy_subscriber_graph(
-    rmw_gid_t subscription_gid, const std::string & name, const std::string & namespace_,
+    const rmw_gid_t & subscription_gid, const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
   /// Update graph for creating a publisher.
@@ -124,7 +122,7 @@ struct Context
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   update_publisher_graph(
-    rmw_gid_t publisher_gid, const std::string & name, const std::string & namespace_,
+    const rmw_gid_t & publisher_gid, const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
   /// Update graph for destroying a publisher.
@@ -139,7 +137,7 @@ struct Context
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   destroy_publisher_graph(
-    rmw_gid_t publisher_gid, const std::string & name, const std::string & namespace_,
+    const rmw_gid_t & publisher_gid, const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
   /// Update graph for creating a client.
@@ -155,7 +153,7 @@ struct Context
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   update_client_graph(
-    rmw_gid_t request_publisher_gid, rmw_gid_t response_subscriber_gid,
+    const rmw_gid_t & request_publisher_gid, const rmw_gid_t & response_subscriber_gid,
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
@@ -172,7 +170,7 @@ struct Context
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   destroy_client_graph(
-    rmw_gid_t request_publisher_gid, rmw_gid_t response_subscriber_gid,
+    const rmw_gid_t & request_publisher_gid, const rmw_gid_t & response_subscriber_gid,
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
@@ -189,7 +187,7 @@ struct Context
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   update_service_graph(
-    rmw_gid_t request_subscriber_gid, rmw_gid_t response_publisher_gid,
+    const rmw_gid_t & request_subscriber_gid, const rmw_gid_t & response_publisher_gid,
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
@@ -206,15 +204,13 @@ struct Context
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
   destroy_service_graph(
-    rmw_gid_t request_subscriber_gid, rmw_gid_t response_publisher_gid,
+    const rmw_gid_t & request_subscriber_gid, const rmw_gid_t & response_publisher_gid,
     const std::string & name, const std::string & namespace_,
     publish_callback_t publish_callback);
 
 private:
   /// Mutex that should be locked when updating graph cache and publishing a graph message.
-  /// Todo: After all rmw are fixed, rename it with `node_update_mutex` and
-  /// remove the original `node_update_mutex` above
-  std::mutex node_update_mutex_new;
+  std::mutex node_update_mutex;
 };
 
 }  // namespace rmw_dds_common
