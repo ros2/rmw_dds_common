@@ -50,7 +50,8 @@ struct Context
   /// Guard condition that should be triggered when the graph changes.
   rmw_guard_condition_t * graph_guard_condition;
 
-  using publish_callback_t = std::function<rmw_ret_t(rmw_publisher_t * pub, void * msg)>;
+  using publish_callback_t =
+    std::function<rmw_ret_t(const rmw_publisher_t * pub, const void * msg)>;
   /// Publish a graph message when updating or destroying graph cache.
   publish_callback_t publish_callback;
 

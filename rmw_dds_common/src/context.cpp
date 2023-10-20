@@ -17,6 +17,19 @@
 namespace rmw_dds_common
 {
 
+static bool publish_(
+  const rmw_publisher_t * pub,
+  const Context::publish_callback_t & publish_callback,
+  const rmw_dds_common::msg::ParticipantEntitiesInfo & msg)
+{
+  if (nullptr == pub || nullptr == publish_callback ||
+    RMW_RET_OK != publish_callback(pub, static_cast<const void *>(&msg)))
+  {
+    return false;
+  }
+  return true;
+}
+
 rmw_ret_t Context::update_node_graph(
   const std::string & name, const std::string & namespace_)
 {
@@ -24,7 +37,7 @@ rmw_ret_t Context::update_node_graph(
   rmw_dds_common::msg::ParticipantEntitiesInfo msg =
     graph_cache.add_node(gid, name, namespace_);
 
-  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+  if (!publish_(pub, publish_callback, msg)) {
     graph_cache.remove_node(gid, name, namespace_);
     return RMW_RET_ERROR;
   }
@@ -39,7 +52,7 @@ rmw_ret_t Context::destroy_node_graph(
   rmw_dds_common::msg::ParticipantEntitiesInfo msg =
     graph_cache.remove_node(gid, name, namespace_);
 
-  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+  if (!publish_(pub, publish_callback, msg)) {
     return RMW_RET_ERROR;
   }
 
@@ -54,7 +67,7 @@ rmw_ret_t Context::update_subscriber_graph(
     graph_cache.associate_reader(
     subscription_gid, gid, name, namespace_);
 
-  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+  if (!publish_(pub, publish_callback, msg)) {
     static_cast<void>(graph_cache.dissociate_reader(
       subscription_gid, gid, name, namespace_));
     return RMW_RET_ERROR;
@@ -71,7 +84,7 @@ rmw_ret_t Context::destroy_subscriber_graph(
     graph_cache.dissociate_reader(
     subscription_gid, gid, name, namespace_);
 
-  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+  if (!publish_(pub, publish_callback, msg)) {
     return RMW_RET_ERROR;
   }
 
@@ -86,7 +99,7 @@ rmw_ret_t Context::update_publisher_graph(
     graph_cache.associate_writer(
     publisher_gid, gid, name, namespace_);
 
-  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+  if (!publish_(pub, publish_callback, msg)) {
     static_cast<void>(graph_cache.dissociate_writer(
       publisher_gid, gid, name, namespace_));
     return RMW_RET_ERROR;
@@ -103,7 +116,7 @@ rmw_ret_t Context::destroy_publisher_graph(
     graph_cache.dissociate_writer(
     publisher_gid, gid, name, namespace_);
 
-  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+  if (!publish_(pub, publish_callback, msg)) {
     return RMW_RET_ERROR;
   }
 
@@ -122,7 +135,7 @@ rmw_ret_t Context::update_client_graph(
     graph_cache.associate_reader(
     response_subscriber_gid, gid, name, namespace_);
 
-  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+  if (!publish_(pub, publish_callback, msg)) {
     static_cast<void>(graph_cache.dissociate_reader(
       response_subscriber_gid, gid, name, namespace_));
     static_cast<void>(graph_cache.dissociate_writer(
@@ -145,7 +158,7 @@ rmw_ret_t Context::destroy_client_graph(
     graph_cache.dissociate_reader(
     response_subscriber_gid, gid, name, namespace_);
 
-  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+  if (!publish_(pub, publish_callback, msg)) {
     return RMW_RET_ERROR;
   }
 
@@ -164,7 +177,7 @@ rmw_ret_t Context::update_service_graph(
     graph_cache.associate_writer(
     response_publisher_gid, gid, name, namespace_);
 
-  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+  if (!publish_(pub, publish_callback, msg)) {
     static_cast<void>(graph_cache.dissociate_writer(
       response_publisher_gid, gid, name, namespace_));
     static_cast<void>(graph_cache.dissociate_reader(
@@ -187,7 +200,7 @@ rmw_ret_t Context::destroy_service_graph(
     graph_cache.dissociate_writer(
     response_publisher_gid, gid, name, namespace_);
 
-  if (nullptr == pub || RMW_RET_OK != publish_callback(pub, static_cast<void *>(&msg))) {
+  if (!publish_(pub, publish_callback, msg)) {
     return RMW_RET_ERROR;
   }
 
