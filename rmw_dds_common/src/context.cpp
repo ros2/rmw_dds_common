@@ -17,8 +17,9 @@
 #include <mutex>
 #include <string>
 
-#include <rmw/types.h>
-#include <rmw_dds_common/msg/participant_entities_info.hpp>
+#include "rmw/types.h"
+
+#include "rmw_dds_common/msg/participant_entities_info.hpp"
 
 namespace rmw_dds_common
 {
