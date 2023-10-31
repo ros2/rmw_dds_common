@@ -55,7 +55,7 @@ struct Context
   /// Publish a graph message when updating or destroying graph cache.
   publish_callback_t publish_callback;
 
-  /// Update graph for creating a node.
+  /// Add graph for creating a node.
   /**
    * \param name node name.
    * \param namespace_ node namespace.
@@ -64,10 +64,10 @@ struct Context
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  update_node_graph(
+  add_node_graph(
     const std::string & name, const std::string & namespace_);
 
-  /// Update graph for destroying a node.
+  /// Remove graph for destroying a node.
   /**
    * \param name node name.
    * \param namespace_ node namespace.
@@ -76,10 +76,10 @@ struct Context
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  destroy_node_graph(
+  remove_node_graph(
     const std::string & name, const std::string & namespace_);
 
-  /// Update graph for creating a subscription.
+  /// Add graph for creating a subscription.
   /**
    * \param subscription_gid subscription gid.
    * \param name node name.
@@ -89,10 +89,10 @@ struct Context
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  update_subscriber_graph(
+  add_subscriber_graph(
     const rmw_gid_t & subscription_gid, const std::string & name, const std::string & namespace_);
 
-  /// Update graph for destroying a subscription.
+  /// Remove graph for destroying a subscription.
   /**
    * \param subscription_gid subscription gid.
    * \param name node name.
@@ -102,10 +102,10 @@ struct Context
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  destroy_subscriber_graph(
+  remove_subscriber_graph(
     const rmw_gid_t & subscription_gid, const std::string & name, const std::string & namespace_);
 
-  /// Update graph for creating a publisher.
+  /// Add graph for creating a publisher.
   /**
    * \param publisher_gid publisher gid.
    * \param name node name.
@@ -115,10 +115,10 @@ struct Context
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  update_publisher_graph(
+  add_publisher_graph(
     const rmw_gid_t & publisher_gid, const std::string & name, const std::string & namespace_);
 
-  /// Update graph for destroying a publisher.
+  /// Remove graph for destroying a publisher.
   /**
    * \param publisher_gid publisher gid.
    * \param name node name.
@@ -128,10 +128,10 @@ struct Context
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  destroy_publisher_graph(
+  remove_publisher_graph(
     const rmw_gid_t & publisher_gid, const std::string & name, const std::string & namespace_);
 
-  /// Update graph for creating a client.
+  /// Add graph for creating a client.
   /**
    * \param request_publisher_gid request publisher gid of the client.
    * \param response_subscriber_gid response subscriber gid of the client.
@@ -142,11 +142,11 @@ struct Context
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  update_client_graph(
+  add_client_graph(
     const rmw_gid_t & request_publisher_gid, const rmw_gid_t & response_subscriber_gid,
     const std::string & name, const std::string & namespace_);
 
-  /// Update graph for destroying a client.
+  /// Remove graph for destroying a client.
   /**
    * \param request_publisher_gid request publisher gid of the client.
    * \param response_subscriber_gid response subscriber gid of the client.
@@ -157,11 +157,11 @@ struct Context
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  destroy_client_graph(
+  remove_client_graph(
     const rmw_gid_t & request_publisher_gid, const rmw_gid_t & response_subscriber_gid,
     const std::string & name, const std::string & namespace_);
 
-  /// Update graph for creating a service.
+  /// Add graph for creating a service.
   /**
    * \param request_subscriber_gid request subscriber gid of the client.
    * \param response_publisher_gid response publisher gid of the client.
@@ -172,11 +172,11 @@ struct Context
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  update_service_graph(
+  add_service_graph(
     const rmw_gid_t & request_subscriber_gid, const rmw_gid_t & response_publisher_gid,
     const std::string & name, const std::string & namespace_);
 
-  /// Update graph for destroying a service.
+  /// Remove graph for destroying a service.
   /**
    * \param request_subscriber_gid request subscriber gid of the client.
    * \param response_publisher_gid response publisher gid of the client.
@@ -187,12 +187,14 @@ struct Context
    */
   RMW_DDS_COMMON_PUBLIC
   rmw_ret_t
-  destroy_service_graph(
+  remove_service_graph(
     const rmw_gid_t & request_subscriber_gid, const rmw_gid_t & response_publisher_gid,
     const std::string & name, const std::string & namespace_);
 
 private:
   /// Mutex that should be locked when updating graph cache and publishing a graph message.
+  /// Though graph_cache methods are thread safe, both cache update and publishing have to also
+  /// be atomic.
   std::mutex node_update_mutex;
 };
 

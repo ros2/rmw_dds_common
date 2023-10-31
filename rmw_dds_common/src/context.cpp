@@ -1,4 +1,4 @@
-// Copyright 2023 Open Source Robotics Foundation, Inc.
+// Copyright 2023 Sony Group Corporation.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,14 +37,9 @@ static bool call_publish_callback(
   return true;
 }
 
-rmw_ret_t Context::update_node_graph(
+rmw_ret_t Context::add_node_graph(
   const std::string & name, const std::string & namespace_)
 {
-  // Though graph_cache methods are thread safe, both cache update and publishing have to also
-  // be atomic.
-  // If not, the following race condition is possible:
-  // node1-update-get-message / node2-update-get-message / node2-publish / node1-publish
-  // In that case, the last message published is not accurate.
   std::lock_guard<std::mutex> guard(node_update_mutex);
   rmw_dds_common::msg::ParticipantEntitiesInfo msg =
     graph_cache.add_node(gid, name, namespace_);
@@ -57,14 +52,9 @@ rmw_ret_t Context::update_node_graph(
   return RMW_RET_OK;
 }
 
-rmw_ret_t Context::destroy_node_graph(
+rmw_ret_t Context::remove_node_graph(
   const std::string & name, const std::string & namespace_)
 {
-  // Though graph_cache methods are thread safe, both cache update and publishing have to also
-  // be atomic.
-  // If not, the following race condition is possible:
-  // node1-update-get-message / node2-update-get-message / node2-publish / node1-publish
-  // In that case, the last message published is not accurate.
   std::lock_guard<std::mutex> guard(node_update_mutex);
   rmw_dds_common::msg::ParticipantEntitiesInfo msg =
     graph_cache.remove_node(gid, name, namespace_);
@@ -76,7 +66,7 @@ rmw_ret_t Context::destroy_node_graph(
   return RMW_RET_OK;
 }
 
-rmw_ret_t Context::update_subscriber_graph(
+rmw_ret_t Context::add_subscriber_graph(
   const rmw_gid_t & subscription_gid, const std::string & name, const std::string & namespace_)
 {
   std::lock_guard<std::mutex> guard(node_update_mutex);
@@ -93,7 +83,7 @@ rmw_ret_t Context::update_subscriber_graph(
   return RMW_RET_OK;
 }
 
-rmw_ret_t Context::destroy_subscriber_graph(
+rmw_ret_t Context::remove_subscriber_graph(
   const rmw_gid_t & subscription_gid, const std::string & name, const std::string & namespace_)
 {
   std::lock_guard<std::mutex> guard(node_update_mutex);
@@ -108,7 +98,7 @@ rmw_ret_t Context::destroy_subscriber_graph(
   return RMW_RET_OK;
 }
 
-rmw_ret_t Context::update_publisher_graph(
+rmw_ret_t Context::add_publisher_graph(
   const rmw_gid_t & publisher_gid, const std::string & name, const std::string & namespace_)
 {
   std::lock_guard<std::mutex> guard(node_update_mutex);
@@ -125,7 +115,7 @@ rmw_ret_t Context::update_publisher_graph(
   return RMW_RET_OK;
 }
 
-rmw_ret_t Context::destroy_publisher_graph(
+rmw_ret_t Context::remove_publisher_graph(
   const rmw_gid_t & publisher_gid, const std::string & name, const std::string & namespace_)
 {
   std::lock_guard<std::mutex> guard(node_update_mutex);
@@ -140,7 +130,7 @@ rmw_ret_t Context::destroy_publisher_graph(
   return RMW_RET_OK;
 }
 
-rmw_ret_t Context::update_client_graph(
+rmw_ret_t Context::add_client_graph(
   const rmw_gid_t & request_publisher_gid, const rmw_gid_t & response_subscriber_gid,
   const std::string & name, const std::string & namespace_)
 {
@@ -163,7 +153,7 @@ rmw_ret_t Context::update_client_graph(
   return RMW_RET_OK;
 }
 
-rmw_ret_t Context::destroy_client_graph(
+rmw_ret_t Context::remove_client_graph(
   const rmw_gid_t & request_publisher_gid, const rmw_gid_t & response_subscriber_gid,
   const std::string & name, const std::string & namespace_)
 {
@@ -182,7 +172,7 @@ rmw_ret_t Context::destroy_client_graph(
   return RMW_RET_OK;
 }
 
-rmw_ret_t Context::update_service_graph(
+rmw_ret_t Context::add_service_graph(
   const rmw_gid_t & request_subscriber_gid, const rmw_gid_t & response_publisher_gid,
   const std::string & name, const std::string & namespace_)
 {
@@ -205,7 +195,7 @@ rmw_ret_t Context::update_service_graph(
   return RMW_RET_OK;
 }
 
-rmw_ret_t Context::destroy_service_graph(
+rmw_ret_t Context::remove_service_graph(
   const rmw_gid_t & request_subscriber_gid, const rmw_gid_t & response_publisher_gid,
   const std::string & name, const std::string & namespace_)
 {
