@@ -32,6 +32,7 @@ rosidl_generate_interfaces(
 )
 
 add_library(${PROJECT_NAME}_library
+  src/context.cpp
   src/gid_utils.cpp
   src/graph_cache.cpp
   src/qos.cpp

@@ -16,7 +16,9 @@
 #define RMW_DDS_COMMON__CONTEXT_HPP_
 
 #include <atomic>
+#include <functional>
 #include <mutex>
+#include <string>
 #include <thread>
 
 #include "rmw/types.h"
@@ -39,8 +41,6 @@ struct Context
   rmw_subscription_t * sub;
   /// Cached graph from discovery data.
   GraphCache graph_cache;
-  /// Mutex that should be locked when updating graph cache and publishing a graph message.
-  std::mutex node_update_mutex;
   /// Thread to listen to discovery data.
   std::thread listener_thread;
   /// Indicates if the listener thread is running.
@@ -49,6 +49,153 @@ struct Context
   rmw_guard_condition_t * listener_thread_gc;
   /// Guard condition that should be triggered when the graph changes.
   rmw_guard_condition_t * graph_guard_condition;
+
+  using publish_callback_t =
+    std::function<rmw_ret_t(const rmw_publisher_t * pub, const void * msg)>;
+  /// Publish a graph message when updating or destroying graph cache.
+  publish_callback_t publish_callback;
+
+  /// Add graph for creating a node.
+  /**
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  add_node_graph(
+    const std::string & name, const std::string & namespace_);
+
+  /// Remove graph for destroying a node.
+  /**
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  remove_node_graph(
+    const std::string & name, const std::string & namespace_);
+
+  /// Add graph for creating a subscription.
+  /**
+   * \param subscription_gid subscription gid.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  add_subscriber_graph(
+    const rmw_gid_t & subscription_gid, const std::string & name, const std::string & namespace_);
+
+  /// Remove graph for destroying a subscription.
+  /**
+   * \param subscription_gid subscription gid.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  remove_subscriber_graph(
+    const rmw_gid_t & subscription_gid, const std::string & name, const std::string & namespace_);
+
+  /// Add graph for creating a publisher.
+  /**
+   * \param publisher_gid publisher gid.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  add_publisher_graph(
+    const rmw_gid_t & publisher_gid, const std::string & name, const std::string & namespace_);
+
+  /// Remove graph for destroying a publisher.
+  /**
+   * \param publisher_gid publisher gid.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  remove_publisher_graph(
+    const rmw_gid_t & publisher_gid, const std::string & name, const std::string & namespace_);
+
+  /// Add graph for creating a client.
+  /**
+   * \param request_publisher_gid request publisher gid of the client.
+   * \param response_subscriber_gid response subscriber gid of the client.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  add_client_graph(
+    const rmw_gid_t & request_publisher_gid, const rmw_gid_t & response_subscriber_gid,
+    const std::string & name, const std::string & namespace_);
+
+  /// Remove graph for destroying a client.
+  /**
+   * \param request_publisher_gid request publisher gid of the client.
+   * \param response_subscriber_gid response subscriber gid of the client.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  remove_client_graph(
+    const rmw_gid_t & request_publisher_gid, const rmw_gid_t & response_subscriber_gid,
+    const std::string & name, const std::string & namespace_);
+
+  /// Add graph for creating a service.
+  /**
+   * \param request_subscriber_gid request subscriber gid of the client.
+   * \param response_publisher_gid response publisher gid of the client.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  add_service_graph(
+    const rmw_gid_t & request_subscriber_gid, const rmw_gid_t & response_publisher_gid,
+    const std::string & name, const std::string & namespace_);
+
+  /// Remove graph for destroying a service.
+  /**
+   * \param request_subscriber_gid request subscriber gid of the client.
+   * \param response_publisher_gid response publisher gid of the client.
+   * \param name node name.
+   * \param namespace_ node namespace.
+   * \return `RMW_RET_OK` if successful, or
+   * \return `RMW_RET_ERROR` an unexpected error occurs.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  remove_service_graph(
+    const rmw_gid_t & request_subscriber_gid, const rmw_gid_t & response_publisher_gid,
+    const std::string & name, const std::string & namespace_);
+
+private:
+  /// Mutex that should be locked when updating graph cache and publishing a graph message.
+  /// Though graph_cache methods are thread safe, both cache update and publishing have to also
+  /// be atomic.
+  std::mutex node_update_mutex;
 };
 
 }  // namespace rmw_dds_common
