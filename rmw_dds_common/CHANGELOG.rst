@@ -2,6 +2,11 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* make a new private mutex and add updating graph methods (`#73 <https://github.com/ros2/rmw_dds_common/issues/73>`_)
+* Contributors: Chen Lihui
+
 2.1.1 (2023-10-09)
 ------------------
 * Just remove rcpputils::fs dependency (`#72 <https://github.com/ros2/rmw_dds_common/issues/72>`_)
