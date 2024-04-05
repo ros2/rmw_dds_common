@@ -22,7 +22,9 @@
 
 #include "rmw_dds_common/security.hpp"
 
-TEST(test_security, files_exist_no_prefix)
+class test_security : public ::testing::TestWithParam<bool> {};
+
+TEST_P(test_security, files_exist_no_prefix)
 {
   std::filesystem::path dir = std::filesystem::path("./test_folder");
   std::filesystem::remove_all(dir);
@@ -42,7 +44,8 @@ TEST(test_security, files_exist_no_prefix)
   }
 
   std::unordered_map<std::string, std::string> security_files;
-  ASSERT_TRUE(rmw_dds_common::get_security_files("", dir.generic_string(), security_files));
+  ASSERT_TRUE(
+    rmw_dds_common::get_security_files(GetParam(), "", dir.generic_string(), security_files));
 
   EXPECT_EQ(
     security_files["IDENTITY_CA"],
@@ -64,7 +67,7 @@ TEST(test_security, files_exist_no_prefix)
     std::filesystem::path("./test_folder/permissions.p7s").generic_string());
 }
 
-TEST(test_security, files_exist_with_prefix)
+TEST_P(test_security, files_exist_with_prefix)
 {
   std::filesystem::path dir = std::filesystem::path("./test_folder");
   std::filesystem::remove_all(dir);
@@ -84,7 +87,9 @@ TEST(test_security, files_exist_with_prefix)
   }
 
   std::unordered_map<std::string, std::string> security_files;
-  ASSERT_TRUE(rmw_dds_common::get_security_files("file://", dir.generic_string(), security_files));
+  ASSERT_TRUE(
+    rmw_dds_common::get_security_files(
+      GetParam(), "file://", dir.generic_string(), security_files));
 
   EXPECT_EQ(
     security_files["IDENTITY_CA"],
@@ -106,7 +111,7 @@ TEST(test_security, files_exist_with_prefix)
     "file://" + std::filesystem::path("./test_folder/permissions.p7s").generic_string());
 }
 
-TEST(test_security, file_missing)
+TEST_P(test_security, file_missing)
 {
   std::filesystem::path dir = std::filesystem::path("./test_folder");
   std::filesystem::remove_all(dir);
@@ -126,11 +131,12 @@ TEST(test_security, file_missing)
   }
 
   std::unordered_map<std::string, std::string> security_files;
-  ASSERT_FALSE(rmw_dds_common::get_security_files("", dir.generic_string(), security_files));
+  ASSERT_FALSE(
+    rmw_dds_common::get_security_files(GetParam(), "", dir.generic_string(), security_files));
   ASSERT_EQ(security_files.size(), 0UL);
 }
 
-TEST(test_security, optional_file_exist)
+TEST_P(test_security, optional_file_exist)
 {
   std::filesystem::path dir = std::filesystem::path("./test_folder");
   std::filesystem::remove_all(dir);
@@ -150,7 +156,8 @@ TEST(test_security, optional_file_exist)
   }
 
   std::unordered_map<std::string, std::string> security_files;
-  ASSERT_TRUE(rmw_dds_common::get_security_files("", dir.generic_string(), security_files));
+  ASSERT_TRUE(
+    rmw_dds_common::get_security_files(GetParam(), "", dir.generic_string(), security_files));
 
   EXPECT_EQ(
     security_files["IDENTITY_CA"],
@@ -175,3 +182,11 @@ TEST(test_security, optional_file_exist)
     security_files["CRL"],
     std::filesystem::path("./test_folder/crl.pem").generic_string());
 }
+
+INSTANTIATE_TEST_SUITE_P(
+  test_security,
+  test_security,
+  ::testing::Values(false, true),
+  [](const testing::TestParamInfo<bool> & info) {
+    return info.param ? "with_pkcs11_support" : "with_no_pkcs11_support";
+  });
