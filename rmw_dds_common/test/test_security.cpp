@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <array>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <string>

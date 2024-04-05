@@ -89,7 +89,6 @@ bool get_security_files(
   using processor_vector =
     std::vector<std::pair<std::string, security_file_processor>>;
 
-
   // Key: the security attribute
   // Value: ordered sequence of pairs. Each pair contains one possible file name
   //        for the attribute and the corresponding processor method
