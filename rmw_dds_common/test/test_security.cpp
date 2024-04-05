@@ -22,6 +22,30 @@
 
 #include "rmw_dds_common/security.hpp"
 
+// Utility to write test content on required files
+template<size_t N>
+static void write_test_content(const std::array<std::string, N> & required_files)
+{
+  for (const std::string & filename : required_files) {
+    std::filesystem::path full_path = std::filesystem::path("./test_folder") / filename;
+    std::ofstream output_buffer{full_path.generic_string()};
+    output_buffer << "test";
+    ASSERT_TRUE(std::filesystem::exists(full_path));
+  }
+}
+
+// Utility to write pkcs11 content on required files
+template<size_t N>
+static void write_test_pkcs11_content(const std::array<std::string, N> & pkcs11_files)
+{
+  for (const std::string & filename : pkcs11_files) {
+    std::filesystem::path full_path = std::filesystem::path("./test_folder") / filename;
+    std::ofstream output_buffer{full_path.generic_string()};
+    output_buffer << "pkcs11://" << filename;
+    ASSERT_TRUE(std::filesystem::exists(full_path));
+  }
+}
+
 class test_security : public ::testing::TestWithParam<bool> {};
 
 TEST_P(test_security, files_exist_no_prefix)
@@ -36,12 +60,7 @@ TEST_P(test_security, files_exist_no_prefix)
     "identity_ca.cert.pem", "cert.pem", "key.pem",
     "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s"
   };
-  for (const std::string & filename : required_files) {
-    std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.generic_string()};
-    output_buffer << "test";
-    ASSERT_TRUE(std::filesystem::exists(full_path));
-  }
+  write_test_content(required_files);
 
   std::unordered_map<std::string, std::string> security_files;
   ASSERT_TRUE(
@@ -79,12 +98,7 @@ TEST_P(test_security, files_exist_with_prefix)
     "identity_ca.cert.pem", "cert.pem", "key.pem",
     "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s"
   };
-  for (const std::string & filename : required_files) {
-    std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.generic_string()};
-    output_buffer << "test";
-    ASSERT_TRUE(std::filesystem::exists(full_path));
-  }
+  write_test_content(required_files);
 
   std::unordered_map<std::string, std::string> security_files;
   ASSERT_TRUE(
@@ -123,12 +137,7 @@ TEST_P(test_security, file_missing)
     "identity_ca.cert.pem", "cert.pem", "key.pem",
     "permissions_ca.cert.pem", "governance.p7s"
   };
-  for (const std::string & filename : required_files) {
-    std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.generic_string()};
-    output_buffer << "test";
-    ASSERT_TRUE(std::filesystem::exists(full_path));
-  }
+  write_test_content(required_files);
 
   std::unordered_map<std::string, std::string> security_files;
   ASSERT_FALSE(
@@ -148,12 +157,7 @@ TEST_P(test_security, optional_file_exist)
     "identity_ca.cert.pem", "cert.pem", "key.pem",
     "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s", "crl.pem",
   };
-  for (const std::string & filename : required_files) {
-    std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.generic_string()};
-    output_buffer << "test";
-    ASSERT_TRUE(std::filesystem::exists(full_path));
-  }
+  write_test_content(required_files);
 
   std::unordered_map<std::string, std::string> security_files;
   ASSERT_TRUE(
@@ -197,12 +201,7 @@ TEST_P(test_security, wrong_pkcs11_file_ignored)
     "identity_ca.cert.p11", "cert.p11", "key.p11",
     "permissions_ca.cert.p11"
   };
-  for (const std::string & filename : required_files) {
-    std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.generic_string()};
-    output_buffer << "test";
-    ASSERT_TRUE(std::filesystem::exists(full_path));
-  }
+  write_test_content(required_files);
 
   std::unordered_map<std::string, std::string> security_files;
   ASSERT_TRUE(
@@ -240,23 +239,13 @@ TEST_P(test_security, pkcs11_support_check)
     "identity_ca.cert.pem", "cert.pem", "key.pem",
     "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s"
   };
-  for (const std::string & filename : required_files) {
-    std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.generic_string()};
-    output_buffer << "test";
-    ASSERT_TRUE(std::filesystem::exists(full_path));
-  }
+  write_test_content(required_files);
 
   std::array<std::string, 4> pkcs11_files = {
     "identity_ca.cert.p11", "cert.p11", "key.p11",
     "permissions_ca.cert.p11"
   };
-  for (const std::string & filename : pkcs11_files) {
-    std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.generic_string()};
-    output_buffer << "pkcs11://" << filename;
-    ASSERT_TRUE(std::filesystem::exists(full_path));
-  }
+  write_test_pkcs11_content(pkcs11_files);
 
   std::unordered_map<std::string, std::string> security_files;
   ASSERT_TRUE(
@@ -308,23 +297,13 @@ TEST_P(test_security, only_pkcs11_present)
   std::array<std::string, 2> required_files = {
     "governance.p7s", "permissions.p7s"
   };
-  for (const std::string & filename : required_files) {
-    std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.generic_string()};
-    output_buffer << "test";
-    ASSERT_TRUE(std::filesystem::exists(full_path));
-  }
+  write_test_content(required_files);
 
   std::array<std::string, 4> pkcs11_files = {
     "identity_ca.cert.p11", "cert.p11", "key.p11",
     "permissions_ca.cert.p11"
   };
-  for (const std::string & filename : pkcs11_files) {
-    std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.generic_string()};
-    output_buffer << "pkcs11://" << filename;
-    ASSERT_TRUE(std::filesystem::exists(full_path));
-  }
+  write_test_pkcs11_content(pkcs11_files);
 
   std::unordered_map<std::string, std::string> security_files;
 
@@ -368,23 +347,13 @@ TEST_P(test_security, pkcs11_prefix_ignored)
     "identity_ca.cert.pem", "cert.pem", "key.pem",
     "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s"
   };
-  for (const std::string & filename : required_files) {
-    std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.generic_string()};
-    output_buffer << "test";
-    ASSERT_TRUE(std::filesystem::exists(full_path));
-  }
+  write_test_content(required_files);
 
   std::array<std::string, 4> pkcs11_files = {
     "identity_ca.cert.p11", "cert.p11", "key.p11",
     "permissions_ca.cert.p11"
   };
-  for (const std::string & filename : pkcs11_files) {
-    std::filesystem::path full_path = dir / filename;
-    std::ofstream output_buffer{full_path.generic_string()};
-    output_buffer << "pkcs11://" << filename;
-    ASSERT_TRUE(std::filesystem::exists(full_path));
-  }
+  write_test_pkcs11_content(pkcs11_files);
 
   std::unordered_map<std::string, std::string> security_files;
   ASSERT_TRUE(
