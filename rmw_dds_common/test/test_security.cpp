@@ -183,6 +183,249 @@ TEST_P(test_security, optional_file_exist)
     std::filesystem::path("./test_folder/crl.pem").generic_string());
 }
 
+TEST_P(test_security, wrong_pkcs11_file_ignored)
+{
+  std::filesystem::path dir = std::filesystem::path("./test_folder");
+  std::filesystem::remove_all(dir);
+  EXPECT_TRUE(std::filesystem::create_directories(dir));
+  EXPECT_TRUE(std::filesystem::exists(dir));
+  EXPECT_TRUE(std::filesystem::is_directory(dir));
+
+  std::array<std::string, 10> required_files = {
+    "identity_ca.cert.pem", "cert.pem", "key.pem",
+    "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s",
+    "identity_ca.cert.p11", "cert.p11", "key.p11",
+    "permissions_ca.cert.p11"
+  };
+  for (const std::string & filename : required_files) {
+    std::filesystem::path full_path = dir / filename;
+    std::ofstream output_buffer{full_path.generic_string()};
+    output_buffer << "test";
+    ASSERT_TRUE(std::filesystem::exists(full_path));
+  }
+
+  std::unordered_map<std::string, std::string> security_files;
+  ASSERT_TRUE(
+    rmw_dds_common::get_security_files(GetParam(), "", dir.generic_string(), security_files));
+
+  EXPECT_EQ(
+    security_files["IDENTITY_CA"],
+    std::filesystem::path("./test_folder/identity_ca.cert.pem").generic_string());
+  EXPECT_EQ(
+    security_files["CERTIFICATE"],
+    std::filesystem::path("./test_folder/cert.pem").generic_string());
+  EXPECT_EQ(
+    security_files["PRIVATE_KEY"],
+    std::filesystem::path("./test_folder/key.pem").generic_string());
+  EXPECT_EQ(
+    security_files["PERMISSIONS_CA"],
+    std::filesystem::path("./test_folder/permissions_ca.cert.pem").generic_string());
+  EXPECT_EQ(
+    security_files["GOVERNANCE"],
+    std::filesystem::path("./test_folder/governance.p7s").generic_string());
+  EXPECT_EQ(
+    security_files["PERMISSIONS"],
+    std::filesystem::path("./test_folder/permissions.p7s").generic_string());
+}
+
+TEST_P(test_security, pkcs11_support_check)
+{
+  std::filesystem::path dir = std::filesystem::path("./test_folder");
+  std::filesystem::remove_all(dir);
+  EXPECT_TRUE(std::filesystem::create_directories(dir));
+  EXPECT_TRUE(std::filesystem::exists(dir));
+  EXPECT_TRUE(std::filesystem::is_directory(dir));
+
+  std::array<std::string, 6> required_files = {
+    "identity_ca.cert.pem", "cert.pem", "key.pem",
+    "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s"
+  };
+  for (const std::string & filename : required_files) {
+    std::filesystem::path full_path = dir / filename;
+    std::ofstream output_buffer{full_path.generic_string()};
+    output_buffer << "test";
+    ASSERT_TRUE(std::filesystem::exists(full_path));
+  }
+
+  std::array<std::string, 4> pkcs11_files = {
+    "identity_ca.cert.p11", "cert.p11", "key.p11",
+    "permissions_ca.cert.p11"
+  };
+  for (const std::string & filename : pkcs11_files) {
+    std::filesystem::path full_path = dir / filename;
+    std::ofstream output_buffer{full_path.generic_string()};
+    output_buffer << "pkcs11://" << filename;
+    ASSERT_TRUE(std::filesystem::exists(full_path));
+  }
+
+  std::unordered_map<std::string, std::string> security_files;
+  ASSERT_TRUE(
+    rmw_dds_common::get_security_files(GetParam(), "", dir.generic_string(), security_files));
+
+  if (GetParam()) {
+    EXPECT_EQ(
+      security_files["IDENTITY_CA"],
+      "pkcs11://identity_ca.cert.p11");
+    EXPECT_EQ(
+      security_files["CERTIFICATE"],
+      "pkcs11://cert.p11");
+    EXPECT_EQ(
+      security_files["PRIVATE_KEY"],
+      "pkcs11://key.p11");
+    EXPECT_EQ(
+      security_files["PERMISSIONS_CA"],
+      "pkcs11://permissions_ca.cert.p11");
+  } else {
+    EXPECT_EQ(
+      security_files["IDENTITY_CA"],
+      std::filesystem::path("./test_folder/identity_ca.cert.pem").generic_string());
+    EXPECT_EQ(
+      security_files["CERTIFICATE"],
+      std::filesystem::path("./test_folder/cert.pem").generic_string());
+    EXPECT_EQ(
+      security_files["PRIVATE_KEY"],
+      std::filesystem::path("./test_folder/key.pem").generic_string());
+    EXPECT_EQ(
+      security_files["PERMISSIONS_CA"],
+      std::filesystem::path("./test_folder/permissions_ca.cert.pem").generic_string());
+  }
+  EXPECT_EQ(
+    security_files["GOVERNANCE"],
+    std::filesystem::path("./test_folder/governance.p7s").generic_string());
+  EXPECT_EQ(
+    security_files["PERMISSIONS"],
+    std::filesystem::path("./test_folder/permissions.p7s").generic_string());
+}
+
+TEST_P(test_security, only_pkcs11_present)
+{
+  std::filesystem::path dir = std::filesystem::path("./test_folder");
+  std::filesystem::remove_all(dir);
+  EXPECT_TRUE(std::filesystem::create_directories(dir));
+  EXPECT_TRUE(std::filesystem::exists(dir));
+  EXPECT_TRUE(std::filesystem::is_directory(dir));
+
+  std::array<std::string, 2> required_files = {
+    "governance.p7s", "permissions.p7s"
+  };
+  for (const std::string & filename : required_files) {
+    std::filesystem::path full_path = dir / filename;
+    std::ofstream output_buffer{full_path.generic_string()};
+    output_buffer << "test";
+    ASSERT_TRUE(std::filesystem::exists(full_path));
+  }
+
+  std::array<std::string, 4> pkcs11_files = {
+    "identity_ca.cert.p11", "cert.p11", "key.p11",
+    "permissions_ca.cert.p11"
+  };
+  for (const std::string & filename : pkcs11_files) {
+    std::filesystem::path full_path = dir / filename;
+    std::ofstream output_buffer{full_path.generic_string()};
+    output_buffer << "pkcs11://" << filename;
+    ASSERT_TRUE(std::filesystem::exists(full_path));
+  }
+
+  std::unordered_map<std::string, std::string> security_files;
+
+  if (GetParam()) {
+    ASSERT_TRUE(
+      rmw_dds_common::get_security_files(GetParam(), "", dir.generic_string(), security_files));
+    EXPECT_EQ(
+      security_files["IDENTITY_CA"],
+      "pkcs11://identity_ca.cert.p11");
+    EXPECT_EQ(
+      security_files["CERTIFICATE"],
+      "pkcs11://cert.p11");
+    EXPECT_EQ(
+      security_files["PRIVATE_KEY"],
+      "pkcs11://key.p11");
+    EXPECT_EQ(
+      security_files["PERMISSIONS_CA"],
+      "pkcs11://permissions_ca.cert.p11");
+    EXPECT_EQ(
+      security_files["GOVERNANCE"],
+      std::filesystem::path("./test_folder/governance.p7s").generic_string());
+    EXPECT_EQ(
+      security_files["PERMISSIONS"],
+      std::filesystem::path("./test_folder/permissions.p7s").generic_string());
+  } else {
+    ASSERT_FALSE(
+      rmw_dds_common::get_security_files(GetParam(), "", dir.generic_string(), security_files));
+    ASSERT_EQ(security_files.size(), 0UL);
+  }
+}
+
+TEST_P(test_security, pkcs11_prefix_ignored)
+{
+  std::filesystem::path dir = std::filesystem::path("./test_folder");
+  std::filesystem::remove_all(dir);
+  EXPECT_TRUE(std::filesystem::create_directories(dir));
+  EXPECT_TRUE(std::filesystem::exists(dir));
+  EXPECT_TRUE(std::filesystem::is_directory(dir));
+
+  std::array<std::string, 6> required_files = {
+    "identity_ca.cert.pem", "cert.pem", "key.pem",
+    "permissions_ca.cert.pem", "governance.p7s", "permissions.p7s"
+  };
+  for (const std::string & filename : required_files) {
+    std::filesystem::path full_path = dir / filename;
+    std::ofstream output_buffer{full_path.generic_string()};
+    output_buffer << "test";
+    ASSERT_TRUE(std::filesystem::exists(full_path));
+  }
+
+  std::array<std::string, 4> pkcs11_files = {
+    "identity_ca.cert.p11", "cert.p11", "key.p11",
+    "permissions_ca.cert.p11"
+  };
+  for (const std::string & filename : pkcs11_files) {
+    std::filesystem::path full_path = dir / filename;
+    std::ofstream output_buffer{full_path.generic_string()};
+    output_buffer << "pkcs11://" << filename;
+    ASSERT_TRUE(std::filesystem::exists(full_path));
+  }
+
+  std::unordered_map<std::string, std::string> security_files;
+  ASSERT_TRUE(
+    rmw_dds_common::get_security_files(
+      GetParam(), "file://", dir.generic_string(), security_files));
+
+  if (GetParam()) {
+    EXPECT_EQ(
+      security_files["IDENTITY_CA"],
+      "pkcs11://identity_ca.cert.p11");
+    EXPECT_EQ(
+      security_files["CERTIFICATE"],
+      "pkcs11://cert.p11");
+    EXPECT_EQ(
+      security_files["PRIVATE_KEY"],
+      "pkcs11://key.p11");
+    EXPECT_EQ(
+      security_files["PERMISSIONS_CA"],
+      "pkcs11://permissions_ca.cert.p11");
+  } else {
+    EXPECT_EQ(
+      security_files["IDENTITY_CA"],
+      "file://" + std::filesystem::path("./test_folder/identity_ca.cert.pem").generic_string());
+    EXPECT_EQ(
+      security_files["CERTIFICATE"],
+      "file://" + std::filesystem::path("./test_folder/cert.pem").generic_string());
+    EXPECT_EQ(
+      security_files["PRIVATE_KEY"],
+      "file://" + std::filesystem::path("./test_folder/key.pem").generic_string());
+    EXPECT_EQ(
+      security_files["PERMISSIONS_CA"],
+      "file://" + std::filesystem::path("./test_folder/permissions_ca.cert.pem").generic_string());
+  }
+  EXPECT_EQ(
+    security_files["GOVERNANCE"],
+    "file://" + std::filesystem::path("./test_folder/governance.p7s").generic_string());
+  EXPECT_EQ(
+    security_files["PERMISSIONS"],
+    "file://" + std::filesystem::path("./test_folder/permissions.p7s").generic_string());
+}
+
 INSTANTIATE_TEST_SUITE_P(
   test_security,
   test_security,
