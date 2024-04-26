@@ -2,6 +2,9 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 3.1.0 (2024-04-10)
 ------------------
 * Add pkcs11 support to get_security_files (`#66 <https://github.com/ros2/rmw_dds_common/issues/66>`_)
