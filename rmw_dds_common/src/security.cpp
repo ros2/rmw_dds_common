@@ -71,7 +71,23 @@ bool get_security_files(
   const std::string & prefix, const std::string & secure_root,
   std::unordered_map<std::string, std::string> & result)
 {
+#if !defined(_WIN32)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+# ifdef __clang__
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
+# endif
+#else  // !defined(_WIN32)
+# pragma warning(push)
+# pragma warning(disable: 4996)
+#endif
   return get_security_files(false, prefix, secure_root, result);
+#if !defined(_WIN32)
+# pragma GCC diagnostic pop
+#else  // !defined(_WIN32)
+# pragma warning(pop)
+#endif
 }
 
 bool get_security_files(
