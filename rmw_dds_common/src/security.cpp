@@ -24,6 +24,8 @@
 #include "rmw_security_common/security.hpp"
 #include "rmw/error_handling.h"
 
+#include "rcpputils/scope_exit.hpp"
+
 #include "rcutils/allocator.h"
 #include "rcutils/types/string_map.h"
 
@@ -63,6 +65,15 @@ bool get_security_files(
   rcutils_string_map_t security_files = rcutils_get_zero_initialized_string_map();
   rcutils_ret_t ret = rcutils_string_map_init(&security_files, 0, allocator);
 
+  auto scope_exit_ws = rcpputils::make_scope_exit(
+    [&security_files]()
+    {
+      rcutils_ret_t ret = rcutils_string_map_fini(&security_files);
+      if (ret != RMW_RET_OK) {
+        RMW_SET_ERROR_MSG("error cleaning string map memory");
+      }
+    });
+
   if (ret != RCUTILS_RET_OK) {
     RMW_SET_ERROR_MSG("error initializin map");
     return false;
@@ -84,12 +95,6 @@ bool get_security_files(
     }
     result[key] = value;
     key = rcutils_string_map_get_next_key(&security_files, key);
-  }
-
-  ret = rcutils_string_map_fini(&security_files);
-  if (ret != RCUTILS_RET_OK) {
-    RMW_SET_ERROR_MSG("error cleaning string map memory");
-    return false;
   }
 
   return true;
