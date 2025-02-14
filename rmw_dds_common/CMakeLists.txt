@@ -16,12 +16,14 @@ find_package(ament_cmake REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
+find_package(rmw_security_common REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
 
 ament_add_default_options()
 ament_export_dependencies(ament_cmake_core)
 ament_export_dependencies(rcutils)
+ament_export_dependencies(rmw_security_common)
 ament_export_dependencies(rmw)
 
 rosidl_generate_interfaces(
@@ -43,6 +45,7 @@ set_target_properties(${PROJECT_NAME}_library
   PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}_library PUBLIC
   rcutils::rcutils
+  rmw_security_common::rmw_security_common_library
   rmw::rmw)
 target_link_libraries(${PROJECT_NAME}_library PRIVATE
   rcpputils::rcpputils

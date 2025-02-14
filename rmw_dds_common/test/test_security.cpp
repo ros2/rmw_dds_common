@@ -49,6 +49,18 @@ static void write_test_pkcs11_content(const std::array<std::string, N> & pkcs11_
 
 class test_security : public ::testing::TestWithParam<bool> {};
 
+#if !defined(_WIN32)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+# ifdef __clang__
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wdeprecated-declarations"
+# endif
+#else  // !defined(_WIN32)
+# pragma warning(push)
+# pragma warning(disable: 4996)
+#endif
+
 TEST_P(test_security, files_exist_no_prefix)
 {
   std::filesystem::path dir = std::filesystem::path("./test_folder");
@@ -403,3 +415,9 @@ INSTANTIATE_TEST_SUITE_P(
   [](const testing::TestParamInfo<bool> & info) {
     return info.param ? "with_pkcs11_support" : "with_no_pkcs11_support";
   });
+
+#if !defined(_WIN32)
+# pragma GCC diagnostic pop
+#else  // !defined(_WIN32)
+# pragma warning(pop)
+#endif
