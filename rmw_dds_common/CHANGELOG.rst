@@ -2,6 +2,9 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.3.0 (2025-04-25)
+------------------
+
 3.2.1 (2025-02-14)
 ------------------
 * Deprecated security methods (`#77 <https://github.com/ros2/rmw_dds_common/issues/77>`_)
