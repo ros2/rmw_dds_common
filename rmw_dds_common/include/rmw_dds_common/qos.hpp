@@ -255,6 +255,37 @@ encode_type_hash_for_user_data_qos(
   const rosidl_type_hash_t & type_hash,
   std::string & string_out);
 
+/// Parse USER_DATA "key=value;key=value;"" encoding, finding value of key "sertypehash"
+/**
+ * \param[in] user_data USER_DATA qos raw bytes
+ * \param[in] user_data_size Length of user_data
+ * \param[out] type_hash_out Filled with type hash data if found, or to zero value if key not found
+ * \return RMW_RET_OK if key parsed successfully
+ * \return RMW_RET_UNSUPPORTED if key not found
+ * \return RMW_RET_INVALID_ARGUMENT if user_data is null
+ * \return RMW_RET_ERROR if sertypehash key found, but value could not be parsed
+ */
+RMW_DDS_COMMON_PUBLIC
+rmw_ret_t
+parse_sertype_hash_from_user_data(
+  const uint8_t * user_data,
+  size_t user_data_size,
+  rosidl_type_hash_t & type_hash_out);
+
+/// Encode type hash as "sertypehash=hash_string;" for use in USER_DATA QoS
+/**
+ * \param[in] type_hash Type hash value to encode
+ * \param[out] string_out On success, will be set to "sertypehash=stringified_type_hash;"
+ *   If type_hash's version is 0, string_out will be set to empty
+ * \return RMW_RET_OK on success, including empty string for unset version
+ * \return RMW_RET_BAD_ALLOC if memory allocation fails
+ */
+RMW_DDS_COMMON_PUBLIC
+rmw_ret_t
+encode_sertype_hash_for_user_data_qos(
+  const rosidl_type_hash_t & type_hash,
+  std::string & string_out);
+
 }  // namespace rmw_dds_common
 
 #endif  // RMW_DDS_COMMON__QOS_HPP_

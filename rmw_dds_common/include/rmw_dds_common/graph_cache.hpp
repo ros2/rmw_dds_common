@@ -26,6 +26,8 @@
 #include "rcutils/logging_macros.h"
 
 #include "rmw/names_and_types.h"
+#include "rmw/service_endpoint_info.h"
+#include "rmw/service_endpoint_info_array.h"
 #include "rmw/topic_endpoint_info.h"
 #include "rmw/topic_endpoint_info_array.h"
 #include "rmw/types.h"
@@ -42,6 +44,7 @@ namespace rmw_dds_common
 // Forward-declaration, defined at end of file.
 struct EntityInfo;
 struct ParticipantInfo;
+struct ServiceEntityInfo;
 
 /// Graph cache data structure.
 /**
@@ -86,6 +89,8 @@ public:
    * \param type_hash Hash of the description of the topic type.
    * \param participant_gid GUID of the participant.
    * \param qos QoS profile of the data writer.
+   * \param service_type_hash Optional pointer to the service type hash,
+   *  used when the writer is part of a service (e.g., request or reply topic)
    * \return `true` if the cache was updated, `false` if the data writer
    *   was already present.
    */
@@ -97,7 +102,8 @@ public:
     const std::string & type_name,
     const rosidl_type_hash_t & type_hash,
     const rmw_gid_t & participant_gid,
-    const rmw_qos_profile_t & qos);
+    const rmw_qos_profile_t & qos,
+    const rosidl_type_hash_t * service_type_hash = nullptr);
 
   /// Add a data reader based on discovery.
   /**
@@ -107,6 +113,8 @@ public:
    * \param type_hash Hash of the description of the topic type.
    * \param participant_gid GUID of the participant.
    * \param qos QoS profile of the data reader.
+   * \param service_type_hash Optional pointer to the service type hash,
+   *  used when the reader is part of a service (e.g., request or reply topic)
    * \return `true` if the cache was updated, `false` if the data reader
    *   was already present.
    */
@@ -118,7 +126,8 @@ public:
     const std::string & type_name,
     const rosidl_type_hash_t & type_hash,
     const rmw_gid_t & participant_gid,
-    const rmw_qos_profile_t & qos);
+    const rmw_qos_profile_t & qos,
+    const rosidl_type_hash_t * service_type_hash = nullptr);
 
   /// Add a data reader or writer.
   /**
@@ -129,6 +138,8 @@ public:
    * \param participant_gid GUID of the participant.
    * \param qos QoS profile of the entity.
    * \param is_reader Whether the entity is a data reader or a writer.
+   * \param service_type_hash Optional pointer to the service type hash,
+   *  used when the entity is part of a service (e.g., request or reply topic)
    * \return `true` if the cache was updated, `false` if the entity
    *   was already present.
    */
@@ -141,7 +152,8 @@ public:
     const rosidl_type_hash_t & type_hash,
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos,
-    bool is_reader);
+    bool is_reader,
+    const rosidl_type_hash_t * service_type_hash = nullptr);
 
   /// Remove a data writer.
   /**
@@ -399,6 +411,46 @@ public:
     rcutils_allocator_t * allocator,
     rmw_topic_endpoint_info_array_t * endpoints_info) const;
 
+  /// Get an array with information about the clients for a service.
+  /**
+   * \param[in] readers_info array containing data readers for the service’s reply topic.
+   * \param[in] writers_info array containing data writers for the service’s request topic.
+   * \param[in] allocator Allocator to allocate memory when populating `endpoints_info`.
+   * \param[out] endpoints_info A zero-initialized service endpoint information
+   *  array to be populated with client information derived from the topic readers and writers.
+   *
+   * \return RMW_RET_INVALID_ARGUMENT if any input is null, or
+   * \return RMW_RET_ERROR if an unexpected error occurs, or
+   * \return RMW_RET_OK if successful.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  get_clients_info_by_service(
+    const rmw_topic_endpoint_info_array_t * readers_info,
+    const rmw_topic_endpoint_info_array_t * writers_info,
+    rcutils_allocator_t * allocator,
+    rmw_service_endpoint_info_array_t * endpoints_info) const;
+
+  /// Get an array with information about the servers for a service.
+  /**
+   * \param[in] readers_info array containing data readers for the service’s request topic.
+   * \param[in] writers_info array containing data writers for the service’s reply topic.
+   * \param[in] allocator Allocator to allocate memory when populating `endpoints_info`.
+   * \param[out] endpoints_info A zero-initialized service endpoint information array
+   *  to be populated with server information derived from the topic readers and writers.
+   *
+   * \return RMW_RET_INVALID_ARGUMENT if any input is null, or
+   * \return RMW_RET_ERROR if an unexpected error occurs, or
+   * \return RMW_RET_OK if successful.
+   */
+  RMW_DDS_COMMON_PUBLIC
+  rmw_ret_t
+  get_servers_info_by_service(
+    const rmw_topic_endpoint_info_array_t * readers_info,
+    const rmw_topic_endpoint_info_array_t * writers_info,
+    rcutils_allocator_t * allocator,
+    rmw_service_endpoint_info_array_t * endpoints_info) const;
+
   /// Get all topic names and types.
   /**
    * \param[in] demangle_topic Function to demangle DDS topic names.
@@ -519,10 +571,14 @@ public:
   /// Sequence of endpoints gids.
   using GidSeq =
     decltype(std::declval<rmw_dds_common::msg::NodeEntitiesInfo>().writer_gid_seq);
+  /// \internal
+  /// Map from endpoint gids to service endpoints discovery info.
+  using EntityGidToServiceInfo = std::map<rmw_gid_t, ServiceEntityInfo, Compare_rmw_gid_t>;
 
 private:
   EntityGidToInfo data_writers_;
   EntityGidToInfo data_readers_;
+  EntityGidToServiceInfo data_services_;
   ParticipantToNodesMap participants_;
   std::function<void()> on_change_callback_ = nullptr;
 
@@ -568,6 +624,20 @@ struct EntityInfo
     topic_type_hash(topic_type_hash),
     participant_gid(participant_gid),
     qos(qos)
+  {}
+};
+
+/// Structure to represent the service discovery data from an endpoint (data reader or writer).
+struct ServiceEntityInfo
+{
+  /// Hash of the associated service type, if applicable.
+  /// This field is used to associate endpoints (readers or writers) that form a service,
+  /// whether the middleware explicitly supports services or represents them as separate topics.
+  /// See: https://github.com/ros2/rmw/pull/371#issuecomment-2763634820
+  rosidl_type_hash_t service_type_hash;
+
+  explicit ServiceEntityInfo(const rosidl_type_hash_t & service_type_hash)
+  : service_type_hash(service_type_hash)
   {}
 };
 
