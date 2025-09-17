@@ -2,6 +2,11 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.2.2 (2025-09-17)
+------------------
+* Update cmake requirements (`#80 <https://github.com/ros2/rmw_dds_common/issues/80>`_) (`#81 <https://github.com/ros2/rmw_dds_common/issues/81>`_)
+* Contributors: mergify[bot]
+
 3.2.1 (2025-02-14)
 ------------------
 * Deprecated security methods (`#77 <https://github.com/ros2/rmw_dds_common/issues/77>`_)
