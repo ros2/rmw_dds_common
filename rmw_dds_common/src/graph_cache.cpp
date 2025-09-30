@@ -81,23 +81,6 @@ GraphCache::add_writer(
 }
 
 bool
-GraphCache::add_writer(
-  const rmw_gid_t & gid,
-  const std::string & topic_name,
-  const std::string & type_name,
-  const rmw_gid_t & participant_gid,
-  const rmw_qos_profile_t & qos)
-{
-  return this->add_writer(
-    gid,
-    topic_name,
-    type_name,
-    rosidl_get_zero_initialized_type_hash(),
-    participant_gid,
-    qos);
-}
-
-bool
 GraphCache::add_reader(
   const rmw_gid_t & gid,
   const std::string & topic_name,
@@ -113,23 +96,6 @@ GraphCache::add_reader(
     std::forward_as_tuple(topic_name, type_name, type_hash, participant_gid, qos));
   GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, pair.second);
   return pair.second;
-}
-
-bool
-GraphCache::add_reader(
-  const rmw_gid_t & gid,
-  const std::string & topic_name,
-  const std::string & type_name,
-  const rmw_gid_t & participant_gid,
-  const rmw_qos_profile_t & qos)
-{
-  return this->add_reader(
-    gid,
-    topic_name,
-    type_name,
-    rosidl_get_zero_initialized_type_hash(),
-    participant_gid,
-    qos);
 }
 
 bool
@@ -158,25 +124,6 @@ GraphCache::add_entity(
     type_hash,
     participant_gid,
     qos);
-}
-
-bool
-GraphCache::add_entity(
-  const rmw_gid_t & gid,
-  const std::string & topic_name,
-  const std::string & type_name,
-  const rmw_gid_t & participant_gid,
-  const rmw_qos_profile_t & qos,
-  bool is_reader)
-{
-  return this->add_entity(
-    gid,
-    topic_name,
-    type_name,
-    rosidl_get_zero_initialized_type_hash(),
-    participant_gid,
-    qos,
-    is_reader);
 }
 
 bool

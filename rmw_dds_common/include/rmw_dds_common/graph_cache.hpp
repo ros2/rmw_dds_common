@@ -99,21 +99,6 @@ public:
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos);
 
-  /// Add a data writer based on discovery.
-  /**
-   * See add_reader with rosidl_type_hash_t, whose other parameters match these.
-   */
-  RMW_DDS_COMMON_PUBLIC
-    RCUTILS_DEPRECATED_WITH_MSG(
-    "Migrate to using the version of this function taking a type hash.")
-  bool
-  add_writer(
-    const rmw_gid_t & writer_gid,
-    const std::string & topic_name,
-    const std::string & type_name,
-    const rmw_gid_t & participant_gid,
-    const rmw_qos_profile_t & qos);
-
   /// Add a data reader based on discovery.
   /**
    * \param reader_gid GUID of the The data reader.
@@ -132,21 +117,6 @@ public:
     const std::string & topic_name,
     const std::string & type_name,
     const rosidl_type_hash_t & type_hash,
-    const rmw_gid_t & participant_gid,
-    const rmw_qos_profile_t & qos);
-
-  /// Add a data reader based on discovery.
-  /**
-   * See add_reader with rosidl_type_hash_t, whose other parameters match these.
-   */
-  RMW_DDS_COMMON_PUBLIC
-    RCUTILS_DEPRECATED_WITH_MSG(
-    "Migrate to using the version of this function taking a type hash.")
-  bool
-  add_reader(
-    const rmw_gid_t & reader_gid,
-    const std::string & topic_name,
-    const std::string & type_name,
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos);
 
@@ -169,22 +139,6 @@ public:
     const std::string & topic_name,
     const std::string & type_name,
     const rosidl_type_hash_t & type_hash,
-    const rmw_gid_t & participant_gid,
-    const rmw_qos_profile_t & qos,
-    bool is_reader);
-
-  /// Add a data reader or writer.
-  /**
-   * See add_entity with rosidl_type_hash_t, whose other parameters match these.
-   */
-  RMW_DDS_COMMON_PUBLIC
-    RCUTILS_DEPRECATED_WITH_MSG(
-    "Migrate to using the version of this function taking a type hash.")
-  bool
-  add_entity(
-    const rmw_gid_t & gid,
-    const std::string & topic_name,
-    const std::string & type_name,
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos,
     bool is_reader);
