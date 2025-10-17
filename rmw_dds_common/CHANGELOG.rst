@@ -2,6 +2,11 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.1 (2025-10-17)
+------------------
+* Remove deprecated GraphCache methods without type hash (`#83 <https://github.com/ros2/rmw_dds_common/issues/83>`_)
+* Contributors: Christophe Bedard
+
 4.0.0 (2025-07-01)
 ------------------
 * Update cmake requirements (`#80 <https://github.com/ros2/rmw_dds_common/issues/80>`_)
