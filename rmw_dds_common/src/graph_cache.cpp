@@ -69,13 +69,20 @@ GraphCache::add_writer(
   const std::string & type_name,
   const rosidl_type_hash_t & type_hash,
   const rmw_gid_t & participant_gid,
-  const rmw_qos_profile_t & qos)
+  const rmw_qos_profile_t & qos,
+  const rosidl_type_hash_t * service_type_hash)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   auto pair = data_writers_.emplace(
     std::piecewise_construct,
     std::forward_as_tuple(gid),
     std::forward_as_tuple(topic_name, type_name, type_hash, participant_gid, qos));
+  if (service_type_hash) {
+    data_services_.emplace(
+      std::piecewise_construct,
+      std::forward_as_tuple(gid),
+      std::forward_as_tuple(*service_type_hash));
+  }
   GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, pair.second);
   return pair.second;
 }
@@ -87,13 +94,20 @@ GraphCache::add_reader(
   const std::string & type_name,
   const rosidl_type_hash_t & type_hash,
   const rmw_gid_t & participant_gid,
-  const rmw_qos_profile_t & qos)
+  const rmw_qos_profile_t & qos,
+  const rosidl_type_hash_t * service_type_hash)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   auto pair = data_readers_.emplace(
     std::piecewise_construct,
     std::forward_as_tuple(gid),
     std::forward_as_tuple(topic_name, type_name, type_hash, participant_gid, qos));
+  if (service_type_hash) {
+    data_services_.emplace(
+      std::piecewise_construct,
+      std::forward_as_tuple(gid),
+      std::forward_as_tuple(*service_type_hash));
+  }
   GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, pair.second);
   return pair.second;
 }
@@ -106,7 +120,8 @@ GraphCache::add_entity(
   const rosidl_type_hash_t & type_hash,
   const rmw_gid_t & participant_gid,
   const rmw_qos_profile_t & qos,
-  bool is_reader)
+  bool is_reader,
+  const rosidl_type_hash_t * service_type_hash)
 {
   if (is_reader) {
     return this->add_reader(
@@ -115,7 +130,8 @@ GraphCache::add_entity(
       type_name,
       type_hash,
       participant_gid,
-      qos);
+      qos,
+      service_type_hash);
   }
   return this->add_writer(
     gid,
@@ -123,13 +139,15 @@ GraphCache::add_entity(
     type_name,
     type_hash,
     participant_gid,
-    qos);
+    qos,
+    service_type_hash);
 }
 
 bool
 GraphCache::remove_writer(const rmw_gid_t & gid)
 {
   std::lock_guard<std::mutex> guard(mutex_);
+  data_services_.erase(gid);
   bool ret = data_writers_.erase(gid) > 0;
   GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, ret);
   return ret;
@@ -139,6 +157,7 @@ bool
 GraphCache::remove_reader(const rmw_gid_t & gid)
 {
   std::lock_guard<std::mutex> guard(mutex_);
+  data_services_.erase(gid);
   bool ret = data_readers_.erase(gid) > 0;
   GRAPH_CACHE_CALL_ON_CHANGE_CALLBACK_IF(this, ret);
   return ret;
@@ -641,6 +660,176 @@ GraphCache::get_readers_info_by_topic(
     participants_,
     topic_name,
     demangle_type,
+    true,
+    allocator,
+    endpoints_info);
+}
+
+static
+rmw_ret_t
+__get_entities_info_by_service(
+  const GraphCache::EntityGidToServiceInfo & services,
+  const rmw_topic_endpoint_info_array_t * readers_info,
+  const rmw_topic_endpoint_info_array_t * writers_info,
+  bool is_server,
+  rcutils_allocator_t * allocator,
+  rmw_service_endpoint_info_array_t * endpoints_info)
+{
+  assert(allocator);
+  assert(endpoints_info);
+
+  if (0u == writers_info->size && 0u == readers_info->size) {
+    return RMW_RET_OK;
+  }
+
+  rmw_ret_t ret = rmw_service_endpoint_info_array_init_with_size(
+    endpoints_info,
+    readers_info->size,
+    allocator);
+  if (RMW_RET_OK != ret) {
+    return ret;
+  }
+  std::unique_ptr<
+    rmw_service_endpoint_info_array_t,
+    std::function<void(rmw_service_endpoint_info_array_t *)>>
+  endpoints_info_delete_on_error(
+    endpoints_info,
+    [allocator](rmw_service_endpoint_info_array_t * p) {
+      rmw_ret_t ret = rmw_service_endpoint_info_array_fini(
+        p,
+        allocator
+      );
+      if (RMW_RET_OK != ret) {
+        RCUTILS_LOG_ERROR_NAMED(
+          log_tag,
+          "Failed to destroy endpoints_info when function failed.");
+      }
+    }
+  );
+
+  auto matched_writer_info = [&writers_info]
+    (rmw_topic_endpoint_info_t & reader_info) -> rmw_topic_endpoint_info_t {
+      for(size_t i = 0; i < writers_info->size; i++) {
+        if(strcmp(writers_info->info_array[i].node_name, reader_info.node_name) == 0 &&
+          strcmp(writers_info->info_array[i].node_namespace, reader_info.node_namespace) == 0 &&
+          strcmp(writers_info->info_array[i].topic_type, reader_info.topic_type) == 0)
+        {
+          return writers_info->info_array[i];
+        }
+      }
+      return rmw_get_zero_initialized_topic_endpoint_info();
+    };
+
+  for(size_t i = 0; i < readers_info->size; i++) {
+    rmw_service_endpoint_info_t & endpoint_info = endpoints_info->info_array[i];
+    ret = rmw_service_endpoint_info_set_node_name(
+      &endpoint_info,
+      readers_info->info_array[i].node_name,
+      allocator);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+
+    ret = rmw_service_endpoint_info_set_node_namespace(
+      &endpoint_info,
+      readers_info->info_array[i].node_namespace,
+      allocator);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+
+    ret = rmw_service_endpoint_info_set_endpoint_type(
+      &endpoint_info,
+      is_server ? RMW_ENDPOINT_SERVER : RMW_ENDPOINT_CLIENT);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+
+    ret = rmw_service_endpoint_info_set_endpoint_count(&endpoint_info, 2);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+    ret = rmw_service_endpoint_info_set_service_type(
+      &endpoint_info,
+      readers_info->info_array[i].topic_type,
+      allocator);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+    rmw_gid_t gid;
+    memset(&gid.data, 0, RMW_GID_STORAGE_SIZE);
+    memcpy(&gid.data, readers_info->info_array[i].endpoint_gid, RMW_GID_STORAGE_SIZE);
+    if(services.find(gid) == services.end()) {
+      RCUTILS_LOG_ERROR_NAMED(log_tag, "Failed to find gid in services.");
+      return RMW_RET_ERROR;
+    }
+    ret = rmw_service_endpoint_info_set_service_type_hash(
+      &endpoint_info,
+      &services.at(gid).service_type_hash);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+
+    auto writer_info = matched_writer_info(readers_info->info_array[i]);
+    uint8_t gids[2][RMW_GID_STORAGE_SIZE];
+    memset(gids[0], 0, RMW_GID_STORAGE_SIZE * 2);
+    memcpy(gids[0], readers_info->info_array[i].endpoint_gid, RMW_GID_STORAGE_SIZE);
+    memcpy(gids[1], writer_info.endpoint_gid, RMW_GID_STORAGE_SIZE);
+
+    ret = rmw_service_endpoint_info_set_gids(
+      &endpoint_info,
+      (const uint8_t *) gids,
+      2,
+      RMW_GID_STORAGE_SIZE,
+      allocator);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+
+    const rmw_qos_profile_t qos_profiles[2] =
+    {readers_info->info_array[i].qos_profile, writer_info.qos_profile};
+    ret = rmw_service_endpoint_info_set_qos_profiles(
+      &endpoint_info,
+      qos_profiles,
+      2,
+      allocator);
+    if (RMW_RET_OK != ret) {
+      return ret;
+    }
+  }
+  endpoints_info_delete_on_error.release();
+  return RMW_RET_OK;
+}
+
+rmw_ret_t
+GraphCache::get_clients_info_by_service(
+  const rmw_topic_endpoint_info_array_t * readers_info,
+  const rmw_topic_endpoint_info_array_t * writers_info,
+  rcutils_allocator_t * allocator,
+  rmw_service_endpoint_info_array_t * endpoints_info) const
+{
+  std::lock_guard<std::mutex> lock(mutex_);
+  return __get_entities_info_by_service(
+    data_services_,
+    readers_info,
+    writers_info,
+    false,
+    allocator,
+    endpoints_info);
+}
+
+rmw_ret_t
+GraphCache::get_servers_info_by_service(
+  const rmw_topic_endpoint_info_array_t * readers_info,
+  const rmw_topic_endpoint_info_array_t * writers_info,
+  rcutils_allocator_t * allocator,
+  rmw_service_endpoint_info_array_t * endpoints_info) const
+{
+  std::lock_guard<std::mutex> lock(mutex_);
+  return __get_entities_info_by_service(
+    data_services_,
+    readers_info,
+    writers_info,
     true,
     allocator,
     endpoints_info);
