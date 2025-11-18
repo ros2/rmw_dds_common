@@ -2,6 +2,11 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.2 (2025-11-18)
+------------------
+* Add get_clients_info_by_service and get_servers_info_by_service; introduce ServiceEntityInfo to handle service type hash in graph cache (`#82 <https://github.com/ros2/rmw_dds_common/issues/82>`_)
+* Contributors: Minju, Lee
+
 4.0.1 (2025-10-17)
 ------------------
 * Remove deprecated GraphCache methods without type hash (`#83 <https://github.com/ros2/rmw_dds_common/issues/83>`_)
