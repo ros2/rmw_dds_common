@@ -775,9 +775,9 @@ TEST(test_qos, test_qos_profile_get_best_available_for_subscription)
     rmw_ret_t ret = rmw_dds_common::qos_profile_get_best_available_for_subscription(
       &zeroed_publishers_info, &subscription_profile);
     EXPECT_EQ(ret, RMW_RET_OK);
-    EXPECT_EQ(subscription_profile.reliability, RMW_QOS_POLICY_RELIABILITY_RELIABLE);
-    EXPECT_EQ(subscription_profile.durability, RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL);
-    EXPECT_EQ(subscription_profile.liveliness, RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC);
+    EXPECT_EQ(subscription_profile.reliability, RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
+    EXPECT_EQ(subscription_profile.durability, RMW_QOS_POLICY_DURABILITY_VOLATILE);
+    EXPECT_EQ(subscription_profile.liveliness, RMW_QOS_POLICY_LIVELINESS_AUTOMATIC);
     EXPECT_TRUE(
       rmw_time_equal(
         subscription_profile.liveliness_lease_duration,
