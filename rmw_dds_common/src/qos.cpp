@@ -441,7 +441,8 @@ qos_profile_get_best_available_for_subscription(
   }
 
   if (RMW_QOS_POLICY_RELIABILITY_BEST_AVAILABLE == subscription_profile->reliability) {
-    if (number_of_reliable == publishers_info->size) {
+    // avoid incorrectly selecting RELIABLE when no publishers are discovered
+    if (publishers_info->size > 0 && number_of_reliable == publishers_info->size) {
       subscription_profile->reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
     } else {
       subscription_profile->reliability = RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT;
@@ -449,7 +450,8 @@ qos_profile_get_best_available_for_subscription(
   }
 
   if (RMW_QOS_POLICY_DURABILITY_BEST_AVAILABLE == subscription_profile->durability) {
-    if (number_of_transient_local == publishers_info->size) {
+    // avoid incorrectly selecting TRANSIENT_LOCAL when no publishers are discovered
+    if (publishers_info->size > 0 && number_of_transient_local == publishers_info->size) {
       subscription_profile->durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
     } else {
       subscription_profile->durability = RMW_QOS_POLICY_DURABILITY_VOLATILE;
@@ -457,7 +459,8 @@ qos_profile_get_best_available_for_subscription(
   }
 
   if (RMW_QOS_POLICY_LIVELINESS_BEST_AVAILABLE == subscription_profile->liveliness) {
-    if (number_of_manual_by_topic == publishers_info->size) {
+    // avoid incorrectly selecting MANUAL_BY_TOPIC when no publishers are discovered
+    if (publishers_info->size > 0 && number_of_manual_by_topic == publishers_info->size) {
       subscription_profile->liveliness = RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC;
     } else {
       subscription_profile->liveliness = RMW_QOS_POLICY_LIVELINESS_AUTOMATIC;
