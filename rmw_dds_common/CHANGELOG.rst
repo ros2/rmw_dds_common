@@ -2,6 +2,11 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.1.1 (2026-01-13)
+------------------
+* If no publishers discovered, make the best available QoS for subscription. (`#84 <https://github.com/ros2/rmw_dds_common/issues/84>`_) (`#86 <https://github.com/ros2/rmw_dds_common/issues/86>`_)
+* Contributors: mergify[bot]
+
 3.1.0 (2024-04-10)
 ------------------
 * Add pkcs11 support to get_security_files (`#66 <https://github.com/ros2/rmw_dds_common/issues/66>`_)
