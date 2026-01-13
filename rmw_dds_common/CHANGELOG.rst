@@ -2,6 +2,11 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.3 (2026-01-13)
+------------------
+* If no publishers discovered, make the best available QoS for subscription. (`#84 <https://github.com/ros2/rmw_dds_common/issues/84>`_)
+* Contributors: Tomoya Fujita
+
 4.0.2 (2025-11-18)
 ------------------
 * Add get_clients_info_by_service and get_servers_info_by_service; introduce ServiceEntityInfo to handle service type hash in graph cache (`#82 <https://github.com/ros2/rmw_dds_common/issues/82>`_)
