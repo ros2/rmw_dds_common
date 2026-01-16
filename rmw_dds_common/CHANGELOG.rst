@@ -2,6 +2,9 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.0.0 (2026-01-16)
+------------------
+
 4.0.3 (2026-01-13)
 ------------------
 * If no publishers discovered, make the best available QoS for subscription. (`#84 <https://github.com/ros2/rmw_dds_common/issues/84>`_)
