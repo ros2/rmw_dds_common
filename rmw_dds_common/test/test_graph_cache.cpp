@@ -24,6 +24,7 @@
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
 #include "rcutils/testing/fault_injection.h"
+#include "rosidl_runtime_c/type_hash.h"
 #include "rmw/qos_profiles.h"
 #include "rmw/topic_endpoint_info.h"
 #include "rmw/topic_endpoint_info_array.h"
@@ -65,6 +66,7 @@ struct NameAndTypes
 {
   std::string name;
   std::vector<std::string> types;
+  std::vector<rosidl_type_hash_t> type_hashes = {};
 };
 
 void check_names_and_types(
@@ -82,6 +84,22 @@ void check_names_and_types(
     for (size_t j = 0; j < expected_types.size(); j++) {
       EXPECT_EQ(expected_types[j], types.data[j]);
     }
+    if (!item.type_hashes.empty()) {
+      ASSERT_NE(nullptr, names_and_types.type_hashes);
+      ASSERT_NE(nullptr, names_and_types.type_hashes[i]);
+      ASSERT_EQ(item.type_hashes.size(), expected_types.size());
+      for (size_t j = 0; j < item.type_hashes.size(); j++) {
+        EXPECT_EQ(
+          item.type_hashes[j].version,
+          names_and_types.type_hashes[i][j].version);
+        EXPECT_EQ(
+          0,
+          memcmp(
+            item.type_hashes[j].value,
+            names_and_types.type_hashes[i][j].value,
+            ROSIDL_TYPE_HASH_SIZE));
+      }
+    }
   }
 }
 
@@ -92,6 +110,17 @@ identity_demangle(const std::string & name)
 }
 
 using DemangleFunctionT = GraphCache::DemangleFunctionT;
+
+rosidl_type_hash_t
+make_test_hash(uint8_t seed)
+{
+  rosidl_type_hash_t hash = rosidl_get_zero_initialized_type_hash();
+  hash.version = 1;
+  for (size_t i = 0; i < ROSIDL_TYPE_HASH_SIZE; ++i) {
+    hash.value[i] = static_cast<uint8_t>(seed + i);
+  }
+  return hash;
+}
 
 void
 check_results(
@@ -444,6 +473,123 @@ TEST(test_graph_cache, add_remove_entities)
   check_results_by_topic(graph_cache, "topic4");
 }
 
+TEST(test_graph_cache, type_hashes_populated)
+{
+  GraphCache graph_cache;
+
+  const auto hash_int = make_test_hash(0x10);
+  const auto hash_str = make_test_hash(0x20);
+
+  EXPECT_TRUE(
+    graph_cache.add_entity(
+      gid_from_string("reader1"),
+      "topic1",
+      "Str",
+      hash_str,
+      gid_from_string("participant1"),
+      rmw_qos_profile_default,
+      true));
+
+  EXPECT_TRUE(
+    graph_cache.add_entity(
+      gid_from_string("reader2"),
+      "topic1",
+      "Int",
+      hash_int,
+      gid_from_string("participant1"),
+      rmw_qos_profile_default,
+      true));
+
+  check_results(
+    graph_cache,
+    {},
+  {
+    {"topic1", {"Int", "Str"}, {hash_int, hash_str}},
+  });
+}
+
+// A service is represented on DDS as a pair of request/reply topics, each
+// carrying a different message type with its own topic_type_hash. The hash
+// the user is meant to see, however, is the hash of the service descriptor
+// (passed in here as `service_type_hash`), which is identical on both sides
+// of the request/reply pair. This test pins down that the graph query
+// returns the service hash for service entries, not the per-direction
+// message hash that lives in topic_type_hash. Regression coverage for the
+// case where __get_names_and_types previously surfaced the wrong field.
+TEST(test_graph_cache, service_type_hash_overrides_topic_hash)
+{
+  GraphCache graph_cache;
+
+  // Distinct test hashes so a mix-up between the two would be visible.
+  const auto request_msg_hash = make_test_hash(0x30);   // hash of Request type
+  const auto reply_msg_hash = make_test_hash(0x40);     // hash of Reply type
+  const auto service_hash = make_test_hash(0xA0);       // hash of service descriptor
+
+  // The server's reader (for incoming requests) carries the request message
+  // hash on the underlying topic, but is part of a service so the service
+  // descriptor hash is also recorded.
+  EXPECT_TRUE(
+    graph_cache.add_entity(
+      gid_from_string("srv_reader"),
+      "rq/svc1Request",
+      "ServiceRequest",
+      request_msg_hash,
+      gid_from_string("participant1"),
+      rmw_qos_profile_default,
+      true,
+      &service_hash));
+
+  // The server's writer (for outgoing replies) carries the reply message
+  // hash on its topic. Same service, so the same service descriptor hash.
+  EXPECT_TRUE(
+    graph_cache.add_entity(
+      gid_from_string("srv_writer"),
+      "rr/svc1Reply",
+      "ServiceReply",
+      reply_msg_hash,
+      gid_from_string("participant1"),
+      rmw_qos_profile_default,
+      false,
+      &service_hash));
+
+  // Demangle the DDS request/reply topic names to the same service name so
+  // the graph cache groups them together as a single service entry.
+  auto service_demangle = [](const std::string & dds_name) -> std::string {
+      if (dds_name.rfind("rq/", 0) == 0) {return "/svc1";}
+      if (dds_name.rfind("rr/", 0) == 0) {return "/svc1";}
+      return "";
+    };
+  auto type_demangle = [](const std::string &) -> std::string {return "svc_pkg/srv/Svc1";};
+
+  rmw_names_and_types_t result = rmw_get_zero_initialized_names_and_types();
+  rcutils_allocator_t allocator = rcutils_get_default_allocator();
+  ASSERT_EQ(
+    RMW_RET_OK,
+    graph_cache.get_names_and_types(service_demangle, type_demangle, &allocator, &result));
+
+  // Service must appear exactly once and its hash must be the service
+  // descriptor hash, not either of the per-direction message hashes.
+  ASSERT_EQ(1u, result.names.size);
+  EXPECT_STREQ("/svc1", result.names.data[0]);
+  ASSERT_EQ(1u, result.types[0].size);
+  EXPECT_STREQ("svc_pkg/srv/Svc1", result.types[0].data[0]);
+  ASSERT_NE(nullptr, result.type_hashes);
+  ASSERT_NE(nullptr, result.type_hashes[0]);
+  EXPECT_EQ(service_hash.version, result.type_hashes[0][0].version);
+  EXPECT_EQ(
+    0,
+    memcmp(service_hash.value, result.type_hashes[0][0].value, ROSIDL_TYPE_HASH_SIZE));
+  // And confirm it is NOT either of the underlying message hashes.
+  EXPECT_NE(
+    0,
+    memcmp(request_msg_hash.value, result.type_hashes[0][0].value, ROSIDL_TYPE_HASH_SIZE));
+  EXPECT_NE(
+    0,
+    memcmp(reply_msg_hash.value, result.type_hashes[0][0].value, ROSIDL_TYPE_HASH_SIZE));
+
+  ASSERT_EQ(RMW_RET_OK, rmw_names_and_types_fini(&result));
+}
+
 void
 add_participants(
   GraphCache & graph_cache,
@@ -604,6 +750,53 @@ void dissociate_entities(
         elem.namespace_);
     }
   }
+}
+
+TEST(test_graph_cache, type_hashes_populated_by_node)
+{
+  GraphCache graph_cache;
+
+  const auto hash_str = make_test_hash(0x20);
+  const auto hash_int = make_test_hash(0x10);
+
+  add_participants(graph_cache, {"participant1"});
+  add_nodes(graph_cache, {{"participant1", "ns", "node1"}});
+
+  EXPECT_TRUE(
+    graph_cache.add_entity(
+      gid_from_string("reader1"),
+      "topic1",
+      "Str",
+      hash_str,
+      gid_from_string("participant1"),
+      rmw_qos_profile_default,
+      true));
+
+  EXPECT_TRUE(
+    graph_cache.add_entity(
+      gid_from_string("writer1"),
+      "topic1",
+      "Int",
+      hash_int,
+      gid_from_string("participant1"),
+      rmw_qos_profile_default,
+      false));
+
+  associate_entities(
+    graph_cache,
+  {
+    {"reader1", true, "participant1", "ns", "node1"},
+    {"writer1", false, "participant1", "ns", "node1"},
+  });
+
+  check_results_by_node(
+    graph_cache, "ns", "node1",
+  {
+    {"topic1", {"Str"}, {hash_str}},
+  },
+  {
+    {"topic1", {"Int"}, {hash_int}},
+  });
 }
 
 rmw_dds_common::msg::ParticipantEntitiesInfo
