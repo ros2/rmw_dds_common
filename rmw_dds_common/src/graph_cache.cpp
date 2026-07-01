@@ -32,10 +32,10 @@
 
 #include "rcutils/strdup.h"
 #include "rcutils/error_handling.h"
-#include "rcutils/types/string_map.h"
 
 #include "rmw/convert_rcutils_ret_to_rmw_ret.h"
 #include "rmw/error_handling.h"
+#include "rmw/impl/cpp/buffer_backend_metadata.hpp"
 #include "rmw/sanity_checks.h"
 #include "rmw/topic_endpoint_info.h"
 #include "rmw/topic_endpoint_info_array.h"
@@ -633,39 +633,17 @@ __get_entities_info_by_topic(
     }
 
     if (!entity_pair.second.buffer_backend_metadata.empty()) {
-      rcutils_string_map_t buffer_backend_metadata = rcutils_get_zero_initialized_string_map();
-      rcutils_ret_t rcutils_ret = rcutils_string_map_init(
-        &buffer_backend_metadata,
-        entity_pair.second.buffer_backend_metadata.size(),
-        *allocator);
-      if (RCUTILS_RET_OK != rcutils_ret) {
-        RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
-        rcutils_reset_error();
-        return rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
-      }
-
-      for (const auto & backend_pair : entity_pair.second.buffer_backend_metadata) {
-        rcutils_ret = rcutils_string_map_set(
-          &buffer_backend_metadata,
-          backend_pair.first.c_str(),
-          backend_pair.second.c_str());
-        if (RCUTILS_RET_OK != rcutils_ret) {
-          rcutils_ret_t fini_ret = rcutils_string_map_fini(&buffer_backend_metadata);
-          (void)fini_ret;
-          RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
-          rcutils_reset_error();
-          return rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+      const std::string buffer_backend_metadata =
+        rmw::impl::cpp::serialize_buffer_backend_metadata(
+          entity_pair.second.buffer_backend_metadata);
+      if (!buffer_backend_metadata.empty()) {
+        ret = rmw_topic_endpoint_info_set_buffer_backend_metadata(
+          &endpoint_info,
+          buffer_backend_metadata.c_str(),
+          allocator);
+        if (RMW_RET_OK != ret) {
+          return ret;
         }
-      }
-
-      ret = rmw_topic_endpoint_info_set_buffer_backend_metadata(
-        &endpoint_info,
-        &buffer_backend_metadata,
-        allocator);
-      rcutils_ret_t fini_ret = rcutils_string_map_fini(&buffer_backend_metadata);
-      (void)fini_ret;
-      if (RMW_RET_OK != ret) {
-        return ret;
       }
     }
     i++;
