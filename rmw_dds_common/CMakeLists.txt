@@ -2,17 +2,12 @@ cmake_minimum_required(VERSION 3.20)
 
 project(rmw_dds_common)
 
-# Default to C++17
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endif()
-
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_ros_core REQUIRED)
 find_package(rcpputils REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rmw REQUIRED)
@@ -43,6 +38,7 @@ add_library(${PROJECT_NAME}_library
 set_target_properties(${PROJECT_NAME}_library
   PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}_library PUBLIC
+  ament_cmake_ros_core::ament_ros_cxx_standard
   rcutils::rcutils
   rmw_security_common::rmw_security_common_library
   rmw::rmw)
