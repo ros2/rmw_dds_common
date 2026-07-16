@@ -835,7 +835,57 @@ GraphCache::get_servers_info_by_service(
     endpoints_info);
 }
 
-using NamesAndTypes = std::map<std::string, std::set<std::string>>;
+using NamesAndTypesAndHashes = std::map<std::string, std::map<std::string, rosidl_type_hash_t>>;
+
+static bool
+_type_hashes_equal(const rosidl_type_hash_t & lhs, const rosidl_type_hash_t & rhs)
+{
+  if (lhs.version != rhs.version) {
+    return false;
+  }
+  return 0 == std::memcmp(lhs.value, rhs.value, ROSIDL_TYPE_HASH_SIZE);
+}
+
+static void
+_insert_type_hash_or_warn(
+  std::map<std::string, rosidl_type_hash_t> & types_map,
+  const std::string & topic_name,
+  const std::string & type_name,
+  const rosidl_type_hash_t & hash)
+{
+  auto result = types_map.insert({type_name, hash});
+  if (!result.second && !_type_hashes_equal(result.first->second, hash)) {
+    RCUTILS_LOG_WARN_NAMED(
+      log_tag,
+      "Conflicting type hashes for topic '%s', type '%s'; storing zero hash",
+      topic_name.c_str(),
+      type_name.c_str());
+    result.first->second = rosidl_get_zero_initialized_type_hash();
+  }
+}
+
+// Pick the hash that callers of the graph query APIs should see for a given
+// entity. Services are implemented on DDS as a pair of underlying request/
+// reply topics, so a data_reader/data_writer that belongs to a service has
+// two hashes available:
+//   * topic_type_hash: hash of the per-direction message type (Request or
+//     Reply). Differs between server and client side.
+//   * service_type_hash: hash of the service descriptor itself. Identical on
+//     both sides and is the value the user expects.
+// When the entity is registered as a service (present in `services`), return
+// the service-level hash; otherwise fall back to the topic-level hash.
+static inline rosidl_type_hash_t
+_select_hash_for_entity(
+  const rmw_gid_t & gid,
+  const rosidl_type_hash_t & topic_type_hash,
+  const GraphCache::EntityGidToServiceInfo & services)
+{
+  auto it = services.find(gid);
+  if (it != services.end()) {
+    return it->second.service_type_hash;
+  }
+  return topic_type_hash;
+}
 
 static
 void
@@ -843,22 +893,34 @@ __get_names_and_types(
   const GraphCache::EntityGidToInfo & entities,
   DemangleFunctionT demangle_topic,
   DemangleFunctionT demangle_type,
-  NamesAndTypes & topics)
+  // Lookup map for entities that are part of a service. Passed in so this
+  // helper can return the service-level hash for service entries while
+  // continuing to return the topic-level hash for plain topics.
+  const GraphCache::EntityGidToServiceInfo & services,
+  NamesAndTypesAndHashes & topics)
 {
   assert(nullptr != demangle_topic);
   assert(nullptr != demangle_type);
   for (const auto & item : entities) {
     std::string demangled_topic_name = demangle_topic(item.second.topic_name);
-    if ("" != demangled_topic_name) {
-      topics[demangled_topic_name].insert(demangle_type(item.second.topic_type));
+    if ("" == demangled_topic_name) {
+      continue;
     }
+    const std::string type_name = demangle_type(item.second.topic_type);
+    const rosidl_type_hash_t hash =
+      _select_hash_for_entity(item.first, item.second.topic_type_hash, services);
+    _insert_type_hash_or_warn(
+      topics[demangled_topic_name],
+      demangled_topic_name,
+      type_name,
+      hash);
   }
 }
 
 static
 rmw_ret_t
 __populate_rmw_names_and_types(
-  NamesAndTypes topics,
+  const NamesAndTypesAndHashes & topics,
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types)
 {
@@ -881,26 +943,43 @@ __populate_rmw_names_and_types(
     }
     topic_names_and_types->names.data[index] = topic_name;
 
-    {
-      rcutils_ret_t rcutils_ret = rcutils_string_array_init(
-        &topic_names_and_types->types[index],
-        item.second.size(),
-        allocator);
-      if (RCUTILS_RET_OK != rcutils_ret) {
-        RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
-        rmw_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+    rcutils_ret_t rcutils_ret = rcutils_string_array_init(
+      &topic_names_and_types->types[index],
+      item.second.size(),
+      allocator);
+    if (RCUTILS_RET_OK != rcutils_ret) {
+      RMW_SET_ERROR_MSG(rcutils_get_error_string().str);
+      rmw_ret = rmw_convert_rcutils_ret_to_rmw_ret(rcutils_ret);
+      goto cleanup;
+    }
+
+    // allocate array of hashes for this topic
+    if (item.second.size() > 0) {
+      rosidl_type_hash_t * hashes = static_cast<rosidl_type_hash_t *>(
+        allocator->allocate(sizeof(rosidl_type_hash_t) * item.second.size(), allocator->state));
+      if (!hashes) {
+        RMW_SET_ERROR_MSG("failed to allocate memory for type hashes");
+        rmw_ret = RMW_RET_BAD_ALLOC;
         goto cleanup;
       }
+      topic_names_and_types->type_hashes[index] = hashes;
+    } else {
+      topic_names_and_types->type_hashes[index] = nullptr;
     }
     size_t type_index = 0;
-    for (const auto & type : item.second) {
-      char * type_name = rcutils_strdup(type.c_str(), *allocator);
+    for (const auto & type_pair : item.second) {
+      // type_pair: std::pair<const std::string, rosidl_type_hash_t>
+      char * type_name = rcutils_strdup(type_pair.first.c_str(), *allocator);
       if (!type_name) {
         RMW_SET_ERROR_MSG("failed to allocate memory for type name");
         rmw_ret = RMW_RET_BAD_ALLOC;
         goto cleanup;
       }
       topic_names_and_types->types[index].data[type_index] = type_name;
+      // copy the hash into the hashes array (if allocated)
+      if (topic_names_and_types->type_hashes[index]) {
+        topic_names_and_types->type_hashes[index][type_index] = type_pair.second;
+      }
       ++type_index;
     }
     ++index;
@@ -933,18 +1012,22 @@ GraphCache::get_names_and_types(
   // TODO(ivanpauno): Avoid using an intermediate representation.
   // We need a way to reallocate `topic_names_and_types.names` and `topic_names_and_types.names`.
   // Or have a good guess of the size (lower bound), and then shrink.
-  NamesAndTypes topics;
+  NamesAndTypesAndHashes topics;
   {
     std::lock_guard<std::mutex> guard(mutex_);
+    // Forward data_services_ so __get_names_and_types can return the
+    // service-level hash for entities that belong to a service.
     __get_names_and_types(
       data_readers_,
       demangle_topic,
       demangle_type,
+      data_services_,
       topics);
     __get_names_and_types(
       data_writers_,
       demangle_topic,
       demangle_type,
+      data_services_,
       topics);
   }
 
@@ -975,14 +1058,18 @@ __find_node(
 }
 
 static
-NamesAndTypes
+NamesAndTypesAndHashes
 __get_names_and_types_from_gids(
   const GraphCache::EntityGidToInfo & entities_map,
   const GraphCache::GidSeq & gids,
   DemangleFunctionT demangle_topic,
-  DemangleFunctionT demangle_type)
+  DemangleFunctionT demangle_type,
+  // Same role as in __get_names_and_types: when an entity is part of a
+  // service, the by-node graph query must report the service-level hash,
+  // not the per-direction message hash.
+  const GraphCache::EntityGidToServiceInfo & services)
 {
-  NamesAndTypes topics;
+  NamesAndTypesAndHashes topics;
 
   for (const auto & gid_msg : gids) {
     rmw_gid_t gid;
@@ -995,7 +1082,14 @@ __get_names_and_types_from_gids(
     if ("" == demangled_topic_name) {
       continue;
     }
-    topics[demangled_topic_name].insert(demangle_type(it->second.topic_type));
+    const std::string type_name = demangle_type(it->second.topic_type);
+    const rosidl_type_hash_t hash =
+      _select_hash_for_entity(gid, it->second.topic_type_hash, services);
+    _insert_type_hash_or_warn(
+      topics[demangled_topic_name],
+      demangled_topic_name,
+      type_name,
+      hash);
   }
   return topics;
 }
@@ -1013,6 +1107,9 @@ __get_names_and_types_by_node(
   DemangleFunctionT demangle_topic,
   DemangleFunctionT demangle_type,
   GetEntitiesGidsFuncT get_entities_gids,
+  // Threaded through to __get_names_and_types_from_gids so service hashes
+  // are reported correctly on the by-node graph query paths.
+  const GraphCache::EntityGidToServiceInfo & services,
   rcutils_allocator_t * allocator,
   rmw_names_and_types_t * topic_names_and_types)
 {
@@ -1033,11 +1130,12 @@ __get_names_and_types_by_node(
     return RMW_RET_NODE_NAME_NON_EXISTENT;
   }
 
-  NamesAndTypes topics = __get_names_and_types_from_gids(
+  NamesAndTypesAndHashes topics = __get_names_and_types_from_gids(
     entities_map,
     get_entities_gids(*node_info_ptr),
     demangle_topic,
-    demangle_type);
+    demangle_type,
+    services);
 
   return __populate_rmw_names_and_types(
     topics,
@@ -1070,6 +1168,7 @@ GraphCache::get_writer_names_and_types_by_node(
     demangle_topic,
     demangle_type,
     __get_writers_gids,
+    data_services_,
     allocator,
     topic_names_and_types);
 }
@@ -1099,6 +1198,7 @@ GraphCache::get_reader_names_and_types_by_node(
     demangle_topic,
     demangle_type,
     __get_readers_gids,
+    data_services_,
     allocator,
     topic_names_and_types);
 }
