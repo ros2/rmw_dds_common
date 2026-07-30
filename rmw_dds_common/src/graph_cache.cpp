@@ -31,9 +31,11 @@
 #include <vector>
 
 #include "rcutils/strdup.h"
+#include "rcutils/error_handling.h"
 
 #include "rmw/convert_rcutils_ret_to_rmw_ret.h"
 #include "rmw/error_handling.h"
+#include "rmw/impl/cpp/buffer_backend_metadata.hpp"
 #include "rmw/sanity_checks.h"
 #include "rmw/topic_endpoint_info.h"
 #include "rmw/topic_endpoint_info_array.h"
@@ -70,13 +72,15 @@ GraphCache::add_writer(
   const rosidl_type_hash_t & type_hash,
   const rmw_gid_t & participant_gid,
   const rmw_qos_profile_t & qos,
-  const rosidl_type_hash_t * service_type_hash)
+  const rosidl_type_hash_t * service_type_hash,
+  const std::unordered_map<std::string, std::string> & buffer_backend_metadata)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   auto pair = data_writers_.emplace(
     std::piecewise_construct,
     std::forward_as_tuple(gid),
-    std::forward_as_tuple(topic_name, type_name, type_hash, participant_gid, qos));
+    std::forward_as_tuple(
+      topic_name, type_name, type_hash, participant_gid, qos, buffer_backend_metadata));
   if (service_type_hash) {
     data_services_.emplace(
       std::piecewise_construct,
@@ -95,13 +99,15 @@ GraphCache::add_reader(
   const rosidl_type_hash_t & type_hash,
   const rmw_gid_t & participant_gid,
   const rmw_qos_profile_t & qos,
-  const rosidl_type_hash_t * service_type_hash)
+  const rosidl_type_hash_t * service_type_hash,
+  const std::unordered_map<std::string, std::string> & buffer_backend_metadata)
 {
   std::lock_guard<std::mutex> guard(mutex_);
   auto pair = data_readers_.emplace(
     std::piecewise_construct,
     std::forward_as_tuple(gid),
-    std::forward_as_tuple(topic_name, type_name, type_hash, participant_gid, qos));
+    std::forward_as_tuple(
+      topic_name, type_name, type_hash, participant_gid, qos, buffer_backend_metadata));
   if (service_type_hash) {
     data_services_.emplace(
       std::piecewise_construct,
@@ -121,7 +127,8 @@ GraphCache::add_entity(
   const rmw_gid_t & participant_gid,
   const rmw_qos_profile_t & qos,
   bool is_reader,
-  const rosidl_type_hash_t * service_type_hash)
+  const rosidl_type_hash_t * service_type_hash,
+  const std::unordered_map<std::string, std::string> & buffer_backend_metadata)
 {
   if (is_reader) {
     return this->add_reader(
@@ -131,7 +138,8 @@ GraphCache::add_entity(
       type_hash,
       participant_gid,
       qos,
-      service_type_hash);
+      service_type_hash,
+      buffer_backend_metadata);
   }
   return this->add_writer(
     gid,
@@ -140,7 +148,8 @@ GraphCache::add_entity(
     type_hash,
     participant_gid,
     qos,
-    service_type_hash);
+    service_type_hash,
+    buffer_backend_metadata);
 }
 
 bool
@@ -621,6 +630,21 @@ __get_entities_info_by_topic(
       &entity_pair.second.qos);
     if (RMW_RET_OK != ret) {
       return ret;
+    }
+
+    if (!entity_pair.second.buffer_backend_metadata.empty()) {
+      const std::string buffer_backend_metadata =
+        rmw::impl::cpp::serialize_buffer_backend_metadata(
+          entity_pair.second.buffer_backend_metadata);
+      if (!buffer_backend_metadata.empty()) {
+        ret = rmw_topic_endpoint_info_set_buffer_backend_metadata(
+          &endpoint_info,
+          buffer_backend_metadata.c_str(),
+          allocator);
+        if (RMW_RET_OK != ret) {
+          return ret;
+        }
+      }
     }
     i++;
   }

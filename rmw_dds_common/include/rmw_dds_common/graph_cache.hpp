@@ -103,7 +103,8 @@ public:
     const rosidl_type_hash_t & type_hash,
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos,
-    const rosidl_type_hash_t * service_type_hash = nullptr);
+    const rosidl_type_hash_t * service_type_hash = nullptr,
+    const std::unordered_map<std::string, std::string> & buffer_backend_metadata = {});
 
   /// Add a data reader based on discovery.
   /**
@@ -127,7 +128,8 @@ public:
     const rosidl_type_hash_t & type_hash,
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos,
-    const rosidl_type_hash_t * service_type_hash = nullptr);
+    const rosidl_type_hash_t * service_type_hash = nullptr,
+    const std::unordered_map<std::string, std::string> & buffer_backend_metadata = {});
 
   /// Add a data reader or writer.
   /**
@@ -153,7 +155,8 @@ public:
     const rmw_gid_t & participant_gid,
     const rmw_qos_profile_t & qos,
     bool is_reader,
-    const rosidl_type_hash_t * service_type_hash = nullptr);
+    const rosidl_type_hash_t * service_type_hash = nullptr,
+    const std::unordered_map<std::string, std::string> & buffer_backend_metadata = {});
 
   /// Remove a data writer.
   /**
@@ -611,6 +614,8 @@ struct EntityInfo
   rmw_gid_t participant_gid;
   /// Quality of service of the topic.
   rmw_qos_profile_t qos;
+  /// Buffer backend metadata advertised for this endpoint.
+  std::unordered_map<std::string, std::string> buffer_backend_metadata;
 
   /// Simple constructor.
   EntityInfo(
@@ -618,12 +623,14 @@ struct EntityInfo
     const std::string & topic_type,
     const rosidl_type_hash_t & topic_type_hash,
     const rmw_gid_t & participant_gid,
-    const rmw_qos_profile_t & qos)
+    const rmw_qos_profile_t & qos,
+    const std::unordered_map<std::string, std::string> & buffer_backend_metadata = {})
   : topic_name(topic_name),
     topic_type(topic_type),
     topic_type_hash(topic_type_hash),
     participant_gid(participant_gid),
-    qos(qos)
+    qos(qos),
+    buffer_backend_metadata(buffer_backend_metadata)
   {}
 };
 
