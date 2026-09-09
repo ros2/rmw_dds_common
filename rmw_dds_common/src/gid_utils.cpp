@@ -12,13 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "rmw_dds_common/gid_utils.hpp"
+
 #include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
-#include <iostream>
+#include <ostream>
 
 #include "rmw/types.h"
 
-#include "rmw_dds_common/gid_utils.hpp"
 #include "rmw_dds_common/msg/gid.hpp"
 
 using rmw_dds_common::Compare_rmw_gid_t;

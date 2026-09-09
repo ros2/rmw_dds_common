@@ -21,6 +21,7 @@
 #include <string>
 #include <thread>
 
+#include "rmw/ret_types.h"
 #include "rmw/types.h"
 
 #include "rmw_dds_common/graph_cache.hpp"

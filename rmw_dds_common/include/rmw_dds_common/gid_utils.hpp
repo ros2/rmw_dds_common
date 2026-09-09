@@ -15,6 +15,8 @@
 #ifndef RMW_DDS_COMMON__GID_UTILS_HPP_
 #define RMW_DDS_COMMON__GID_UTILS_HPP_
 
+#include <ostream>
+
 #include "rmw/types.h"
 
 #include "rmw_dds_common/visibility_control.h"

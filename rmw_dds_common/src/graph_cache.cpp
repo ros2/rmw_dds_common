@@ -16,9 +16,9 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <cstring>
 #include <functional>
-#include <iterator>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -30,13 +30,25 @@
 #include <utility>
 #include <vector>
 
+#include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
+#include "rcutils/logging_macros.h"
 #include "rcutils/strdup.h"
+#include "rcutils/types/rcutils_ret.h"
+#include "rcutils/types/string_array.h"
 
 #include "rmw/convert_rcutils_ret_to_rmw_ret.h"
 #include "rmw/error_handling.h"
+#include "rmw/names_and_types.h"
+#include "rmw/ret_types.h"
 #include "rmw/sanity_checks.h"
+#include "rmw/service_endpoint_info.h"
+#include "rmw/service_endpoint_info_array.h"
 #include "rmw/topic_endpoint_info.h"
 #include "rmw/topic_endpoint_info_array.h"
+#include "rmw/types.h"
+
+#include "rosidl_runtime_c/type_hash.h"
 
 #include "rmw_dds_common/gid_utils.hpp"
 
