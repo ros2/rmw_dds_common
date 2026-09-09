@@ -15,7 +15,7 @@
 #ifndef RMW_DDS_COMMON__TIME_UTILS_HPP_
 #define RMW_DDS_COMMON__TIME_UTILS_HPP_
 
-#include "rmw/types.h"
+#include "rmw/time.h"
 
 #include "rmw_dds_common/visibility_control.h"
 

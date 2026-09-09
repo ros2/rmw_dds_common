@@ -15,26 +15,28 @@
 #ifndef RMW_DDS_COMMON__GRAPH_CACHE_HPP_
 #define RMW_DDS_COMMON__GRAPH_CACHE_HPP_
 
+#include <cstddef>
 #include <functional>
 #include <map>
 #include <mutex>
+#include <ostream>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
-#include "rcutils/logging_macros.h"
+#include "rcutils/allocator.h"
+#include "rcutils/types/string_array.h"
 
 #include "rmw/names_and_types.h"
-#include "rmw/service_endpoint_info.h"
+#include "rmw/ret_types.h"
 #include "rmw/service_endpoint_info_array.h"
-#include "rmw/topic_endpoint_info.h"
 #include "rmw/topic_endpoint_info_array.h"
 #include "rmw/types.h"
 
+#include "rosidl_runtime_c/type_hash.h"
+
 #include "rmw_dds_common/gid_utils.hpp"
 #include "rmw_dds_common/visibility_control.h"
-#include "rmw_dds_common/msg/gid.hpp"
 #include "rmw_dds_common/msg/node_entities_info.hpp"
 #include "rmw_dds_common/msg/participant_entities_info.hpp"
 

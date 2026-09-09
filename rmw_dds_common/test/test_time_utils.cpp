@@ -15,6 +15,8 @@
 #include <gtest/gtest.h>
 #include <climits>
 
+#include "rmw/time.h"
+
 #include "rmw_dds_common/time_utils.hpp"
 
 static bool

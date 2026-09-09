@@ -14,6 +14,10 @@
 
 #include <gtest/gtest.h>
 
+#include <sstream>
+
+#include "rmw/types.h"
+
 #include "rmw_dds_common/gid_utils.hpp"
 
 using rmw_dds_common::Compare_rmw_gid_t;

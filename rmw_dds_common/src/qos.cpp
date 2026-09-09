@@ -15,18 +15,27 @@
 #include "rmw_dds_common/qos.hpp"
 
 #include <cstdarg>
-#include <cstring>
+#include <cstddef>
+#include <cstdint>
 #include <string>
 #include <vector>
 
 #include "rcpputils/scope_exit.hpp"
-#include "rcutils/error_handling.h"
+
+#include "rcutils/allocator.h"
 #include "rcutils/snprintf.h"
+#include "rcutils/types/rcutils_ret.h"
+
 #include "rmw/error_handling.h"
 #include "rmw/impl/cpp/key_value.hpp"
-#include "rmw/get_topic_endpoint_info.h"
 #include "rmw/qos_profiles.h"
 #include "rmw/qos_string_conversions.h"
+#include "rmw/ret_types.h"
+#include "rmw/time.h"
+#include "rmw/topic_endpoint_info_array.h"
+#include "rmw/types.h"
+
+#include "rosidl_runtime_c/type_hash.h"
 
 namespace rmw_dds_common
 {
