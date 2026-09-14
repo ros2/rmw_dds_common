@@ -16,6 +16,8 @@
 #include <gtest/gtest.h>
 #include <string.h>
 
+#include <cstddef>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -23,10 +25,21 @@
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
 
+#include "rcutils/allocator.h"
+#include "rcutils/error_handling.h"
 #include "rcutils/testing/fault_injection.h"
+#include "rcutils/types/rcutils_ret.h"
+#include "rcutils/types/string_array.h"
+
+#include "rmw/names_and_types.h"
 #include "rmw/qos_profiles.h"
+#include "rmw/ret_types.h"
 #include "rmw/topic_endpoint_info.h"
 #include "rmw/topic_endpoint_info_array.h"
+#include "rmw/types.h"
+
+#include "rosidl_runtime_c/type_hash.h"
+
 #include "./allocator_testing_utils.h"
 
 #include "rmw_dds_common/gid_utils.hpp"

@@ -20,6 +20,7 @@ ament_export_dependencies(ament_cmake_core)
 ament_export_dependencies(rcutils)
 ament_export_dependencies(rmw_security_common)
 ament_export_dependencies(rmw)
+ament_export_dependencies(rosidl_runtime_c)
 
 rosidl_generate_interfaces(
   ${PROJECT_NAME}
@@ -41,10 +42,10 @@ target_link_libraries(${PROJECT_NAME}_library PUBLIC
   ament_cmake_ros_core::ament_ros_cxx_standard
   rcutils::rcutils
   rmw_security_common::rmw_security_common_library
-  rmw::rmw)
-target_link_libraries(${PROJECT_NAME}_library PRIVATE
-  rcpputils::rcpputils
+  rmw::rmw
   rosidl_runtime_c::rosidl_runtime_c)
+target_link_libraries(${PROJECT_NAME}_library PRIVATE
+  rcpputils::rcpputils)
 target_include_directories(${PROJECT_NAME}_library
   PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"

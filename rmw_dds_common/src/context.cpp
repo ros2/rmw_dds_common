@@ -17,6 +17,7 @@
 #include <mutex>
 #include <string>
 
+#include "rmw/ret_types.h"
 #include "rmw/types.h"
 
 #include "rmw_dds_common/msg/participant_entities_info.hpp"

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -19,12 +20,16 @@
 
 #include "rcutils/macros.h"
 
+#include "rmw/names_and_types.h"
 #include "rmw/qos_profiles.h"
+#include "rmw/ret_types.h"
+#include "rmw/topic_endpoint_info_array.h"
+#include "rmw/types.h"
+
+#include "rosidl_runtime_c/type_hash.h"
 
 #include "rmw_dds_common/gid_utils.hpp"
 #include "rmw_dds_common/graph_cache.hpp"
-
-#include "rosidl_runtime_c/type_hash.h"
 
 using performance_test_fixture::PerformanceTest;
 using rmw_dds_common::GraphCache;

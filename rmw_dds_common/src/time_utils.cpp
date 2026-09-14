@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <climits>
+#include "rmw_dds_common/time_utils.hpp"
 
-#include "rmw/types.h"
+#include <climits>
+#include <cstdint>
+
 #include "rcutils/logging_macros.h"
 
-#include "rmw_dds_common/time_utils.hpp"
+#include "rmw/time.h"
 
 rmw_time_t
 rmw_dds_common::clamp_rmw_time_to_dds_time(const rmw_time_t & time)

@@ -14,13 +14,23 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
+#include <string>
 
 #include "osrf_testing_tools_cpp/scope_exit.hpp"
+
 #include "rcpputils/scope_exit.hpp"
+
+#include "rcutils/allocator.h"
+
 #include "rmw/error_handling.h"
 #include "rmw/qos_profiles.h"
+#include "rmw/ret_types.h"
 #include "rmw/types.h"
+
+#include "rosidl_runtime_c/type_hash.h"
 
 #include "rmw_dds_common/qos.hpp"
 

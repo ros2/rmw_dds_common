@@ -15,12 +15,19 @@
 #ifndef RMW_DDS_COMMON__QOS_HPP_
 #define RMW_DDS_COMMON__QOS_HPP_
 
+#include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <string>
 
+#include "rcutils/allocator.h"
+
 #include "rmw/qos_profiles.h"
+#include "rmw/ret_types.h"
 #include "rmw/topic_endpoint_info_array.h"
 #include "rmw/types.h"
+
+#include "rosidl_runtime_c/type_hash.h"
 
 #include "rmw_dds_common/visibility_control.h"
 
