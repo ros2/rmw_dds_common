@@ -2,6 +2,11 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.1.2 (2026-09-15)
+------------------
+* Include what you use (`#91 <https://github.com/ros2/rmw_dds_common/issues/91>`_)
+* Contributors: Alejandro Hernández Cordero
+
 6.1.1 (2026-07-15)
 ------------------
 * use C++ 20 in default. (`#90 <https://github.com/ros2/rmw_dds_common/issues/90>`_)
