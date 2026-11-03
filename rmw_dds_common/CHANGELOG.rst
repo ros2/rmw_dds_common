@@ -2,6 +2,14 @@
 Changelog for package rmw_dds_common
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+6.1.3 (2026-11-03)
+------------------
+* Remove custom ament_cppcheck usage. (`#96 <https://github.com/ros2/rmw_dds_common/issues/96>`_)
+* Remove ament_export_include_directories and ament_export_libraries calls (`#95 <https://github.com/ros2/rmw_dds_common/issues/95>`_)
+* Use the SPDX identifier Apache-2.0 in package.xml license tags (`#93 <https://github.com/ros2/rmw_dds_common/issues/93>`_)
+* Missing include (`#92 <https://github.com/ros2/rmw_dds_common/issues/92>`_)
+* Contributors: Alejandro Hernández Cordero, Chris Lalancette, Michael Carroll, Tomoya Fujita
+
 6.1.2 (2026-09-15)
 ------------------
 * Include what you use (`#91 <https://github.com/ros2/rmw_dds_common/issues/91>`_)
